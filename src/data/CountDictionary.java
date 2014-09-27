@@ -115,8 +115,17 @@ public class CountDictionary {
 		return index2str.size();
 	}
 	
+	// TODO: handle -1 index value.
 	public String getString(int index) {
 		return index2str.get(index);
+	}
+	
+	public String[] getStringArray(int[] indices) {
+		String[] strings = new String[indices.length];
+		for (int i = 0; i < indices.length; i++) {
+			strings[i] = getString(indices[i]);
+		}
+		return strings;
 	}
 	
 	public int getTotalCount() {

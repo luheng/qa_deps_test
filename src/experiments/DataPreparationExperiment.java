@@ -2,7 +2,11 @@ package experiments;
 
 import java.io.IOException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import data.DepCorpus;
+import data.DepSentence;
 
 public class DataPreparationExperiment {
 
@@ -14,10 +18,18 @@ public class DataPreparationExperiment {
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
 	
 	public static void main(String[] args) {
-		DepCorpus trainCorpus = new DepCorpus();
+		DepCorpus trainCorpus = new DepCorpus("en-universal-train");
 		try {
 			trainCorpus.loadCoNLL(trainFilename);
 		} catch (NumberFormatException | IOException e) {
+			e.printStackTrace();
+		}
+		
+		DepSentence sentence = trainCorpus.sentences.get(0);
+		JSONObject jsonSent = sentence.toJSON();
+		try {
+			System.out.println(jsonSent.toString(4));
+		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
