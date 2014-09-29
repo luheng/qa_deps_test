@@ -2,24 +2,25 @@
 <html>
 <meta charset="utf-8">
 <head>
-  <title>Constituency Test Annotator Tool</title>
+  <title>QA Dep Annotator Tool</title>
   <link rel="stylesheet" href="style.css">
- 
-  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>   
-  <script src="main.js"></script>
 </head> 
 
  
 <body>
-    <div id="top_container">
-        <div id="radio_container">
-          <input type="radio" name="task" id="qtask" value="question" checked> question task<br>
-          <input type="radio" name="task" id="atask" value="answer"> answer task <br>
-        </div>
-        <div id="progress"></div>
-    </div>
-    
+    <div id="browser"> </div>
+    <div id="annotator"> </div>
     <hr style="background:#91C5EB; border:0; height:3px" />
+    
+     <br>
+        <input type="button" class="google button" id="save_button" onclick="save_as();" value="Save as file">
+        <input type="button" class="google button" id="load_button" onclick="load_from();" value="Load from file">
+        <input type="text" id="filepath_input" value="input.json">
+      <br>
+    
+    <div id="sentence_viewer">
+      
+    </div>
     
     <div>
         <br>
@@ -34,7 +35,12 @@
     <div id="input_container">
         <textarea id="load_json_input"> </textarea>
     </div>
- 
+  
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="sent_browser.js"></script>
+    <script src="annotator.js"></script>   
+    <script src="main.js"></script>
   
 </body>
 

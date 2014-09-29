@@ -25,11 +25,22 @@ $("input, select").keydown(function(e) {
     }
 });
 
-function load_data() {
-	$.getJSON( "data/input.json", function(json_data) {
-		  main_sents = json_data["sentences"];
-		  console.log("Load data: " + main_sents.length + " sentences.")
+var my_sent_browser = new sent_browser(
+		{ top:10, right:10, bottom:10, left:10}, 300, 600, "#browser");
+
+var my_annotator = new annotator(
+		{ top:10, right:10, bottom:10, left:10},  1200, 50, "#annotator");
+
+function load_from() {
+	var filename = $("#filepath_input").val();
+	d3.json("./data/" + filename, function(data) {
+		main_sents = data["sentences"];
+		//init_data();
+		//init_annotator();
+		console.log("Loaded " + main_sents.length + " sentences.");
+		my_annotator.init();
+		my_annotator.update();
+		my_sent_browser.init();
+		my_sent_browser.update();
 	});
 }
-
-load_data();
