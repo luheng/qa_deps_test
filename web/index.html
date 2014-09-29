@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+  <title>Constituency Test Annotator Tool</title>
+  <link rel="stylesheet" href="style.css">
+ 
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>   
+  <script src="main.js"></script>
+</head> 
+
+ 
+<body>
+    <div id="top_container">
+        <div id="radio_container">
+          <input type="radio" name="task" id="qtask" value="question" checked> question task<br>
+          <input type="radio" name="task" id="atask" value="answer"> answer task <br>
+        </div>
+        <div id="progress"></div>
+    </div>
+    
+    <hr style="background:#91C5EB; border:0; height:3px" />
+    
+    <div>
+        <br>
+        <label for="q1"> question: </label>
+        <input type="text" class="question_input" id="q1" autofocus="true">
+       
+        <br> 
+        <label for="a1"> answer: </label>
+        <input type="text" class="question_input" id="a1" >
+    </div>
+    
+    <div id="input_container">
+        <textarea id="load_json_input"> </textarea>
+    </div>
+ 
+  
+</body>
+
+</html>

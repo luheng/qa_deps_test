@@ -1,0 +1,98 @@
+
+#browser {
+  float: left;
+  width: 20%;
+  height: auto;
+  overflow: auto;
+}
+
+#radio_container {
+	float: left;
+	width: 20%;
+}
+
+#progress {
+	float: right;
+	width: 80%;
+}
+
+#annotator {
+  float: left;
+  width: auto;
+  height: auto;
+  overflow: auto;
+}
+
+.question_input {
+  width: 800px;
+  height: 20px;
+  margin-left: 3px;
+  margin-top: 3px;
+}
+
+#answer {
+	width: 800px;
+	height: 20px;
+}
+
+#buttons {
+	margin-top : 5px;
+}
+
+#results {
+	margin-top : 10px;
+	width : 800px;
+	height : 250px;
+}
+
+#load_json_input {
+	margin-top : 10px;
+  width : 800px;
+  height : 250px;
+}
+
+label {
+	cursor: pointer;
+	width: 250px;
+	display: block;
+	float: left; 
+}
+
+.text {
+	pointer-events : none;
+}
+
+.node rect {
+	cursor : pointer;
+}
+.node text {
+	pointer-events : none;
+}
+
+.google.button {
+  padding: 6px 10px;
+  -webkit-border-radius: 2px 2px;
+  border: solid 1px rgb(153, 153, 153);
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(255, 255, 255)), to(rgb(221, 221, 221)));
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  text-shadow: 0px 1px 1px rgba(255,255,255,1);
+  line-height: 1;
+}
+
+.google.button.disabled, .google.button[disabled] {
+    padding: 6px 10px;
+  -webkit-border-radius: 2px 2px;
+  border: solid 1px rgb(153, 153, 153);
+  background: lightgrey;/*-webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(255, 255, 255)), to(rgb(221, 221, 221)));*/
+  color: #333;
+  text-decoration: none;
+  cursor: default;
+  display: inline-block;
+  text-align: center;
+  text-shadow: 0px 1px 1px rgba(255,255,255,1);
+  line-height: 1;
+}

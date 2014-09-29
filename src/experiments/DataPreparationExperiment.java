@@ -1,6 +1,8 @@
 package experiments;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import org.json.JSONException;
@@ -18,7 +20,9 @@ public class DataPreparationExperiment {
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-dev.conll";
 	public static final String testFilename =
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
-	
+	public static final String jsonFilename = 
+			"web/en-train-10sentences.json";
+			
 	public static final int maxSentenceID = 10000,
 						    numToLabel = 10,
 						    randomSeed = 12345;
@@ -39,9 +43,13 @@ public class DataPreparationExperiment {
 		}
 		JSONObject data = new JSONObject();
 		try {
+			PrintWriter writer = new PrintWriter(jsonFilename);
 			data.put("sentences", jsonSentences);
-			System.out.println(data.toString(4));
-		} catch (JSONException e) {
+			writer.println(data.toString(4));
+			writer.close();
+			System.out.println(String.format("Saved JSON file to: %s",
+											 jsonFilename));
+		} catch (JSONException | FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
