@@ -1,31 +1,75 @@
 
 #browser {
   float: left;
-  width: 20%;
+  width: 15%;
   height: auto;
   overflow: auto;
-}
-
-#radio_container {
-	float: left;
-	width: 20%;
 }
 
 #progress {
 	float: right;
-	width: 80%;
+	width: 85%;
 }
 
 #annotator {
   float: left;
-  width: auto;
+  width: 80%;
   height: auto;
   overflow: auto;
+  margin-left: 10px;
+  margin-top: 10px;
 }
 
-.question_input {
+#sentence_viewer {
+  float: left;
+  width: 800px;
+  height: auto;
+  overflow: auto;
+  margin-left: 20px;
+  margin-top: 10px;
+  border: 3px dashed blue;
+  padding: 5px 15px;
+}
+
+#p_sentence {
+  font-family : "Helvtica";
+  font-size : 16px;
+}
+
+
+#save_load_container {
+  float: left;
+  width: 1000px;
+  height: auto;
+  overflow: auto;
+  margin-left: 10px;
+  margin-top: 10px;
+}
+
+#filepath_input {
+  width: 200px;
+  height: 20px;
+  margin-left: 3px;
+  margin-top: 3px;
+}
+
+#filepath_output {
+  width: 200px;
+  height: 20px;
+  margin-left: 3px;
+  margin-top: 3px;
+}
+
+.qa_pair {
+	width: 960px;
+  border: 1px solid blue;
+  padding: 5px 15px;
+}
+
+.annotation_input {
   width: 800px;
   height: 20px;
+  font-size: 16px;
   margin-left: 3px;
   margin-top: 3px;
 }
@@ -45,15 +89,9 @@
 	height : 250px;
 }
 
-#load_json_input {
-	margin-top : 10px;
-  width : 800px;
-  height : 250px;
-}
-
 label {
 	cursor: pointer;
-	width: 250px;
+	width: 80px;
 	display: block;
 	float: left; 
 }
@@ -95,4 +133,69 @@ label {
   text-align: center;
   text-shadow: 0px 1px 1px rgba(255,255,255,1);
   line-height: 1;
+}
+
+.autocomp-input  {
+  text-align : left;
+  width : 200px;
+  margin : auto;
+  font-family : "Helvtica";
+  font-size : 12;
+  display: block;
+  padding: 5px;
+  transition: all 0.3s ease-out;
+}
+
+.ui-autocomplete {
+  height: 150px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.ui-menu {
+  list-style:none;
+  padding: 2px;
+  margin: 0;
+  display:block;
+  float: left;
+  background-color: white;
+}
+.ui-menu .ui-menu {
+  margin-top: -3px;
+}
+.ui-menu .ui-menu-item {
+  margin:0;
+  padding: 0;
+  zoom: 1;
+  float: left;
+  clear: left;
+  width: 100%;
+}
+.ui-menu .ui-menu-item a {
+  display:block;
+  padding:.2em .4em;
+  line-height:1.0;
+  width: 100%;
+  zoom:1;  
+}
+.ui-menu .ui-menu-item a.ui-state-hover,
+.ui-menu .ui-menu-item a.ui-state-active {
+  font-weight: normal;
+  margin: -1px;
+}
+
+.ui-helper-hidden-accessible {
+  display:none; 
+}
+
+.ui-tooltip {
+  padding: 8px;
+  position: absolute;
+  z-index: 9999;
+  max-width: 500px;
+  -webkit-box-shadow: 0 0 5px #aaa;
+  box-shadow: 0 0 5px #aaa;
+  background-color: white;
+  font-family: "Helvetica";
+  font-size: 12;
 }

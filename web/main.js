@@ -1,21 +1,5 @@
 
-var main_sents = [
-                  /*
-    {
-    	tokens: ["This", "is", "a", "test", "for", "constituents", "."], 
-    	phrases : [
-    	    { left: 1, right: 6, labels: ["VP"], in_gold : 1, in_pred : 1},
-    	    { left: 2, right: 4, labels: ["NP"], in_gold : 1, in_pred : 1},
-    	    { left: 2, right: 6, labels: ["NP"], in_gold : 1, in_pred : 1},
-    	    { left: 4, right: 6, labels: ["PP"], in_gold : 1, in_pred : 1},
-    	]
-    }, */
-];
-
-var main_qlist = []; // a list of phrase ids for each sentence, where the phrase contains a question
-
-var max_num_qs = 1;
-var main_task = "question";
+var main_sents = [];
 
 $("input, select").keydown(function(e) {
     if (e.keyCode == 40 || e.keyCode == 13) {
@@ -26,21 +10,32 @@ $("input, select").keydown(function(e) {
 });
 
 var my_sent_browser = new sent_browser(
-		{ top:10, right:10, bottom:10, left:10}, 300, 600, "#browser");
+		{ top:10, right:10, bottom:10, left:10}, 200, 600, "#browser");
 
-var my_annotator = new annotator(
-		{ top:10, right:10, bottom:10, left:10},  1200, 50, "#annotator");
+var my_annotator = new annotator("#annotator");
 
 function load_from() {
 	var filename = $("#filepath_input").val();
 	d3.json("./data/" + filename, function(data) {
 		main_sents = data["sentences"];
-		//init_data();
-		//init_annotator();
 		console.log("Loaded " + main_sents.length + " sentences.");
+		
 		my_annotator.init();
-		my_annotator.update();
+		my_annotator.update(0);
 		my_sent_browser.init();
 		my_sent_browser.update();
 	});
 }
+
+function save_as() {
+}
+
+// source: http://stackoverflow.com/questions/3148195/jquery-ui-autocomplete-use-startswith
+// Overrides the default autocomplete filter function to search only from the beginning of the string
+$.ui.autocomplete.filter = function (array, term) {
+    var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(term), "i");
+    return $.grep(array, function (value) {
+        return matcher.test(value.label || value.value || value);
+    });
+};
+

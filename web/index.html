@@ -8,36 +8,43 @@
 
  
 <body>
+    <h1> Write QA Pairs According to the Given Sentence</h1>
+    
     <div id="browser"> </div>
-    <div id="annotator"> </div>
-    <hr style="background:#91C5EB; border:0; height:3px" />
     
-     <br>
-        <input type="button" class="google button" id="save_button" onclick="save_as();" value="Save as file">
-        <input type="button" class="google button" id="load_button" onclick="load_from();" value="Load from file">
-        <input type="text" id="filepath_input" value="input.json">
+     <div id="save_load_container">
       <br>
-    
-    <div id="sentence_viewer">
+          <input type="button" class="google button" id="load_button" onclick="load_from();" value="Load from file">
+          <input type="text" id="filepath_input" value="input.json">
+          <input type="button" class="google button" id="save_button" onclick="save_as();" value="Save as file">
+          <input type="text" id="filepath_output" value="output.json">
+      <br>
       
+       <div>
+        <input type="button" class="google button" id="add_qa_button" onclick="my_annotator.append_qa_slot();" value="+ Add QA Slot">
+        <input type="button" class="google button" id="remove_qa_button" onclick="my_annotator.remove_qa_slot();" value="- Remove QA Slot">
+      </div>
+    </div>
+     
+    <div id="sentence_viewer">
     </div>
     
-    <div>
-        <br>
-        <label for="q1"> question: </label>
-        <input type="text" class="question_input" id="q1" autofocus="true">
-       
-        <br> 
-        <label for="a1"> answer: </label>
-        <input type="text" class="question_input" id="a1" >
-    </div>
     
-    <div id="input_container">
-        <textarea id="load_json_input"> </textarea>
+    <div id="annotator">
+      <!-- 
+        <div id="qa0" class="qa_pair">
+	        <label for="q0"> Q1: </label>
+	        <input type="text" class="annotation_input" id="q0" >      
+	        <br>
+	        <label for="a0"> A1: </label>
+	        <input type="text" class="annotation_input" id="a0" >
+        </div>
+         -->
     </div>
-  
+   
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
     <script src="sent_browser.js"></script>
     <script src="annotator.js"></script>   
     <script src="main.js"></script>

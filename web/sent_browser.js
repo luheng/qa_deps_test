@@ -11,8 +11,8 @@ function sent_browser(margin, width, height, tag) {
 		.append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
-    this.box_height = 20;
-    this.box_width = this.width * 0.8; 
+    this.box_height = 22;
+    this.box_width = width; 
     this.init();
 }
 
@@ -21,8 +21,9 @@ sent_browser.prototype = {
 		var self = this;
 		self.tdata = [];
 		for (var i = 0; i < main_sents.length; i++) {
+			var tokens = main_sents[i].tokens;
 			self.tdata.push( {
-				text : "sentence [" + i + "]",
+				text : "S" + i + ":  " + tokens.slice(0, 3).join(" ") + " ...",
 				sent_id : i,
 			});
 		}
@@ -30,8 +31,7 @@ sent_browser.prototype = {
 	    d3.select(self.tag).style("height", self.height + "px");
 	},
 	update : function() {
-		var self = this;
-		console.log(self.tdata);
+		var self = this;	
 		self.svg.selectAll("g.node").remove();
 		
 		var nodeEnter = self.svg.selectAll("g.node")
@@ -53,8 +53,7 @@ sent_browser.prototype = {
 				return my_annotator.sent_id == d.sent_id ? 0.2 : 1e-6;
 			})
 			.on("click", function(d, i) {
-				my_annotator.jump(d.sent_id);
-				console.log("clicking on " + d.sent_id);
+				my_annotator.update(d.sent_id);
 				self.update();
 			});
 		
@@ -62,9 +61,10 @@ sent_browser.prototype = {
 			.text(function(d) {
 				return d.text;
 			})
-			.attr("y", 10)
+			.attr("x", 4)
+			.attr("y", 12)
 			.attr("text-anchor", "left")
-			.style("font-size", "12px")
+			.style("font-size", "14px")
 			.style("fill", "black")
 			.style("fill-opacity", 1);
 	}	
