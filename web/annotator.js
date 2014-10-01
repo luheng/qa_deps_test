@@ -31,7 +31,7 @@ annotator.prototype = {
 		// Setup auto-completion.
 		self.auto_spans = [];
 		for (var i = 0; i < tokens.length; i++) {
-			for (var j = i + 1; j < tokens.length; j++) {
+			for (var j = i + 1; j <= tokens.length; j++) {
 				self.auto_spans.push(tokens.slice(i, j).join(" "));
 			}
 		}
@@ -47,6 +47,7 @@ annotator.prototype = {
 			$("#q" + i).val(cached_qa[i][0]);
 			$("#a" + i).val(cached_qa[i][1]);
 		}
+		$("#q" + (num_qa - 1)).focus();
  	},
  	draw_qa_slot : function(slot_id) {
  		var self = this;
@@ -67,6 +68,8 @@ annotator.prototype = {
 		var next_slot_id = self.num_slots[self.sent_id];
 		self.draw_qa_slot(next_slot_id);
 		self.num_slots[self.sent_id] += 1;
+		// Focus
+		$("#q" + next_slot_id).focus();
 	},
 	remove_qa_slot : function() {
 		var self = this;

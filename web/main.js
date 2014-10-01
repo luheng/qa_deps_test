@@ -1,11 +1,11 @@
 
 var main_sents = [];
 
-$("input, select").keydown(function(e) {
+$(".annotation_input").keydown(function(e) {
     if (e.keyCode == 40 || e.keyCode == 13) {
-        $(this).next('input, select').focus();
+        $(this).next(".annotation_input").focus();
     } else if (e.keyCode == 38) {
-    	$(this).prev('input, select').focus();
+    	$(this).prev(".annotation_input").focus();
     }
 });
 

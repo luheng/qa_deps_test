@@ -36,6 +36,11 @@ public class DataPreparationExperiment {
 		
 		int[] samples = RandomSampler.sampleIDs(maxSentenceID, numToLabel,
 				 								randomSeed);
+		// Print sampled sentences.
+		for (int id : samples) {
+			System.out.print(id + ", ");
+		}
+		System.out.println();
 		ArrayList<JSONObject> jsonSentences = new ArrayList<JSONObject>();
 		for (int id : samples) {
 			DepSentence sentence = trainCorpus.sentences.get(id);

@@ -55,9 +55,9 @@ sent_browser.prototype = {
 		nodeEnter.append("rect")
 			.attr("height", self.box_height)
 			.attr("width", self.box_width)
-			.attr("fill", "red")
+			.attr("fill", "#66CCFF")
 			.attr("opacity", function(d, i) {
-				return my_annotator.sent_id == d.sent_id ? 0.2 : 1e-6;
+				return my_annotator.sent_id == d.sent_id ? 0.4 : 1e-6;
 			})
 			.on("click", function(d, i) {
 				my_annotator.update(d.sent_id);
@@ -68,11 +68,7 @@ sent_browser.prototype = {
 			.text(function(d) {
 				return d.text;
 			})
-			.attr("x", 4)
-			.attr("y", 12)
-			.attr("text-anchor", "left")
-			.style("font-size", "14px")
-			.style("fill", "black")
-			.style("fill-opacity", 1);
+			.attr("x", 6)
+			.attr("y", 14);
 	}	
 };
