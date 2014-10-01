@@ -1,19 +1,19 @@
 
 #browser {
   float: left;
-  width: 15%;
+  width: 20%;
   height: auto;
   overflow: auto;
 }
 
 #progress {
 	float: right;
-	width: 85%;
+	width: 75%;
 }
 
 #annotator {
   float: left;
-  width: 80%;
+  width: 75%;
   height: auto;
   overflow: auto;
   margin-left: 10px;

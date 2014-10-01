@@ -20,19 +20,26 @@ sent_browser.prototype = {
 	init : function() {
 		var self = this;
 		self.tdata = [];
-		for (var i = 0; i < main_sents.length; i++) {
-			var tokens = main_sents[i].tokens;
-			self.tdata.push( {
-				text : "S" + i + ":  " + tokens.slice(0, 3).join(" ") + " ...",
-				sent_id : i,
-			});
-		}
 		self.height = Math.max(500, self.tdata.length * self.box_height + self.margin.top);
 	    d3.select(self.tag).style("height", self.height + "px");
 	},
 	update : function() {
 		var self = this;	
 		self.svg.selectAll("g.node").remove();
+		
+		self.tdata = [];
+		for (var i = 0; i < main_sents.length; i++) {
+			var tokens = main_sents[i].tokens;
+			var bar_text = "S" + i + ":  " + tokens.slice(0, 3).join(" ") + " ... ";
+			var num_qa = my_annotator.num_slots[i];
+			if (num_qa > 0) {
+				bar_text += "(" + num_qa + ")";
+			}
+			self.tdata.push( {
+				text : bar_text,
+				sent_id : i,
+			});
+		}
 		
 		var nodeEnter = self.svg.selectAll("g.node")
 				.data(self.tdata)

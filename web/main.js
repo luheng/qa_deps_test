@@ -10,7 +10,7 @@ $("input, select").keydown(function(e) {
 });
 
 var my_sent_browser = new sent_browser(
-		{ top:10, right:10, bottom:10, left:10}, 200, 600, "#browser");
+		{ top:10, right:10, bottom:10, left:10}, 300, 600, "#browser");
 
 var my_annotator = new annotator("#annotator");
 
@@ -28,6 +28,12 @@ function load_from() {
 }
 
 function save_as() {
+	my_annotator.get_annotation();
+	var results_data = "text/json;charset=utf-8," + encodeURIComponent(
+			JSON.stringify(main_sents, null, '\t'));
+	var filename = $("#filepath_output").val();
+	d3.selectAll("a").remove();
+	$('<a href="data:' + results_data + '" download="' + filename + '"> download JSON file </a>').appendTo("body");
 }
 
 // source: http://stackoverflow.com/questions/3148195/jquery-ui-autocomplete-use-startswith

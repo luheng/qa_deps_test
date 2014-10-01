@@ -7,10 +7,11 @@ function annotator(tag) {
 annotator.prototype = {
 	init : function() {
 		this.sent_id = 0;
-		this.qa_list = [];
+		//this.qa_list = [];
 		this.num_slots = [];
 		for (var i = 0; i < main_sents.length; i++) {
-			this.qa_list.push([]);
+			//this.qa_list.push([]);
+			main_sents[i].qa_pairs = [];
 			this.num_slots.push(0);
 		}
 	},
@@ -38,7 +39,7 @@ annotator.prototype = {
 		// TODO: assert number of slots should equal number of qa pairs.
 		$(".qa_pair").remove();
 		var num_qa = self.num_slots[self.sent_id];
-		var cached_qa = self.qa_list[self.sent_id];
+		var cached_qa = main_sents[self.sent_id].qa_pairs;
 		if (num_qa == 0) {
 			self.append_qa_slot();
 		} else for (var i = 0; i < num_qa; i++) {
@@ -86,6 +87,7 @@ annotator.prototype = {
 		for (var i = 0; i < curr_num_slots; i++) {
 			curr_qa.push([$("#q" + i).val(), $("#a" + i).val()]);
 		}
-		self.qa_list[self.sent_id] = curr_qa;
+		main_sents[self.sent_id].qa_pairs = curr_qa;
+		//self.qa_list[self.sent_id] = curr_qa;
 	}
 };
