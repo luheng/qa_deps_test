@@ -8,6 +8,7 @@ function sent_browser(margin, width, height, tag) {
 		.append("svg")
 		.attr("width", width)
 		.attr("height", height)
+		.attr("class", "browser_svg")
 		.append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
@@ -20,11 +21,10 @@ sent_browser.prototype = {
 	init : function() {
 		var self = this;
 		self.tdata = [];
-		self.height = Math.max(500, self.tdata.length * self.box_height + self.margin.top);
-	    d3.select(self.tag).style("height", self.height + "px");
 	},
 	update : function() {
-		var self = this;	
+		var self = this;
+		
 		self.svg.selectAll("g.node").remove();
 		
 		self.tdata = [];
@@ -40,6 +40,11 @@ sent_browser.prototype = {
 				sent_id : i,
 			});
 		}
+		
+		// Resize svg.
+		self.height = self.tdata.length * self.box_height + self.margin.top + self.margin.bottom;
+		console.log(self.height);
+	    d3.select(".browser_svg").attr("height", self.height + "px");
 		
 		var nodeEnter = self.svg.selectAll("g.node")
 				.data(self.tdata)

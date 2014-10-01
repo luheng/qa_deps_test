@@ -10,7 +10,7 @@ h1 {
 #browser {
   float: left;
   width: 20%;
-  height: auto;
+  height: 400px;
   overflow: auto;
 }
 
