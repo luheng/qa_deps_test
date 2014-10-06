@@ -1,0 +1,20 @@
+<p>  Write QA Pairs </p>
+
+<ul>
+        <li>{{ sentence.sentence_tokens }}</li>
+</ul>
+
+<form action="{% url 'annotation:sentence_submit' sentence.sentence_id %}" method="post">
+{% csrf_token %}
+
+<label for="Q0">Question:</label>
+<input type="text" name="Q0" id="Q0" value="" /> <br />
+
+<label for="A0">Answer</label>
+<input type="text" name="A0" id="A0" value="" /> <br />
+
+<input type="submit" value="OK." />
+
+<p> prev </p> <a href="{% url 'annotation:index' %}">back to index</a> <p> next </p>
+
+

@@ -1,0 +1,8 @@
+<p> annotation for sentence </p>
+
+<ul>
+{% for sentence in sentences %}
+		<li><a href="{% url 'annotation:sentence_annotation' sentence.sentence_id %}">{{ sentence.sentence_tokens }}</a></li>
+{% endfor %}
+</ul>
+
