@@ -1,6 +1,8 @@
 package experiments;
 
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import util.RandomSampler;
+import util.StringUtils;
 import data.DepCorpus;
 import data.DepSentence;
 
@@ -20,27 +23,21 @@ public class DataPreparationExperiment {
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-dev.conll";
 	public static final String testFilename =
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
+	
 	public static final String jsonFilename = 
-			"web/en-train-10sentences.json";
-			
+			"web/en-train-50sentences.json";
+	
+	public static final String plainTextFilename = 
+			"web/en-train-50sentences.txt";
+	
 	public static final int maxSentenceID = 10000,
-						    numToLabel = 10,
+						    numToLabel = 50,
 						    randomSeed = 12345;
-	public static void main(String[] args) {
-		DepCorpus trainCorpus = new DepCorpus("en-universal-train");
-		try {
-			trainCorpus.loadCoNLL(trainFilename);
-		} catch (NumberFormatException | IOException e) {
-			e.printStackTrace();
-		}
-		
-		int[] samples = RandomSampler.sampleIDs(maxSentenceID, numToLabel,
-				 								randomSeed);
-		// Print sampled sentences.
-		for (int id : samples) {
-			System.out.print(id + ", ");
-		}
-		System.out.println();
+	
+	//public static final String outputFormat = "text";
+	public static final String outputFormat = "json";
+	
+	private static void outputJSON(DepCorpus trainCorpus, int[] samples) {
 		ArrayList<JSONObject> jsonSentences = new ArrayList<JSONObject>();
 		for (int id : samples) {
 			DepSentence sentence = trainCorpus.sentences.get(id);
@@ -56,6 +53,48 @@ public class DataPreparationExperiment {
 											 jsonFilename));
 		} catch (JSONException | FileNotFoundException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private static void outputPlainText(DepCorpus trainCorpus, int[] samples) {
+		try {
+			@SuppressWarnings("resource")
+			PrintWriter writer = new PrintWriter(new BufferedWriter(
+					new FileWriter(plainTextFilename)));
+			for (int id : samples) {
+				DepSentence sentence = trainCorpus.sentences.get(id);
+				String[] tokens =
+						trainCorpus.wordDict.getStringArray(sentence.tokens); 
+				writer.print(String.format("%d\t%s\n\n", id,
+						StringUtils.join(" ", tokens)));
+			}
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public static void main(String[] args) {
+		DepCorpus trainCorpus = new DepCorpus("en-universal-train");
+		try {
+			trainCorpus.loadCoNLL(trainFilename);
+		} catch (NumberFormatException | IOException e) {
+			e.printStackTrace();
+		}
+		
+		int[] samples = RandomSampler.sampleIDs(maxSentenceID, numToLabel,
+				 								randomSeed);
+		// Print sampled sentences.
+		for (int id : samples) {
+			System.out.print(id + ", ");
+		}
+		System.out.println();
+		
+		if (outputFormat.equals("json")) {
+			outputJSON(trainCorpus, samples);
+		} else {
+			outputPlainText(trainCorpus, samples);
 		}
 	}
 

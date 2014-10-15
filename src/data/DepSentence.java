@@ -3,6 +3,8 @@ package data;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import util.StringUtils;
+
 public class DepSentence {
 	public int[] tokens, postags, parents, deptags;
 	public int length;
@@ -20,10 +22,24 @@ public class DepSentence {
 		this.sentenceID = sentenceID;
 	}
 	
-	// TODO (luheng): Pretty print dependency sentence.
+	public String getTokensString() {
+		return StringUtils.join(" ", corpus.wordDict.getStringArray(tokens));
+	}
+	
+	public String getPostagsString() {
+		return StringUtils.join(" ", corpus.posDict.getStringArray(postags));
+	}
+	
+	public String getDeptagString() {
+		return StringUtils.join(" ", corpus.depDict.getStringArray(deptags));
+	}
+	
 	@Override
 	public String toString() {
-		return "";
+		return "ID:\t" + this.sentenceID + "\n" +
+				this.getTokensString() + "\n" +
+				this.getPostagsString() + "\n" +
+				this.getDeptagString();
 	}
 	
 	public JSONObject toJSON() {
