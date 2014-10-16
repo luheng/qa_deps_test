@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import annotation.GreedyQuestionAnswerAligner;
 import util.RandomSampler;
 import data.AnnotatedSentence;
 import data.DepCorpus;
@@ -59,7 +60,7 @@ public class AnnotationAnalysis {
 						continue;
 					}
 					annotatedSentences.get(sentPtr).addQA(
-							new QAPair(info[0], info[1]));
+							new QAPair(info[0].trim(), info[1].trim()));
 				}
 			}
 			System.out.println(String.format("Read %d annotated sentences.",
@@ -71,6 +72,18 @@ public class AnnotationAnalysis {
 		// Print annotation
 		for (AnnotatedSentence sentence : annotatedSentences) {
 			System.out.println(sentence.toString());
+		}
+		
+		// Align
+		GreedyQuestionAnswerAligner aligner = new GreedyQuestionAnswerAligner();
+		for (AnnotatedSentence sentence : annotatedSentences) {
+			System.out.println(sentence.toString());
+			for (QAPair qa : sentence.qaList) {
+				aligner.align(sentence.sentence, qa);
+				// print alignment
+				qa.printAlignment();
+			}
+			System.out.println();
 		}
 	}
 }

@@ -2,11 +2,9 @@ package data;
 
 import java.util.ArrayList;
 
-import util.StringUtils;
-
 public class AnnotatedSentence {
-	DepSentence sentence;
-	ArrayList<QAPair> qaList;
+	public DepSentence sentence;
+	public ArrayList<QAPair> qaList;
 	
 	public AnnotatedSentence(DepSentence sentence) {
 		this.sentence = sentence;
