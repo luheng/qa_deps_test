@@ -16,18 +16,6 @@ public class GreedyQuestionAnswerAligner implements QuestionAnswerAligner {
 		greedyMatch(sentenceTokens, qa.answerTokens, qa.answerAlignment);
 	}
 	
-	private void alignQuestion(String[] sentenceTokens, String[] questionTokens,
-			int[] alignment) {
-		for (int i = 0; i < questionTokens.length; i++) {
-			for (int j = 0; j < sentenceTokens.length; j++) {
-				if (questionTokens[i].equalsIgnoreCase(sentenceTokens[j])) {
-					alignment[i] = j;
-					break;
-				}
-			}
-		}
-	}
-	
 	// Always prefer longest spans.
 	private void greedyMatch(String[] sentenceTokens, String[] qaTokens,
 							 int alignment[]) {
@@ -38,11 +26,20 @@ public class GreedyQuestionAnswerAligner implements QuestionAnswerAligner {
 			if (alignment[i] != -1) {
 				continue;
 			}
+			// This is a special treatment: Sometimes the answer ends with a
+			// single period that has nothing to do with the original sentence.
+			// We discard that punctuation for now.
+			if (i == qaTokens.length - 1 && qaTokens[i].equals(".")) {
+				break;
+			}
 			int best = 0, bestMatch = 0;
 			for (int j = 0; j + best < sentenceTokens.length; j++) {
 				int k = 0;
 				for ( ; j + k < sentenceTokens.length &&
 						i + k < qaTokens.length; k++) {
+					if (i+k == qaTokens.length - 1 && qaTokens[i+k].equals(".")) {
+						break;
+					}
 					if (!qaTokens[i+k].equalsIgnoreCase(sentenceTokens[j+k]) ||
 						matched[j+k]) {
 						break;

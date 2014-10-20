@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import constraints.AbstractConstraint;
+import constraints.AnswerIsSingleSpanConstraint;
+import constraints.AnswerIsSubtreeConstraint;
 import annotation.GreedyQuestionAnswerAligner;
 import util.RandomSampler;
 import data.AnnotatedSentence;
@@ -76,12 +79,25 @@ public class AnnotationAnalysis {
 		
 		// Align
 		GreedyQuestionAnswerAligner aligner = new GreedyQuestionAnswerAligner();
+		AbstractConstraint singleSpanConstraint = new AnswerIsSingleSpanConstraint(),
+						   subtreeConstraint = new AnswerIsSubtreeConstraint();
 		for (AnnotatedSentence sentence : annotatedSentences) {
 			System.out.println(sentence.toString());
+			for (int i = 0; i < sentence.depSentence.length; i++) {
+				System.out.print(sentence.depSentence.parents[i] + "\t");
+			}
+			System.out.println();
 			for (QAPair qa : sentence.qaList) {
-				aligner.align(sentence.sentence, qa);
-				// print alignment
-				qa.printAlignment();
+				aligner.align(sentence.depSentence, qa);
+
+				boolean isSingleSpan = singleSpanConstraint.validate(sentence.depSentence, qa);
+				boolean isSubtree = subtreeConstraint.validate(sentence.depSentence, qa);
+				if (!isSingleSpan || !isSubtree) {
+					// print alignment
+					qa.printAlignment();	
+					System.out.println(singleSpanConstraint.toString() + "\t" + isSingleSpan);
+					System.out.println(subtreeConstraint.toString() + "\t" + isSubtree);
+				}
 			}
 			System.out.println();
 		}

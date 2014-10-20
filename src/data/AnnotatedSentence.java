@@ -3,11 +3,11 @@ package data;
 import java.util.ArrayList;
 
 public class AnnotatedSentence {
-	public DepSentence sentence;
+	public DepSentence depSentence;
 	public ArrayList<QAPair> qaList;
 	
 	public AnnotatedSentence(DepSentence sentence) {
-		this.sentence = sentence;
+		this.depSentence = sentence;
 		qaList = new ArrayList<QAPair>();
 	}
 	
@@ -17,8 +17,8 @@ public class AnnotatedSentence {
 	
 	@Override
 	public String toString() {
-		String retStr = sentence.sentenceID + "\t" +
-					    sentence.getTokensString() + "\n";
+		String retStr = depSentence.sentenceID + "\t" +
+					    depSentence.getTokensString() + "\n";
 		for (int i = 0; i < qaList.size(); i++) {			
 			retStr += "\tQA" + i + "\t" + qaList.get(i).toString() + "\n";
 		}
