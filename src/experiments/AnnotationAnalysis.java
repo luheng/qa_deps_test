@@ -8,8 +8,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import constraints.AbstractConstraint;
+import constraints.AnswerIsHeadlessSubtreeConstraint;
 import constraints.AnswerIsSingleSpanConstraint;
 import constraints.AnswerIsSubtreeConstraint;
+import constraints.EntireAnswerIsSingleSpanConstraint;
 import annotation.GreedyQuestionAnswerAligner;
 import util.RandomSampler;
 import data.AnnotatedSentence;
@@ -73,33 +75,46 @@ public class AnnotationAnalysis {
 		}
 		
 		// Print annotation
+		/*
 		for (AnnotatedSentence sentence : annotatedSentences) {
 			System.out.println(sentence.toString());
 		}
+		*/
 		
 		// Align
 		GreedyQuestionAnswerAligner aligner = new GreedyQuestionAnswerAligner();
-		AbstractConstraint singleSpanConstraint = new AnswerIsSingleSpanConstraint(),
-						   subtreeConstraint = new AnswerIsSubtreeConstraint();
+		AbstractConstraint singleSpanConstraint = new EntireAnswerIsSingleSpanConstraint(),
+						   subtreeConstraint = new AnswerIsSubtreeConstraint(),
+						   headlessSubtreeConstraint = new AnswerIsHeadlessSubtreeConstraint();
+		
+		int qaCounter = 0;
 		for (AnnotatedSentence sentence : annotatedSentences) {
-			System.out.println(sentence.toString());
-			for (int i = 0; i < sentence.depSentence.length; i++) {
-				System.out.print(sentence.depSentence.parents[i] + "\t");
-			}
-			System.out.println();
 			for (QAPair qa : sentence.qaList) {
 				aligner.align(sentence.depSentence, qa);
 
 				boolean isSingleSpan = singleSpanConstraint.validate(sentence.depSentence, qa);
 				boolean isSubtree = subtreeConstraint.validate(sentence.depSentence, qa);
-				if (!isSingleSpan || !isSubtree) {
+				boolean isHeadlessSubtree = headlessSubtreeConstraint.validate(sentence.depSentence, qa);
+				
+				//if (!isSingleSpan) {
+				if (!isSubtree && !isHeadlessSubtree) {
+					// print sentence
+					System.out.println(sentence.toString());
+					for (int i = 0; i < sentence.depSentence.length; i++) {
+						System.out.print(sentence.depSentence.parents[i] + "\t");
+					}
+					System.out.println();
+					
 					// print alignment
 					qa.printAlignment();	
 					System.out.println(singleSpanConstraint.toString() + "\t" + isSingleSpan);
 					System.out.println(subtreeConstraint.toString() + "\t" + isSubtree);
+					System.out.println(headlessSubtreeConstraint.toString() + "\t" + isHeadlessSubtree);
+					System.out.println();		
+					qaCounter += 1;
 				}
 			}
-			System.out.println();
 		}
+		System.out.println("Number of answers that are not a single subtree:\t" + qaCounter);
 	}
 }

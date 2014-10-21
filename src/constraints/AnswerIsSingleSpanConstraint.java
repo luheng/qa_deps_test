@@ -32,7 +32,7 @@ public class AnswerIsSingleSpanConstraint implements AbstractConstraint {
 				return false;
 			}
 		}
-		return true;
+		return (numSpans > 0 || spanStart >= 0);
 	}
 
 	@Override

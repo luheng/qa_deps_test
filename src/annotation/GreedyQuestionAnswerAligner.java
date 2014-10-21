@@ -11,7 +11,6 @@ public class GreedyQuestionAnswerAligner implements QuestionAnswerAligner {
 	public void align(DepSentence sentence, QAPair qa) {
 		String[] sentenceTokens = sentence.corpus.wordDict.getStringArray(
 				sentence.tokens);
-		//alignQuestion(sentenceTokens, qa.questionTokens, qa.questionAlignment);
 		greedyMatch(sentenceTokens, qa.questionTokens, qa.questionAlignment);
 		greedyMatch(sentenceTokens, qa.answerTokens, qa.answerAlignment);
 	}
@@ -26,17 +25,15 @@ public class GreedyQuestionAnswerAligner implements QuestionAnswerAligner {
 			if (alignment[i] != -1) {
 				continue;
 			}
-			// This is a special treatment: Sometimes the answer ends with a
-			// single period that has nothing to do with the original sentence.
-			// We discard that punctuation for now.
-			if (i == qaTokens.length - 1 && qaTokens[i].equals(".")) {
-				break;
-			}
-			int best = 0, bestMatch = 0;
+			int best = 0, bestMatch = -1;
+			// Choose start point of the sentence.
 			for (int j = 0; j + best < sentenceTokens.length; j++) {
 				int k = 0;
 				for ( ; j + k < sentenceTokens.length &&
 						i + k < qaTokens.length; k++) {
+					// This is a special treatment: Sometimes the answer ends with a
+					// single period that has nothing to do with the original sentence.
+					// We discard that punctuation for now.
 					if (i+k == qaTokens.length - 1 && qaTokens[i+k].equals(".")) {
 						break;
 					}
@@ -50,13 +47,12 @@ public class GreedyQuestionAnswerAligner implements QuestionAnswerAligner {
 					bestMatch = j;
 				}
 			}
-			if (best > 0) {
+ 			if (best > 0) {
 				// System.out.println(String.format("%d, %d, %d", 
 				// 		i, bestMatch, best));
-				alignment[i] = bestMatch;
-				for (int j = 0; j < best; j++) {
-					alignment[i+j] = bestMatch + j;
-					matched[bestMatch+j] = true;
+				for (int k = 0; k < best; k++) {
+					alignment[i+k] = bestMatch + k;
+					matched[bestMatch+k] = true;
 				}
 			}
 		}

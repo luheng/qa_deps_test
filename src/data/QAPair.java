@@ -12,6 +12,12 @@ public class QAPair {
 	public QAPair(String question, String answer) {
 		questionTokens = question.split("\\s+");
 		answerTokens = answer.split("\\s+");
+		for (int i = 0; i < questionTokens.length; i++) {
+			questionTokens[i] = questionTokens[i].trim();
+		}
+		for (int i = 0; i < answerTokens.length; i++) {
+			answerTokens[i] = answerTokens[i].trim();
+		}
 		questionAlignment = new int[questionTokens.length];
 		answerAlignment = new int[answerTokens.length];
 		Arrays.fill(questionAlignment, -1);
