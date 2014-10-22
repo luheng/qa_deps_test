@@ -16,4 +16,8 @@ public class NonEmptyQuestionConstraint implements AbstractConstraint {
 		return (numAligned > 0);
 	}
 
+	@Override
+	public String toString() {
+		return "Question has non-empty alignment";
+	}
 }

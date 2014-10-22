@@ -12,26 +12,29 @@ import data.QAPair;
  *   the answer, except for exactly one word.
  */
 public class AnswerIsSubtreeConstraint implements AbstractConstraint {
-
+	
 	@Override
 	public boolean validate(DepSentence sentence, QAPair qa) {
-		int[] inversedAlignment = new int[sentence.length];
-		Arrays.fill(inversedAlignment, -1);
+		int[] inverseAlignment = new int[sentence.length];
+		Arrays.fill(inverseAlignment, -1);
 		for (int i = 0; i < qa.answerAlignment.length; i++) {
 			if (qa.answerAlignment[i] != -1) {
-				inversedAlignment[qa.answerAlignment[i]] = i;
+				inverseAlignment[qa.answerAlignment[i]] = i;
 			}
 		}
 		int numOutGoingEdges = 0;
 		for (int i = 0; i < sentence.length; i++) {
-			if (inversedAlignment[i] != -1) {
+			if (inverseAlignment[i] != -1) {
 				int parent = sentence.parents[i];
-				if (parent == -1 || inversedAlignment[parent] == -1) {
+				if (parent == -1 || inverseAlignment[parent] == -1) {
 					numOutGoingEdges += 1;
 				}
 			}
 		}
-		return numOutGoingEdges == 1;
+		if (numOutGoingEdges > 1) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override

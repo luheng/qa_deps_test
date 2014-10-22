@@ -12,10 +12,14 @@ import constraints.AnswerIsHeadlessSubtreeConstraint;
 import constraints.AnswerIsSingleSpanConstraint;
 import constraints.AnswerIsSubtreeConstraint;
 import constraints.EntireAnswerIsSingleSpanConstraint;
+import constraints.NonEmptyQuestionConstraint;
+import constraints.ReversedEdgeQAConstraint;
+import constraints.SingleEdgeQAConstraint;
 import annotation.GreedyQuestionAnswerAligner;
 import util.RandomSampler;
 import data.AnnotatedSentence;
 import data.DepCorpus;
+import data.DepSentence;
 import data.QAPair;
 
 public class AnnotationAnalysis {
@@ -85,23 +89,35 @@ public class AnnotationAnalysis {
 		GreedyQuestionAnswerAligner aligner = new GreedyQuestionAnswerAligner();
 		AbstractConstraint singleSpanConstraint = new EntireAnswerIsSingleSpanConstraint(),
 						   subtreeConstraint = new AnswerIsSubtreeConstraint(),
-						   headlessSubtreeConstraint = new AnswerIsHeadlessSubtreeConstraint();
+						   headlessSubtreeConstraint = new AnswerIsHeadlessSubtreeConstraint(),
+						   nonEmptyQuestionConstraint = new NonEmptyQuestionConstraint(),
+						   singleEdgeQAConstraint = new SingleEdgeQAConstraint(),
+						   reversedEdgeQAConstraint = new ReversedEdgeQAConstraint();
 		
-		int qaCounter = 0;
+		int qaCounter = 0, totalQAPairs = 0;
 		for (AnnotatedSentence sentence : annotatedSentences) {
+			DepSentence depSentence = sentence.depSentence;
+			String[] tokens = trainCorpus.wordDict.getStringArray(depSentence.tokens);
+			
 			for (QAPair qa : sentence.qaList) {
 				aligner.align(sentence.depSentence, qa);
-
-				boolean isSingleSpan = singleSpanConstraint.validate(sentence.depSentence, qa);
-				boolean isSubtree = subtreeConstraint.validate(sentence.depSentence, qa);
-				boolean isHeadlessSubtree = headlessSubtreeConstraint.validate(sentence.depSentence, qa);
 				
-				//if (!isSingleSpan) {
-				if (!isSubtree && !isHeadlessSubtree) {
+				boolean isSingleSpan = singleSpanConstraint.validate(depSentence, qa),
+						isSubtree = subtreeConstraint.validate(depSentence, qa),
+						isHeadlessSubtree = headlessSubtreeConstraint.validate(depSentence, qa),
+						isNonEmptyQuestion = nonEmptyQuestionConstraint.validate(depSentence, qa),
+						isSingleEdgeQA = singleEdgeQAConstraint.validate(depSentence, qa),
+						isReversedEdgeQA = reversedEdgeQAConstraint.validate(depSentence, qa);
+					
+				// if (!isSingleSpan || !isNonEmptyQuestion) {
+				// if (!isSubtree && !isHeadlessSubtree) {
+				// if (isSubtree || isHeadlessSubtree) {
+				if (!isSingleEdgeQA && !isReversedEdgeQA) {
 					// print sentence
 					System.out.println(sentence.toString());
 					for (int i = 0; i < sentence.depSentence.length; i++) {
-						System.out.print(sentence.depSentence.parents[i] + "\t");
+						System.out.print(String.format("%d %s (%d)\t", i,
+								tokens[i], sentence.depSentence.parents[i]));
 					}
 					System.out.println();
 					
@@ -110,11 +126,16 @@ public class AnnotationAnalysis {
 					System.out.println(singleSpanConstraint.toString() + "\t" + isSingleSpan);
 					System.out.println(subtreeConstraint.toString() + "\t" + isSubtree);
 					System.out.println(headlessSubtreeConstraint.toString() + "\t" + isHeadlessSubtree);
+					System.out.println(nonEmptyQuestionConstraint.toString() + "\t" + isNonEmptyQuestion);
+					System.out.println(singleEdgeQAConstraint.toString() + "\t" + isSingleEdgeQA);
+					System.out.println(reversedEdgeQAConstraint.toString() + "\t" + isReversedEdgeQA);
 					System.out.println();		
 					qaCounter += 1;
 				}
+				totalQAPairs += 1;
 			}
 		}
+		System.out.println("Total number of qa pairs:\t" + totalQAPairs);
 		System.out.println("Number of answers that are not a single subtree:\t" + qaCounter);
 	}
 }
