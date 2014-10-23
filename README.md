@@ -78,7 +78,6 @@ The “In” of "in the Puget Sound and Wichita , Kan. , areas” depends on “
 - Constraints on answers are easy to enforce, if we are careful about designing the annotation UI to avoid typos and tokenization problems.
 - Aligning question words is difficult because word orders are messed up.
 - I didn’t go through all the violating cases for question constraints. Some of them are related to prepositional head (i.e. of, by, from). Others seem to be about semantic relations that are not directly captured in the syntactic structure.
-- 
 
 
 #Other Annotation Methods We Thought About
