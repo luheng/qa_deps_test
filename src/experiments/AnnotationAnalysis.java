@@ -109,9 +109,11 @@ public class AnnotationAnalysis {
 						isSingleEdgeQA = singleEdgeQAConstraint.validate(depSentence, qa),
 						isReversedEdgeQA = reversedEdgeQAConstraint.validate(depSentence, qa);
 					
-				// if (!isSingleSpan || !isNonEmptyQuestion) {
+				// if (!isSingleSpan) {
+				// if (!isSubtree) {
 				// if (!isSubtree && !isHeadlessSubtree) {
 				// if (isSubtree || isHeadlessSubtree) {
+				// if (!isSingleEdgeQA) {
 				if (!isSingleEdgeQA && !isReversedEdgeQA) {
 					// print sentence
 					System.out.println(sentence.toString());
