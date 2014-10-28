@@ -39,12 +39,12 @@ public class SingleEdgeQAConstraint implements AbstractConstraint {
 			}
 		}
 		if (numOutGoingEdges == 1) {
-			System.out.println(StringUtils.join(" ", qa.answerTokens) +
-					"- headInside: " + headInside);
+		//	System.out.println(StringUtils.join(" ", qa.answerTokens) +
+		//			"- headInside: " + headInside);
 			return headInside;
 		} else {
-			System.out.println(StringUtils.join(" ", qa.answerTokens) +
-					"- headOutside: " + headOutside);
+		//	System.out.println(StringUtils.join(" ", qa.answerTokens) +
+		//			"- headOutside: " + headOutside);
 			return headOutside;
 		}
 	}
@@ -56,7 +56,7 @@ public class SingleEdgeQAConstraint implements AbstractConstraint {
 			// Answer does not represent a single subtree.
 			return false;			
 		}
-		System.out.println("subtree head:\t" + subtreeHead);
+		// System.out.println("subtree head:\t" + subtreeHead);
 		for (int i : qa.questionAlignment) {
 			// Here we allow question to contain the answer 's head.
 			if (i == sentence.parents[subtreeHead] || i == subtreeHead) {

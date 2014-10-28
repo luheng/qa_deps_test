@@ -114,7 +114,8 @@ public class AnnotationAnalysis {
 				// if (!isSubtree && !isHeadlessSubtree) {
 				// if (isSubtree || isHeadlessSubtree) {
 				// if (!isSingleEdgeQA) {
-				if (!isSingleEdgeQA && !isReversedEdgeQA) {
+				// if (!isSingleEdgeQA && !isReversedEdgeQA) {
+				if (sentence.depSentence.length < 15) {
 					// print sentence
 					System.out.println(sentence.toString());
 					for (int i = 0; i < sentence.depSentence.length; i++) {
