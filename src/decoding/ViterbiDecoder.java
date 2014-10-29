@@ -22,21 +22,20 @@ public class ViterbiDecoder implements Decoder {
 			seqScore[i][i] = 0; 
 			linkScore[i][i] = Double.NEGATIVE_INFINITY;
 		}
-
+		// Initialize all scores.
 		for(int i = 0; i < length - 1; i++) {
-			seqScore[i][i+1] = linkScore[i][i+1] = graph.edges[i+1][i]; 
-			seqScore[i+1][i] = linkScore[i+1][i] = graph.edges[i][i+1]; 
-			
+			seqScore[i][i+1] = linkScore[i][i+1] = graph.edges[i][i+1]; 
+			seqScore[i+1][i] = linkScore[i+1][i] = graph.edges[i+1][i]; 
 			for(int j = i + 2; j < length; j++) {
 				linkScore[i][j] = linkScore[j][i] = Double.NEGATIVE_INFINITY;
 				seqScore[i][j] = seqScore[j][i] = Double.NEGATIVE_INFINITY;
 			}
 		}
-		
+		// Enumerate all span lengths.
 		for(int k = 2; k < length; k++) {
-			// Tree can only have one root.
+			// All dependency tree can only have one root.
 			linkScore[0][k] = graph.edges[0][k] + seqScore[k][1];
-			linkBest[0][k] = 1;
+			linkBest[0][k] = 0;
 			for(int m = 0; m < k; m++) {
 				double mScore = seqScore[0][m] + linkScore[m][k];
 				if (mScore > seqScore[0][k]) {
@@ -88,10 +87,18 @@ public class ViterbiDecoder implements Decoder {
 	// Type: 0 for sequence, 1 for link
 	private void backtrack(int type, int start, int end, int[] parents,
 						   int[][] seqBest, int[][] linkBest) {
+		System.out.println((type == 0 ? "seq" : "link") + "\t" + start + "\t" + end);
+		/*
+		for (int i = 0; i < parents.length; i++) {
+			System.out.print(parents[i] + "\t");
+		}
+		System.out.println();
+		*/
 		if (start == end) {
 			return;
 		}
 		if (end == start + 1 || end == start - 1) {
+			System.out.println("here:\t" + start + ", " + end);
 			parents[end] = start;
 			return;
 		}
