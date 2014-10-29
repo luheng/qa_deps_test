@@ -1,5 +1,7 @@
 package decoding;
 
+import java.util.Arrays;
+
 /*
  * Used to decode for projective dependency trees in arc-factored model.
  * 
@@ -10,7 +12,7 @@ public class ViterbiDecoder implements Decoder {
 
 	public void decode(AdjacencyGraph graph, int[] parents) {
 		// The graph contains all the tokens plus the root.
-		int length = graph.numNodes + 1;
+		int length = graph.numNodes;
 		double[][] linkScore = new double[length][length];
 		double[][] seqScore= new double[length][length];
 		int[][] linkBest = new int[length][length];
@@ -103,5 +105,23 @@ public class ViterbiDecoder implements Decoder {
 			backtrack(0, start, best, parents, seqBest, linkBest);
 			backtrack(0, end, best + 1, parents, seqBest, linkBest);
 		}
+	}
+	
+	// Test decoder.
+	public static void main(String[] args) {
+		AdjacencyGraph graph = AdjacencyGraph.getDistanceWeightedGraph(5);
+		int[] parents = new int[graph.numNodes];
+		Arrays.fill(parents, 0);
+		
+		ViterbiDecoder decoder = new ViterbiDecoder();
+		decoder.decode(graph, parents);
+		for (int i = 0; i < parents.length; i++) {
+			System.out.print(i + "\t");
+		}
+		System.out.println();
+		for (int i = 0; i < parents.length; i++) {
+			System.out.print(parents[i] + "\t");
+		}
+		System.out.println();
 	}
 }
