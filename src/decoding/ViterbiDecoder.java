@@ -81,14 +81,16 @@ public class ViterbiDecoder implements Decoder {
 		}
 	
 		// Resolve parents
+		assert (parents.length == length - 1);
 		backtrack(0, 0, length - 1, parents, seqBest, linkBest);
 	}
 	
 	// Type: 0 for sequence, 1 for link
 	private void backtrack(int type, int start, int end, int[] parents,
 						   int[][] seqBest, int[][] linkBest) {
-		System.out.println((type == 0 ? "seq" : "link") + "\t" + start + "\t" + end);
-		/*
+		/* Debugging info.
+		System.out.println((type == 0 ? "seq" : "link") + "\t" + start + "\t" +
+							end);
 		for (int i = 0; i < parents.length; i++) {
 			System.out.print(parents[i] + "\t");
 		}
@@ -98,8 +100,10 @@ public class ViterbiDecoder implements Decoder {
 			return;
 		}
 		if (end == start + 1 || end == start - 1) {
+			/* Debugging info.
 			System.out.println("here:\t" + start + ", " + end);
-			parents[end] = start;
+			*/
+			parents[end - 1] = start;
 			return;
 		}
 		if (type == 0) {
@@ -107,7 +111,7 @@ public class ViterbiDecoder implements Decoder {
 			backtrack(0, start, best, parents, seqBest, linkBest);
 			backtrack(1, best, end, parents, seqBest, linkBest);
 		} else {
-			parents[end] = start;
+			parents[end - 1] = start;
 			int best = linkBest[start][end];
 			backtrack(0, start, best, parents, seqBest, linkBest);
 			backtrack(0, end, best + 1, parents, seqBest, linkBest);
@@ -117,7 +121,7 @@ public class ViterbiDecoder implements Decoder {
 	// Test decoder.
 	public static void main(String[] args) {
 		AdjacencyGraph graph = AdjacencyGraph.getDistanceWeightedGraph(5);
-		int[] parents = new int[graph.numNodes];
+		int[] parents = new int[graph.numNodes - 1];
 		Arrays.fill(parents, 0);
 		
 		ViterbiDecoder decoder = new ViterbiDecoder();

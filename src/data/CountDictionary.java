@@ -136,7 +136,7 @@ public class CountDictionary {
 		return totalCount;
 	}
 	
-	public void printSelf() {
+	public void prettyPrint() {
 		for (int i = 0; i < size(); i++) {
 			System.out.println(String.format("%d\t%s\t%d", i, index2str.get(i),
 											index2count.get(i)));

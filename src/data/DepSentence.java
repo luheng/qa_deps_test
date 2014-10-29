@@ -22,6 +22,18 @@ public class DepSentence {
 		this.sentenceID = sentenceID;
 	}
 	
+	public String getTokenString(int index) {
+		return corpus.wordDict.getString(index);
+	}
+	
+	public String getPostagString(int index) {
+		return corpus.posDict.getString(index);
+	}
+	
+	public String getDeptagString(int index) {
+		return corpus.depDict.getString(index);
+	}
+	
 	public String getTokensString() {
 		return StringUtils.join(" ", corpus.wordDict.getStringArray(tokens));
 	}
