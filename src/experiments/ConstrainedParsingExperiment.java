@@ -111,6 +111,7 @@ public class ConstrainedParsingExperiment {
 		
 		// Parsing with edge voting.
 		double[] tune = {0.1, 1, 5, 10, 20, 100};
+		//double[] tune = {1};
 		QADecoder qaVoter = new QADecoder();
 		for (double lambda : tune) {
 			Accuracy baseline2 = new Accuracy(0, 0);
@@ -130,15 +131,19 @@ public class ConstrainedParsingExperiment {
 				// Combine distance scores with votes.
 				for (int i = 0; i < votes.length; i++) {
 					for (int j = 0; j < votes.length; j++) {
-						scores.edges[i][j] += lambda + votes[i][j];
+						scores.edges[i][j] += lambda * votes[i][j];
 					}
 				}
+				// For debugging.
+				/*if (scores.numNodes < 15) {
+					scores.prettyPrint();
+				}*/
 				viterbi.decode(scores, prediction);
 				Accuracy acc = Evaluation.getAccuracy(depSentence, prediction);
 				baseline2.add(acc);
 			}
 			System.out.println("Accuracy:\t" + baseline2.accuracy());
 		}
-		
+		// TODO: print accuracy sentence by sentence.
 	}
 }
