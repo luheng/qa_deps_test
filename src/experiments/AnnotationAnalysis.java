@@ -94,12 +94,30 @@ public class AnnotationAnalysis {
 						   reversedEdgeQAConstraint = new ReversedEdgeQAConstraint();
 		
 		int qaCounter = 0, totalQAPairs = 0;
+		double avgQuestionWords = 0.0, avgAnswerWords = 0.0;
+		
 		for (AnnotatedSentence sentence : annotatedSentences) {
 			DepSentence depSentence = sentence.depSentence;
 			String[] tokens = trainCorpus.wordDict.getStringArray(depSentence.tokens);
 			
 			for (QAPair qa : sentence.qaList) {
+				
 				aligner.align(sentence.depSentence, qa);
+		
+				int numQuestionWords = 0, numAnswerWords = 0;
+				for (int i : qa.questionAlignment) {
+					if (i != -1) {
+						numQuestionWords += 1;
+					}
+				}
+				for (int i : qa.answerAlignment) {
+					if (i != -1) {
+						numAnswerWords += 1;
+					}
+				}
+				avgQuestionWords += numQuestionWords;
+				avgAnswerWords += numAnswerWords;
+				totalQAPairs += 1;
 				
 				boolean isSingleSpan = singleSpanConstraint.validate(depSentence, qa),
 						isSubtree = subtreeConstraint.validate(depSentence, qa),
@@ -134,10 +152,14 @@ public class AnnotationAnalysis {
 					System.out.println();		
 					qaCounter += 1;
 				}
-				totalQAPairs += 1;
+				
 			}
 		}
 		System.out.println("Total number of qa pairs:\t" + totalQAPairs);
 		System.out.println("Number of answers that are not a single subtree:\t" + qaCounter);
+		System.out.println("Averaged number of question words:\t" +
+				1.0 * avgQuestionWords / totalQAPairs);
+		System.out.println("Averaged number of answer words:\t" +
+				1.0 * avgAnswerWords / totalQAPairs);
 	}
 }

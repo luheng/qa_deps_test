@@ -103,7 +103,7 @@ public class ViterbiDecoder implements Decoder {
 			/* Debugging info.
 			System.out.println("here:\t" + start + ", " + end);
 			*/
-			parents[end - 1] = start;
+			parents[end - 1] = start - 1;
 			return;
 		}
 		if (type == 0) {
@@ -111,7 +111,7 @@ public class ViterbiDecoder implements Decoder {
 			backtrack(0, start, best, parents, seqBest, linkBest);
 			backtrack(1, best, end, parents, seqBest, linkBest);
 		} else {
-			parents[end - 1] = start;
+			parents[end - 1] = start - 1;
 			int best = linkBest[start][end];
 			backtrack(0, start, best, parents, seqBest, linkBest);
 			backtrack(0, end, best + 1, parents, seqBest, linkBest);

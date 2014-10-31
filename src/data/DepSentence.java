@@ -23,15 +23,15 @@ public class DepSentence {
 	}
 	
 	public String getTokenString(int index) {
-		return corpus.wordDict.getString(index);
+		return corpus.wordDict.getString(tokens[index]);
 	}
 	
 	public String getPostagString(int index) {
-		return corpus.posDict.getString(index);
+		return corpus.posDict.getString(postags[index]);
 	}
 	
 	public String getDeptagString(int index) {
-		return corpus.depDict.getString(index);
+		return corpus.depDict.getString(deptags[index]);
 	}
 	
 	public String getTokensString() {
