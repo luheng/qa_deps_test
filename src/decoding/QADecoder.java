@@ -68,13 +68,15 @@ public class QADecoder {
 	}
 	
 	// Assign "votes" to edges that comply with the constraints.
-	public void vote(DepSentence sentence, QAPair qa, int[][] tree) {
-		assert (tree.length == sentence.length + 1);
+	public void vote(DepSentence sentence, QAPair qa, double[][] scores) {
+		assert (scores.length == sentence.length + 1);
 		
 		// Get inverse alignment.
 		int[] inverseAnswerAlignment = new int[sentence.length];
 		ArrayList<Integer> answerWords = new ArrayList<Integer>();
+		ArrayList<Integer> questionWords = new ArrayList<Integer>();
 		Arrays.fill(inverseAnswerAlignment, -1);
+		
 		for (int i = 0; i < qa.answerAlignment.length; i++) {
 			int aword = qa.answerAlignment[i];
 			if (aword != -1) {
@@ -82,14 +84,24 @@ public class QADecoder {
 				answerWords.add(aword);
 			}
 		}
-		int minAnswerWord = answerWords.get(0),
-			maxAnswerWord = answerWords.get(answerWords.size() - 1);
+		for (int i = 0; i < qa.questionAlignment.length; i++) {
+			int qword = qa.questionAlignment[i];
+			if (qword != -1) {
+				questionWords.add(qword);
+			}
+		}
 		
 		// Select the question word that's closest to answer.
+		/*
+		int minAnswerWord = answerWords.get(0),
+			maxAnswerWord = answerWords.get(answerWords.size() - 1);
 		int questionHead = -1, // answerHead = -1,
 			minQADist = sentence.length;
 		for (int i = 0; i < qa.questionAlignment.length; i++) {
 			int qword = qa.questionAlignment[i];
+			if (qword == -1) {
+				continue;
+			}
 			int dist = Math.min(Math.abs(qword - minAnswerWord),
 								Math.abs(qword - maxAnswerWord));
 			if (dist < minQADist) {
@@ -97,14 +109,26 @@ public class QADecoder {
 				minQADist = dist;
 			}
 		}
-		// Enumerate answer head to change the vote.
+		*/
+		// Enumerate all question-answer pairs to change the vote.
 		// TODO: normalize the edge scores in some way.
-		for (int answerHead : answerWords) {
-			tree[questionHead][answerHead] += 1;
-			for (int aword : answerWords) {
-				if (aword != answerHead) {
-					tree[answerHead][aword] += 1;
+		for (int qword1 : questionWords) {
+			for (int qword2 : questionWords) {
+				if (qword1 != qword2) {
+					scores[qword1 + 1][qword2 + 1] += 1;
 				}
+			}
+		}
+		for (int aword1 : answerWords) {
+			for (int aword2 : answerWords) {
+				if (aword1 != aword2) {
+					scores[aword1 + 1][aword2 + 1] += 1;
+				}
+			}
+		}
+		for (int qword : questionWords) { 
+			for (int aword : answerWords) {
+				scores[qword + 1][aword + 1] += 1;
 			}
 		}
 	}

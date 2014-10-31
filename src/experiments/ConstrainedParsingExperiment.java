@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import annotation.GreedyQuestionAnswerAligner;
 import data.Accuracy;
@@ -15,6 +16,7 @@ import data.Evaluation;
 import data.QAPair;
 import decoding.AdjacencyGraph;
 import decoding.Decoder;
+import decoding.QADecoder;
 import decoding.ViterbiDecoder;
 
 public class ConstrainedParsingExperiment {
@@ -95,7 +97,7 @@ public class ConstrainedParsingExperiment {
 		
 		// Do a stupid parsing.
 		Decoder viterbi = new ViterbiDecoder();
-		Accuracy allAcc = new Accuracy(0, 0);
+		Accuracy baseline1 = new Accuracy(0, 0);
 		for (AnnotatedSentence sentence : annotatedSentences) {
 			DepSentence depSentence = sentence.depSentence;
 			int[] prediction = new int[depSentence.length];
@@ -103,11 +105,40 @@ public class ConstrainedParsingExperiment {
 					AdjacencyGraph.getDistanceWeightedGraph(depSentence.length);
 			viterbi.decode(scores, prediction);
 			Accuracy acc = Evaluation.getAccuracy(depSentence, prediction);
-			allAcc.add(acc);
+			baseline1.add(acc);
 		}
-		System.out.println("Accuracy:\t" + allAcc.accuracy());
+		System.out.println("Accuracy:\t" + baseline1.accuracy());
 		
 		// Parsing with edge voting.
+		double[] tune = {0.1, 1, 5, 10, 20, 100};
+		QADecoder qaVoter = new QADecoder();
+		for (double lambda : tune) {
+			Accuracy baseline2 = new Accuracy(0, 0);
+			for (AnnotatedSentence sentence : annotatedSentences) {
+				DepSentence depSentence = sentence.depSentence;
+				int length = depSentence.length;
+				int[] prediction = new int[length];
+				double[][] votes = new double[length + 1][length + 1];
+				for (int i = 0; i < votes.length; i++) {
+					Arrays.fill(votes[i], 0.0);
+				}
+				AdjacencyGraph scores =
+						AdjacencyGraph.getDistanceWeightedGraph(depSentence.length);
+				for (QAPair qa : sentence.qaList) {
+					qaVoter.vote(depSentence, qa, votes);
+				}
+				// Combine distance scores with votes.
+				for (int i = 0; i < votes.length; i++) {
+					for (int j = 0; j < votes.length; j++) {
+						scores.edges[i][j] += lambda + votes[i][j];
+					}
+				}
+				viterbi.decode(scores, prediction);
+				Accuracy acc = Evaluation.getAccuracy(depSentence, prediction);
+				baseline2.add(acc);
+			}
+			System.out.println("Accuracy:\t" + baseline2.accuracy());
+		}
 		
 	}
 }
