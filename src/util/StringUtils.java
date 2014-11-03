@@ -11,4 +11,15 @@ public class StringUtils {
 		}
 		return joined;
 	}
+	
+	public static String intArrayToString(String delimiter, int[] intArr) {
+		String joined = "";
+		for (int i = 0; i < intArr.length; i++) {
+			if (i > 0) {
+				joined += delimiter;
+			}
+			joined += intArr[i];
+		}
+		return joined;
+	}
 }

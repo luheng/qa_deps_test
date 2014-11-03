@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import util.StringUtils;
 import annotation.GreedyQuestionAnswerAligner;
 import data.Accuracy;
 import data.AnnotatedSentence;
@@ -106,12 +107,17 @@ public class ConstrainedParsingExperiment {
 			viterbi.decode(scores, prediction);
 			Accuracy acc = Evaluation.getAccuracy(depSentence, prediction);
 			baseline1.add(acc);
+			
+			if (scores.numNodes < 15) {
+				System.out.println(depSentence.sentenceID + "\taccuracy:\t" + acc.accuracy());
+				System.out.println();
+			}
 		}
 		System.out.println("Accuracy:\t" + baseline1.accuracy());
 		
 		// Parsing with edge voting.
-		double[] tune = {0.1, 1, 5, 10, 20, 100};
-		//double[] tune = {1};
+		// double[] tune = {0.1, 0.5, 1, 2, 5, 10, 20, 100};
+		double[] tune = {1};
 		QADecoder qaVoter = new QADecoder();
 		for (double lambda : tune) {
 			Accuracy baseline2 = new Accuracy(0, 0);
@@ -134,13 +140,21 @@ public class ConstrainedParsingExperiment {
 						scores.edges[i][j] += lambda * votes[i][j];
 					}
 				}
-				// For debugging.
-				/*if (scores.numNodes < 15) {
-					scores.prettyPrint();
-				}*/
+				
 				viterbi.decode(scores, prediction);
 				Accuracy acc = Evaluation.getAccuracy(depSentence, prediction);
 				baseline2.add(acc);
+				
+				// For debugging.
+				if (scores.numNodes < 15) {
+					//System.out.println(depSentence.toString());
+					System.out.println(sentence.toString());
+					scores.prettyPrint();
+					System.out.println("gold:\t" + StringUtils.intArrayToString("\t", depSentence.parents));
+					System.out.println("pred:\t" + StringUtils.intArrayToString("\t", prediction));
+					System.out.println(depSentence.sentenceID + "\taccuracy:\t" + acc.accuracy());
+					System.out.println();
+				}
 			}
 			System.out.println("Accuracy:\t" + baseline2.accuracy());
 		}
