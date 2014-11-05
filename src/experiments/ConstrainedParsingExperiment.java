@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import util.LatticeUtils;
 import util.StringUtils;
 import annotation.GreedyQuestionAnswerAligner;
 import data.Accuracy;
@@ -96,68 +97,80 @@ public class ConstrainedParsingExperiment {
 			}
 		}
 		
-		// Do a stupid parsing.
+		// Do sentence-wise analysis
 		Decoder viterbi = new ViterbiDecoder();
-		Accuracy baseline1 = new Accuracy(0, 0);
+		QADecoder qaVoter = new QADecoder();
+		Accuracy baseline1 = new Accuracy(0, 0),
+				 baseline2 = new Accuracy(0, 0);
+
+		// double[] tune = {0.1, 0.5, 1.0, 2.0, 5.0, 1.0};
+		double[] tune = {1.0};
+		//double lambda = 0.5;
+		double distWeight = 1.0; 
+		
 		for (AnnotatedSentence sentence : annotatedSentences) {
 			DepSentence depSentence = sentence.depSentence;
-			int[] prediction = new int[depSentence.length];
-			AdjacencyGraph scores =
+			int length = depSentence.length;
+			int[] prediction = new int[length];
+			AdjacencyGraph distScores =
 					AdjacencyGraph.getDistanceWeightedGraph(depSentence.length);
-			viterbi.decode(scores, prediction);
-			Accuracy acc = Evaluation.getAccuracy(depSentence, prediction);
-			baseline1.add(acc);
-			
-			if (scores.numNodes < 15) {
-				System.out.println(depSentence.sentenceID + "\taccuracy:\t" + acc.accuracy());
-				System.out.println();
-			}
-		}
-		System.out.println("Accuracy:\t" + baseline1.accuracy());
-		
-		// Parsing with edge voting.
-		// double[] tune = {0.1, 0.5, 1, 2, 5, 10, 20, 100};
-		double[] tune = {1};
-		QADecoder qaVoter = new QADecoder();
-		for (double lambda : tune) {
-			Accuracy baseline2 = new Accuracy(0, 0);
-			for (AnnotatedSentence sentence : annotatedSentences) {
-				DepSentence depSentence = sentence.depSentence;
-				int length = depSentence.length;
-				int[] prediction = new int[length];
+			viterbi.decode(distScores.edges, prediction);
+			Accuracy acc1 = Evaluation.getAccuracy(depSentence, prediction);
+			baseline1.add(acc1);
+
+			double[] results = new double[tune.length];
+			for (int t = 0; t < tune.length; t++) {
+				double lambda = tune[t];
+				
+				Arrays.fill(prediction, -1);
 				double[][] votes = new double[length + 1][length + 1];
-				for (int i = 0; i < votes.length; i++) {
-					Arrays.fill(votes[i], 0.0);
-				}
-				AdjacencyGraph scores =
-						AdjacencyGraph.getDistanceWeightedGraph(depSentence.length);
+				LatticeUtils.fill(votes, 0.0);
 				for (QAPair qa : sentence.qaList) {
 					qaVoter.vote(depSentence, qa, votes);
 				}
-				// Combine distance scores with votes.
-				for (int i = 0; i < votes.length; i++) {
-					for (int j = 0; j < votes.length; j++) {
-						scores.edges[i][j] += lambda * votes[i][j];
+				for (int i = 0; i <= length; i++) {
+					for (int j = 0; j <= length; j++) {
+						distScores.edges[i][j] =
+								distWeight * distScores.edges[i][j] +
+								lambda * votes[i][j];
 					}
 				}
-				
-				viterbi.decode(scores, prediction);
-				Accuracy acc = Evaluation.getAccuracy(depSentence, prediction);
-				baseline2.add(acc);
-				
-				// For debugging.
-				if (scores.numNodes < 15) {
-					//System.out.println(depSentence.toString());
-					System.out.println(sentence.toString());
-					scores.prettyPrint();
-					System.out.println("gold:\t" + StringUtils.intArrayToString("\t", depSentence.parents));
-					System.out.println("pred:\t" + StringUtils.intArrayToString("\t", prediction));
-					System.out.println(depSentence.sentenceID + "\taccuracy:\t" + acc.accuracy());
-					System.out.println();
+				viterbi.decode(distScores.edges, prediction);
+				Accuracy acc2 = Evaluation.getAccuracy(depSentence, prediction);
+				if (t == 0) {
+					baseline2.add(acc2);
 				}
+				results[t] = acc2.accuracy();
 			}
-			System.out.println("Accuracy:\t" + baseline2.accuracy());
+			//if (results[0] > acc1.accuracy()) {
+			// Output sentence info.
+			System.out.println(String.format("ID: %d\t#tokens: %d\t#qa: %d\tdist: %.2f\tedge_vote: %s",
+					depSentence.sentenceID,
+					depSentence.length,
+					sentence.qaList.size(),
+					acc1.accuracy(),
+					StringUtils.doubleArrayToString("\t", results)));
+			// Output gold and parsed dependency.
+			System.out.println(StringUtils.intArrayToString("\t", depSentence.parents));
+			System.out.println(StringUtils.intArrayToString("\t", prediction));
+			System.out.println(sentence.toString());
+			
+			//}
 		}
-		// TODO: print accuracy sentence by sentence.
+			// Print out debugging info.
+			/*
+			if (depSentence.length < 15) {
+				System.out.println(sentence.toString());
+				distScores.prettyPrint();
+				System.out.println("gold:\t" + StringUtils.intArrayToString("\t", depSentence.parents));
+				System.out.println("pred:\t" + StringUtils.intArrayToString("\t", prediction));
+				System.out.println(depSentence.sentenceID + "\tacc1:\t" + acc1.accuracy());
+				System.out.println(depSentence.sentenceID + "\tacc2:\t" + acc2.accuracy());
+				System.out.println();
+			}
+			*/
+		
+		System.out.println("Dist accuracy:\t" + baseline1.accuracy());
+		System.out.println("QA augmented accuracy:\t" + baseline2.accuracy());
 	}
 }

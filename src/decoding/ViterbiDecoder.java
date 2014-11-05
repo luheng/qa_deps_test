@@ -10,9 +10,9 @@ import java.util.Arrays;
  */
 public class ViterbiDecoder implements Decoder {
 
-	public void decode(AdjacencyGraph graph, int[] parents) {
+	public void decode(double[][] scores, int[] parents) {
 		// The graph contains all the tokens plus the root.
-		int length = graph.numNodes;
+		int length = scores.length;
 		double[][] linkScore = new double[length][length];
 		double[][] seqScore= new double[length][length];
 		int[][] linkBest = new int[length][length];
@@ -24,8 +24,8 @@ public class ViterbiDecoder implements Decoder {
 		}
 		// Initialize all scores.
 		for(int i = 0; i < length - 1; i++) {
-			seqScore[i][i+1] = linkScore[i][i+1] = graph.edges[i][i+1]; 
-			seqScore[i+1][i] = linkScore[i+1][i] = graph.edges[i+1][i]; 
+			seqScore[i][i+1] = linkScore[i][i+1] = scores[i][i+1]; 
+			seqScore[i+1][i] = linkScore[i+1][i] = scores[i+1][i]; 
 			for(int j = i + 2; j < length; j++) {
 				linkScore[i][j] = linkScore[j][i] = Double.NEGATIVE_INFINITY;
 				seqScore[i][j] = seqScore[j][i] = Double.NEGATIVE_INFINITY;
@@ -34,7 +34,7 @@ public class ViterbiDecoder implements Decoder {
 		// Enumerate all span lengths.
 		for(int k = 2; k < length; k++) {
 			// All dependency tree can only have one root.
-			linkScore[0][k] = graph.edges[0][k] + seqScore[k][1];
+			linkScore[0][k] = scores[0][k] + seqScore[k][1];
 			linkBest[0][k] = 0;
 			for(int m = 0; m < k; m++) {
 				double mScore = seqScore[0][m] + linkScore[m][k];
@@ -47,14 +47,14 @@ public class ViterbiDecoder implements Decoder {
 				int j = i + k;
 				for(int m = i; m < j; m++) {
 					// Rightward link. 
-					double mScore = graph.edges[i][j] + seqScore[i][m] +
+					double mScore = scores[i][j] + seqScore[i][m] +
 									seqScore[j][m+1];
 					if (mScore > linkScore[i][j]) {
 						linkScore[i][j] = mScore;
 						linkBest[i][j] = m;
 					}
 					// Leftward link.
-					mScore = graph.edges[j][i] + seqScore[i][m] +
+					mScore = scores[j][i] + seqScore[i][m] +
 							 seqScore[j][m+1];
 					if (mScore > linkScore[j][i]) {
 						linkScore[j][i] = mScore;
@@ -131,7 +131,7 @@ public class ViterbiDecoder implements Decoder {
 		Arrays.fill(parents, 0);
 		
 		ViterbiDecoder decoder = new ViterbiDecoder();
-		decoder.decode(graph, parents);
+		decoder.decode(graph.edges, parents);
 		for (int i = 0; i < parents.length; i++) {
 			System.out.print(i + "\t");
 		}

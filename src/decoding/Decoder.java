@@ -1,5 +1,5 @@
 package decoding;
 
 public interface Decoder {
-	public void decode(AdjacencyGraph graph, int[] parents);
+	public void decode(double[][] scores, int[] parents);
 }

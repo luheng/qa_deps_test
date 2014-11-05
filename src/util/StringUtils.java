@@ -22,4 +22,16 @@ public class StringUtils {
 		}
 		return joined;
 	}
+	
+	public static String doubleArrayToString(String delimiter,
+										     double[] doubleArr) {
+		String joined = "";
+		for (int i = 0; i < doubleArr.length; i++) {
+			if (i > 0) {
+				joined += delimiter;
+			}
+			joined += String.format("%.3f", doubleArr[i]);
+		}
+		return joined;
+	}
 }
