@@ -102,7 +102,7 @@ public class DualDecompositionExperiment {
 		Decoder viterbiDecoder = new ViterbiDecoder();
 		QADecoder qaDecoder = new QADecoder();
 		DualDecompositionOptimizer optimizer = new DualDecompositionOptimizer();
-		optimizer.run(annotatedSentences, viterbiDecoder, qaDecoder, 100, 0.1);
+		optimizer.run(annotatedSentences, viterbiDecoder, qaDecoder, 10, 1e-4);
 		
 	}
 		

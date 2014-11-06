@@ -44,15 +44,18 @@ public class DualDecompositionOptimizer {
 				for (int i = 0; i < numQAs; i++) {
 					addScores(scores, u[i], avgWeight);
 				}
-				decoder.decode(scores, y);
+				
+				double obj1 = decoder.decode(scores, y),
+					   obj2 = 0.0;
 				
 				// z* = argmax h(z) - u.z
 				for (int i = 0; i < numQAs; i++) {
-					qaDecoder.decode(sentence.depSentence,
-							sentence.qaList.get(i), u[i], z[i]);
+					obj2 += qaDecoder.decode(sentence.depSentence,
+								sentence.qaList.get(i), u[i], z[i]);
 				}
 				
-				// Update u <- u + eta * (z - y) 
+				// Update u <- u + eta * (z - y)
+				
 				for (int i = 0; i < numQAs; i++) {
 					for (int j = 0; j < length; j++) {
 						for (int k = 1; k < length; k++) {
@@ -65,11 +68,16 @@ public class DualDecompositionOptimizer {
 					}
 				}
 				// TODO: Print objective
-				
+				// Print accuracy
+				Accuracy acc = Evaluation.getAccuracy(sentence.depSentence, y);
+				System.out.println(String.format(
+						"iter:: %d\t obj-y:: %.3f\t obj-z:: %.3f\t acc:: %.3f",
+						iter, obj1, obj2, acc.accuracy()));
 			}
 			// Evaluate, based on the last y
 			Accuracy acc = Evaluation.getAccuracy(sentence.depSentence, y);
 			accuracy.add(acc);
+			System.out.println();
 		}
 		System.out.println("accuracy:\t" + accuracy.accuracy());
 	}

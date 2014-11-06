@@ -17,7 +17,7 @@ public class QADecoder {
 	 *  with 1 specifying "must" link, 0 denoting "cannot" link
 	 * 	with -1 denoting "unspecified" 
 	 */
-	public void decode(DepSentence sentence, QAPair qa, double[][] u,
+	public double decode(DepSentence sentence, QAPair qa, double[][] u,
 					   int[][] bestDecoded) {
 		assert (bestDecoded.length == sentence.length + 1);
 		ArrayList<Integer> questionTokens = flagsToList(qa.questionAlignment),
@@ -44,9 +44,9 @@ public class QADecoder {
 				}
 			}
 		}
-		System.out.println(bestQuestionHead + ", " + bestAnswerHead + ", " +
-						   bestScore);
-		// Construct partial tree structure.
+		// System.out.println(bestQuestionHead + ", " + bestAnswerHead + ", " +
+		//				   bestScore);
+		return bestScore;
 	}
 	
 	private double computeScore(int[][] decoded, double[][] u) {

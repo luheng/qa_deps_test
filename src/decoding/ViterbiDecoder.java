@@ -10,7 +10,7 @@ import java.util.Arrays;
  */
 public class ViterbiDecoder implements Decoder {
 
-	public void decode(double[][] scores, int[] parents) {
+	public double decode(double[][] scores, int[] parents) {
 		// The graph contains all the tokens plus the root.
 		int length = scores.length;
 		double[][] linkScore = new double[length][length];
@@ -83,6 +83,7 @@ public class ViterbiDecoder implements Decoder {
 		// Resolve parents
 		assert (parents.length == length - 1);
 		backtrack(0, 0, length - 1, parents, seqBest, linkBest);
+		return seqScore[0][length - 1];
 	}
 	
 	// Type: 0 for sequence, 1 for link
