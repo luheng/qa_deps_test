@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import util.LatticeUtils;
+import util.StringUtils;
 import data.DepSentence;
 import data.QAPair;
 
@@ -44,8 +45,14 @@ public class QADecoder {
 				}
 			}
 		}
-		// System.out.println(bestQuestionHead + ", " + bestAnswerHead + ", " +
-		//				   bestScore);
+		//System.out.println(sentence.getTokensString());
+		/*
+		System.out.println(StringUtils.join(" ", qa.questionTokens) + "\t" +
+						   StringUtils.join(" ", qa.answerTokens));
+		System.out.println(sentence.getTokenString(bestQuestionHead) + ", " +
+						   sentence.getTokenString(bestAnswerHead) + ", " +
+						   bestScore);
+		*/
 		return bestScore;
 	}
 	

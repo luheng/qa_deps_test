@@ -29,7 +29,8 @@ public class AnnotationAnalysis {
 	public static final String testFilename =
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
 	
-	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
+	//public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
+	public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 			
 	public static void main(String[] args) {
 		DepCorpus trainCorpus = new DepCorpus("en-universal-train");
@@ -128,11 +129,11 @@ public class AnnotationAnalysis {
 					
 				// if (!isSingleSpan) {
 				// if (!isSubtree) {
-				// if (!isSubtree && !isHeadlessSubtree) {
+				if (!isSubtree && !isHeadlessSubtree) {
 				// if (isSubtree || isHeadlessSubtree) {
 				// if (!isSingleEdgeQA) {
 				// if (!isSingleEdgeQA && !isReversedEdgeQA) {
-				if (sentence.depSentence.length < 15) {
+				//if (sentence.depSentence.length < 15) {
 					// print sentence
 					System.out.println(sentence.toString());
 					for (int i = 0; i < sentence.depSentence.length; i++) {

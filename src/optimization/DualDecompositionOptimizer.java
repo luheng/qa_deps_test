@@ -3,6 +3,7 @@ package optimization;
 import java.util.ArrayList;
 
 import util.LatticeUtils;
+import util.StringUtils;
 import data.Accuracy;
 import data.AnnotatedSentence;
 import data.Evaluation;
@@ -22,7 +23,9 @@ public class DualDecompositionOptimizer {
 		Accuracy accuracy = new Accuracy(0, 0);
 		System.out.println("========== Optimization Starts =========");
 		
-		for (AnnotatedSentence sentence : instances) {
+		//for (AnnotatedSentence sentence : instances) {
+		for (int sid = 0; sid < 3; sid++) {
+			AnnotatedSentence sentence = instances.get(sid);
 			int length = sentence.depSentence.length + 1;
 			int numQAs = sentence.qaList.size();
 			double[][][] u = new double[numQAs][length][length];
@@ -44,7 +47,13 @@ public class DualDecompositionOptimizer {
 				for (int i = 0; i < numQAs; i++) {
 					addScores(scores, u[i], avgWeight);
 				}
-				
+				// Print scores
+				/*
+				for (int i = 0; i < scores.length; i++) {
+					System.out.println(
+							StringUtils.doubleArrayToString("\t", scores[i]));
+				}
+				*/
 				double obj1 = decoder.decode(scores, y),
 					   obj2 = 0.0;
 				
@@ -55,7 +64,6 @@ public class DualDecompositionOptimizer {
 				}
 				
 				// Update u <- u + eta * (z - y)
-				
 				for (int i = 0; i < numQAs; i++) {
 					for (int j = 0; j < length; j++) {
 						for (int k = 1; k < length; k++) {
@@ -71,8 +79,10 @@ public class DualDecompositionOptimizer {
 				// Print accuracy
 				Accuracy acc = Evaluation.getAccuracy(sentence.depSentence, y);
 				System.out.println(String.format(
-						"iter:: %d\t obj-y:: %.3f\t obj-z:: %.3f\t acc:: %.3f",
-						iter, obj1, obj2, acc.accuracy()));
+						"ITER:: %d\t OBJ_Y:: %.3f\t OBJ_Z:: %.3f\t U_NORM:: %.3f\t ACC:: %.3f",
+						iter, obj1, obj2,
+						getL2Norm(u),
+						acc.accuracy()));
 			}
 			// Evaluate, based on the last y
 			Accuracy acc = Evaluation.getAccuracy(sentence.depSentence, y);
@@ -85,8 +95,20 @@ public class DualDecompositionOptimizer {
 	private void addScores(double[][] scores, double[][] u, double weight) {
 		for (int i = 0; i < scores.length; i++) {
 			for (int j = 0; j < scores[i].length; j++) {
-				scores[i][j] = u[i][j] * weight;
+				scores[i][j] += u[i][j] * weight;
 			}
 		}
+	}
+	
+	private double getL2Norm(double[][][] u) {
+		double norm = 0.0;
+		for (int i = 0; i < u.length; i++) {
+			for (int j = 0; j < u[i].length; j++) {
+				for (int k = 0; k < u[i][j].length; k++) {
+					norm += u[i][j][k] * u[i][j][k];
+				}
+			}
+		}
+		return norm;
 	}
 }
