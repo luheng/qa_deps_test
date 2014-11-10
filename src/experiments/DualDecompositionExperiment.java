@@ -32,8 +32,8 @@ public class DualDecompositionExperiment {
 	public static final String testFilename =
 				"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
 		
-	//public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
-	public static String annotationFilename = "manual_annotation/en-upperbound.txt";
+	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
+	//public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 	
 	private static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
@@ -103,7 +103,7 @@ public class DualDecompositionExperiment {
 		Decoder viterbiDecoder = new ViterbiDecoder();
 		QADecoder qaDecoder = new QADecoder();
 		DualDecompositionOptimizer optimizer = new DualDecompositionOptimizer();
-		optimizer.run(annotatedSentences, viterbiDecoder, qaDecoder, 10, 0.01);
+		optimizer.run(annotatedSentences, viterbiDecoder, qaDecoder, 5, 0.1);
 		
 	}
 		

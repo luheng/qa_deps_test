@@ -31,8 +31,9 @@ public class ConstrainedParsingExperiment {
 	public static final String testFilename =
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
 	
-	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
-			
+	//public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
+	public static String annotationFilename = "manual_annotation/en-upperbound.txt";
+	
 	private static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
 		try {
@@ -104,7 +105,7 @@ public class ConstrainedParsingExperiment {
 				 baseline2 = new Accuracy(0, 0);
 
 		// double[] tune = {0.1, 0.5, 1.0, 2.0, 5.0, 1.0};
-		double[] tune = {1.0};
+		double[] tune = {10.0};
 		//double lambda = 0.5;
 		double distWeight = 1.0; 
 		
@@ -151,6 +152,8 @@ public class ConstrainedParsingExperiment {
 					acc1.accuracy(),
 					StringUtils.doubleArrayToString("\t", results)));
 			// Output gold and parsed dependency.
+			System.out.println(StringUtils.join("\t",
+					depSentence.corpus.wordDict.getStringArray(depSentence.tokens)));
 			System.out.println(StringUtils.intArrayToString("\t", depSentence.parents));
 			System.out.println(StringUtils.intArrayToString("\t", prediction));
 			System.out.println(sentence.toString());

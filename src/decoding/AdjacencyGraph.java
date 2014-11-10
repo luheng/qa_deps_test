@@ -40,8 +40,8 @@ public class AdjacencyGraph {
 		AdjacencyGraph graph = new AdjacencyGraph(numNodes + 1);
 		// We do not want negative score.
 		double minScore = 1e-3;
-		double rootScore = 1.0 / numNodes;
-		for (int i = 1; i <= numNodes; i++) {
+		double rootScore = 1.0 / (numNodes - 1);
+		for (int i = 1; i < numNodes; i++) {
 			graph.setEdge(0, i, rootScore);
 		}
 		for (int i = 1; i <= numNodes; i++) {
@@ -49,10 +49,10 @@ public class AdjacencyGraph {
 				int dist = Math.abs(i - j);
 				if (i < j) {
 					// Right branching case.
-					graph.setEdge(i, j, Math.max(minScore, 1.0 / dist - 0.1));
+					graph.setEdge(i, j, Math.max(minScore, 1.0 / dist - 0.05));
 				} else if (i > j) {
 					// Left branching case.
-					graph.setEdge(i, j, Math.max(minScore, 1.0 / dist + 0.1));
+					graph.setEdge(i, j, Math.max(minScore, 1.0 / dist + 0.05));
 				}
 			}
 		}

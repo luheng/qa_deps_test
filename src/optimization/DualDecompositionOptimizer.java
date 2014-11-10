@@ -23,15 +23,18 @@ public class DualDecompositionOptimizer {
 		Accuracy accuracy = new Accuracy(0, 0);
 		System.out.println("========== Optimization Starts =========");
 		
-		//for (AnnotatedSentence sentence : instances) {
-		for (int sid = 0; sid < 3; sid++) {
-			AnnotatedSentence sentence = instances.get(sid);
+		for (AnnotatedSentence sentence : instances) {
+		//for (int sid = 0; sid < 3; sid++) {
+			//AnnotatedSentence sentence = instances.get(sid);
 			int length = sentence.depSentence.length + 1;
 			int numQAs = sentence.qaList.size();
 			double[][][] u = new double[numQAs][length][length];
 			double[][] scores = new double[length][length];
 			int[] y = new int[length - 1];
 			int[][][] z = new int[numQAs][length][length];
+			// Number of components for each edge.
+			int[][] cnt = new int[length][length];
+					  
 			AdjacencyGraph dist =
 					AdjacencyGraph.getDistanceWeightedGraph(length - 1);
 			
@@ -43,17 +46,27 @@ public class DualDecompositionOptimizer {
 				// y* = argmax f(y) + u.y
 				// simply take an average of the constraint scores.
 				LatticeUtils.copy(scores, dist.edges);
-				double avgWeight = 1.0 / numQAs;
-				for (int i = 0; i < numQAs; i++) {
-					addScores(scores, u[i], avgWeight);
+				if (iter > 0) {
+					for (int i = 0; i < numQAs; i++) {
+						for (int j = 0; j < length; j++) {
+							for (int k = 0; k < length; k++) {
+								if (cnt[j][k] > 0) {
+									scores[j][k] += u[i][j][k] / cnt[j][k];
+								}
+							}
+						}
+					}
 				}
 				// Print scores
+				// TODO: instead of printing out the score matrix, print out
+				// token pairs that receive highest scores.
 				/*
 				for (int i = 0; i < scores.length; i++) {
 					System.out.println(
 							StringUtils.doubleArrayToString("\t", scores[i]));
 				}
 				*/
+				
 				double obj1 = decoder.decode(scores, y),
 					   obj2 = 0.0;
 				
@@ -63,6 +76,8 @@ public class DualDecompositionOptimizer {
 								sentence.qaList.get(i), u[i], z[i]);
 				}
 				
+				LatticeUtils.fill(cnt, 0);
+				
 				// Update u <- u + eta * (z - y)
 				for (int i = 0; i < numQAs; i++) {
 					for (int j = 0; j < length; j++) {
@@ -71,6 +86,15 @@ public class DualDecompositionOptimizer {
 								u[i][j][k] += eta;
 							} else if (z[i][j][k] == 0 && y[k - 1] == j - 1) {
 								u[i][j][k] -= eta;
+							}
+							if (z[i][j][k] != -1) {
+								cnt[j][k] ++;
+								/*
+								if (cnt[j][k] > 1) {
+									System.out.println(j + ", " + k + ", " +
+													   cnt[j][k] + ", " + u[i][j][k]);
+								}
+								*/
 							}
 						}
 					}
@@ -90,14 +114,6 @@ public class DualDecompositionOptimizer {
 			System.out.println();
 		}
 		System.out.println("accuracy:\t" + accuracy.accuracy());
-	}
-	
-	private void addScores(double[][] scores, double[][] u, double weight) {
-		for (int i = 0; i < scores.length; i++) {
-			for (int j = 0; j < scores[i].length; j++) {
-				scores[i][j] += u[i][j] * weight;
-			}
-		}
 	}
 	
 	private double getL2Norm(double[][][] u) {
