@@ -1,6 +1,7 @@
 package scorer;
 
 import util.LatticeUtils;
+import util.StringUtils;
 import data.DepCorpus;
 import data.DepSentence;
 
@@ -16,6 +17,7 @@ public class UniversalGrammarScorer {
 			{"VERB", "VERB"},
 			{"VERB", "NOUN"},
 			{"VERB", "ADP"},
+			{"VERB", "ADJ"},
 			{"VERB", "ADV"},
 			{"VERB", "PRON"},
 			{"VERB", "PRT"},
@@ -49,11 +51,11 @@ public class UniversalGrammarScorer {
 		LatticeUtils.fill(scores, 0.0);
 		for (int i = 1; i <= length; i++) {
 			// Compute root score.
-			int childPos = sentence.postags[i-1];
-			scores[0][i] = universalGrammarWeights[0][childPos];
+			int childPos = sentence.postags[i-1] + 1;
+			scores[0][i] += universalGrammarWeights[0][childPos];
 			for (int j = 1; j <= length; j++) {
-				int parentPos = sentence.postags[j-1];
-				scores[j][i] = universalGrammarWeights[parentPos][childPos];
+				int parentPos = sentence.postags[j-1] + 1;
+				scores[j][i] += universalGrammarWeights[parentPos][childPos];
 			}
 		}
 	}
