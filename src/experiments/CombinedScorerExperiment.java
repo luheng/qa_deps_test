@@ -106,6 +106,39 @@ public class CombinedScorerExperiment {
 				   averagedAccuracy.accuracy());	
 	}
 	
+	private static void testCombinedScorer(double lambda1, double lambda2) {
+		DistanceScorer distScorer = new DistanceScorer();
+		QuestionAnswerScorer qaScorer = new QuestionAnswerScorer();
+		UniversalGrammarScorer ugScorer =
+				new UniversalGrammarScorer(trainCorpus);
+		Accuracy averagedAccuracy = new Accuracy();
+		
+		for (AnnotatedSentence sentence : annotatedSentences) {
+			DepSentence depSentence = sentence.depSentence;
+			int length = depSentence.length + 1;
+			double[][] scores = new double[length][length],
+					   tempScores = new double[length][length];
+						
+			int[] parents = new int[length - 1];
+			// Compute distance scores.
+			distScorer.getScores(scores, depSentence);
+			// Compute QA scores.
+			for (QAPair qa : sentence.qaList) {
+				qaScorer.getScores(tempScores, depSentence, qa);
+				LatticeUtils.addTo(scores, tempScores, lambda1);
+			}
+			// Compute UG scores
+			ugScorer.getScores(tempScores, depSentence);
+			LatticeUtils.addTo(scores, tempScores, lambda2);
+			
+			decoder.decode(scores, parents);
+			Accuracy acc = Evaluation.getAccuracy(depSentence, parents);
+			averagedAccuracy.add(acc);
+		}
+		System.out.println("Combined accuracy:\t" +
+						   averagedAccuracy.accuracy());
+	}
+	
 	public static void main(String[] args) {
 		trainCorpus = ExperimentUtils.loadDepCorpus();
 		annotatedSentences = ExperimentUtils.loadAnnotatedSentences(trainCorpus);
@@ -115,6 +148,12 @@ public class CombinedScorerExperiment {
 		testDistanceScorer();
 		testQuestionAnswerScorer();
 		testUniversalGrammarScorer();
+		System.out.println("Dist + QA");
+		testCombinedScorer(1.0, 0.0);
+		System.out.println("Dist + UG");
+		testCombinedScorer(0.0, 1.0);
+		System.out.println("Dist + QA + UG");
+		testCombinedScorer(1.0, 1.0);
 	}
 }
  

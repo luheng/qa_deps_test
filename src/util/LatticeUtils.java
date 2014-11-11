@@ -50,4 +50,12 @@ public class LatticeUtils {
 			}
 		}
 	}
+	
+	public static void addTo(double[][] dest, double[][] src, double weight) {
+		for (int i = 0; i < src.length; i++) {
+			for (int j = 0; j < src[i].length; j++) {
+				dest[i][j] += src[i][j] * weight;
+			}
+		}
+	}
 }
