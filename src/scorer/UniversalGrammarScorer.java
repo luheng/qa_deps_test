@@ -43,7 +43,7 @@ public class UniversalGrammarScorer {
 		}
 	}
 	
-	void getScores(double[][] scores, DepSentence sentence) {
+	public void getScores(double[][] scores, DepSentence sentence) {
 		assert (sentence.length + 1 == scores.length);
 		int length = sentence.length;
 		LatticeUtils.fill(scores, 0.0);
