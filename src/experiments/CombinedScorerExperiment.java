@@ -2,6 +2,7 @@ package experiments;
 
 import java.util.ArrayList;
 
+import postprocess.AuxiliaryVerbPostprocessor;
 import scorer.DistanceScorer;
 import scorer.QuestionAnswerScorer;
 import scorer.UniversalGrammarScorer;
@@ -111,7 +112,10 @@ public class CombinedScorerExperiment {
 		QuestionAnswerScorer qaScorer = new QuestionAnswerScorer();
 		UniversalGrammarScorer ugScorer =
 				new UniversalGrammarScorer(trainCorpus);
-		Accuracy averagedAccuracy = new Accuracy();
+		AuxiliaryVerbPostprocessor fixer =
+				new AuxiliaryVerbPostprocessor(trainCorpus);
+		Accuracy averagedAccuracy = new Accuracy(),
+				 averagedAccuracy2 = new Accuracy();
 		
 		for (AnnotatedSentence sentence : annotatedSentences) {
 			DepSentence depSentence = sentence.depSentence;
@@ -119,7 +123,9 @@ public class CombinedScorerExperiment {
 			double[][] scores = new double[length][length],
 					   tempScores = new double[length][length];
 						
-			int[] parents = new int[length - 1];
+			int[] parents = new int[length - 1],
+				  fixedParents = new int[length - 1];
+			
 			// Compute distance scores.
 			distScorer.getScores(scores, depSentence);
 			// Compute QA scores.
@@ -134,9 +140,16 @@ public class CombinedScorerExperiment {
 			decoder.decode(scores, parents);
 			Accuracy acc = Evaluation.getAccuracy(depSentence, parents);
 			averagedAccuracy.add(acc);
+			
+			// Go through postprocessor.
+			fixer.postprocess(fixedParents, parents, depSentence);
+			Accuracy acc2 = Evaluation.getAccuracy(depSentence, fixedParents);
+			averagedAccuracy2.add(acc2);
 		}
 		System.out.println("Combined accuracy:\t" +
 						   averagedAccuracy.accuracy());
+		System.out.println("Combined accuracy with post-processing:\t" +
+				   			averagedAccuracy2.accuracy());
 	}
 	
 	public static void main(String[] args) {

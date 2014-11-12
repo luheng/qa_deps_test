@@ -28,6 +28,12 @@ public class LatticeUtils {
 		}
 	}
 	
+	public static void copy(int[] dest, int[] src) {
+		for (int i = 0; i < src.length; i++) {
+			dest[i] = src[i];
+		}
+	}
+	
 	public static void copy(int[][] dest, int[][] src) {
 		for (int i = 0; i < src.length; i++) {
 			for (int j = 0; j < src[i].length; j++)
