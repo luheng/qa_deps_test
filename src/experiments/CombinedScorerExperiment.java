@@ -7,7 +7,6 @@ import scorer.DistanceScorer;
 import scorer.QuestionAnswerScorer;
 import scorer.UniversalGrammarScorer;
 import util.LatticeUtils;
-import util.StringUtils;
 import data.Accuracy;
 import data.AnnotatedSentence;
 import data.DepCorpus;
@@ -43,8 +42,9 @@ public class CombinedScorerExperiment {
 			Accuracy acc = Evaluation.getAccuracy(depSentence, parents);
 			averagedAccuracy.add(acc);
 		}
-		System.out.println("Accuracy of distance scorer:\t" +
-						   averagedAccuracy.accuracy());
+		System.out.println(
+				String.format("Accuracy of distance scorer:\t%.2f",
+						100.0 * averagedAccuracy.accuracy()));
 	}
 	
 	private static void testQuestionAnswerScorer() {
@@ -67,8 +67,9 @@ public class CombinedScorerExperiment {
 			Accuracy acc = Evaluation.getAccuracy(depSentence, parents);
 			averagedAccuracy.add(acc);
 		}
-		System.out.println("Accuracy of question-answer scorer:\t" +
-				   averagedAccuracy.accuracy());
+		System.out.println(
+				String.format("Accuracy of question-answer scorer:\t%.2f",
+				   100.0 * averagedAccuracy.accuracy()));
 	}
 	
 	private static void testUniversalGrammarScorer() {
@@ -103,11 +104,13 @@ public class CombinedScorerExperiment {
 			}
 			*/
 		}
-		System.out.println("Accuracy of universal grammar scorer:\t" +
-				   averagedAccuracy.accuracy());	
+		System.out.println(
+				String.format("Accuracy of universal grammar scorer:\t%.2f",
+				   100.0 * averagedAccuracy.accuracy()));	
 	}
 	
-	private static void testCombinedScorer(double lambda1, double lambda2) {
+	private static void testCombinedScorer(double distWeight, double qaWeight,
+										   double ugWeight) {
 		DistanceScorer distScorer = new DistanceScorer();
 		QuestionAnswerScorer qaScorer = new QuestionAnswerScorer();
 		UniversalGrammarScorer ugScorer =
@@ -126,16 +129,19 @@ public class CombinedScorerExperiment {
 			int[] parents = new int[length - 1],
 				  fixedParents = new int[length - 1];
 			
+			LatticeUtils.fill(scores, 0.0);
+			
 			// Compute distance scores.
-			distScorer.getScores(scores, depSentence);
+			distScorer.getScores(tempScores, depSentence);
+			LatticeUtils.addTo(scores, tempScores, distWeight);
 			// Compute QA scores.
 			for (QAPair qa : sentence.qaList) {
 				qaScorer.getScores(tempScores, depSentence, qa);
-				LatticeUtils.addTo(scores, tempScores, lambda1);
+				LatticeUtils.addTo(scores, tempScores, qaWeight);
 			}
 			// Compute UG scores
 			ugScorer.getScores(tempScores, depSentence);
-			LatticeUtils.addTo(scores, tempScores, lambda2);
+			LatticeUtils.addTo(scores, tempScores, ugWeight);
 			
 			decoder.decode(scores, parents);
 			Accuracy acc = Evaluation.getAccuracy(depSentence, parents);
@@ -146,10 +152,12 @@ public class CombinedScorerExperiment {
 			Accuracy acc2 = Evaluation.getAccuracy(depSentence, fixedParents);
 			averagedAccuracy2.add(acc2);
 		}
-		System.out.println("Combined accuracy:\t" +
-						   averagedAccuracy.accuracy());
-		System.out.println("Combined accuracy with post-processing:\t" +
-				   			averagedAccuracy2.accuracy());
+		System.out.println(
+				String.format("Combined accuracy:\t%.2f",
+						   100.0 * averagedAccuracy.accuracy()));
+		System.out.println(
+				String.format("Combined accuracy with post-processing:\t%.2f",
+				   			100.0 * averagedAccuracy2.accuracy()));
 	}
 	
 	public static void main(String[] args) {
@@ -162,11 +170,13 @@ public class CombinedScorerExperiment {
 		testQuestionAnswerScorer();
 		testUniversalGrammarScorer();
 		System.out.println("Dist + QA");
-		testCombinedScorer(1.0, 0.0);
+		testCombinedScorer(1.0, 1.0, 0.0);
 		System.out.println("Dist + UG");
-		testCombinedScorer(0.0, 1.0);
+		testCombinedScorer(1.0, 0.0, 1.0);
+		System.out.println("QA + UG");
+		testCombinedScorer(0.0, 1.0, 1.0);
 		System.out.println("Dist + QA + UG");
-		testCombinedScorer(1.0, 1.0);
+		testCombinedScorer(1.0, 1.0, 1.0);
 	}
 }
  

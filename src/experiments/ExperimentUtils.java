@@ -20,9 +20,11 @@ public class ExperimentUtils {
 	public static final String testFilename =
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
 	
-	//public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
-	public static String annotationFilename = "manual_annotation/en-upperbound.txt";
-		
+	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
+	//public static String annotationFilename = "manual_annotation/en-upperbound.txt";
+	
+	public static int maxNumSentences = 10;
+	
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
 		try {
@@ -48,6 +50,9 @@ public class ExperimentUtils {
 					if (annotatedSentences.size() > sentPtr) {
 						// Expecting a new sentence
 						sentPtr += 1;
+						if (sentPtr >= maxNumSentences) {
+							break;
+						}
 					}
 				} else if (annotatedSentences.size() <= sentPtr) {
 					String[] info = line.split("\t");

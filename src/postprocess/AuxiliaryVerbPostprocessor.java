@@ -67,6 +67,7 @@ public class AuxiliaryVerbPostprocessor {
 					isVerb(sentence, i + 2)) {
 					// change parent
 					switchHead(newParents, i, i + 1, i + 2);
+					/*
 					System.out.println(String.format("%s(%d) %s(%d) %s(%d)",
 									   sentence.getTokenString(i), i,
 									   sentence.getTokenString(i+1), i + 1,
@@ -80,10 +81,12 @@ public class AuxiliaryVerbPostprocessor {
 					System.out.println("fixed:\t" + newParents[i] + ", " +
 				   						newParents[i+1] + ", " +
 				   						newParents[i+2]);
+				   	*/
 					i += 2;
 				} else if (isVerb(sentence, i + 1)) {
 					// change parent
 					switchHead(newParents, i, i + 1);
+					/*
 					System.out.println(sentence.toString());
 					System.out.println(String.format("%s(%d) %s(%d)",
 							   		   sentence.getTokenString(i), i,
@@ -94,6 +97,7 @@ public class AuxiliaryVerbPostprocessor {
 							   		   parents[i+1]);
 					System.out.println("fixed:\t" + newParents[i] + ", " +
 					   		   			newParents[i+1]);
+					*/
 					i ++;
 				}
 				
