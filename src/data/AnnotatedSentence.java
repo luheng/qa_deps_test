@@ -24,6 +24,29 @@ public class AnnotatedSentence {
 		}
 		return retStr;
 	}
-	
-	// TODO: QA alignment
+ 
+	/**
+	 * Adapted from Luke's code ...
+	 * @param gold
+	 * @param scorer
+	 * @return
+	 */
+	public void prettyPrintDebugString(int[] prediction, double[][] scores){
+		for (int i = 0; i < depSentence.length; i++) {
+			int predParent = prediction[i],
+				goldParent = depSentence.parents[i];
+			System.out.print(
+					String.format("%2d %-15s %2d (%2.2f) %2d (%2.2f)",
+							i,
+							depSentence.getTokenString(i), 
+							predParent,
+							scores[predParent + 1][i + 1],
+							goldParent,
+							scores[goldParent + 1][i + 1]));
+			if (goldParent != predParent){
+				System.out.print(" ** ");
+			}			
+			System.out.println();
+		}
+	}
 }

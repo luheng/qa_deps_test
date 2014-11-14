@@ -166,9 +166,23 @@ public class CombinedScorerExperiment {
 		ExperimentUtils.doGreedyAlignment(annotatedSentences);
 		decoder = new ViterbiDecoder();
 		
-		testDistanceScorer();
-		testQuestionAnswerScorer();
-		testUniversalGrammarScorer();
+		double avgSentenceLength = 0.0, avgNumQAs = 0.0;
+		for (AnnotatedSentence sentence : annotatedSentences) {
+			System.out.println(sentence.depSentence.sentenceID);
+			avgSentenceLength += sentence.depSentence.length;
+			avgNumQAs += sentence.qaList.size();
+		}
+		System.out.println("Averaged sentence length:\t" +
+				avgSentenceLength / annotatedSentences.size());
+		System.out.println("Averaged number of QAs:\t" +
+				avgNumQAs / annotatedSentences.size());
+		
+		System.out.println("Dist");
+		testCombinedScorer(1.0, 0.0, 0.0);
+		System.out.println("QA");
+		testCombinedScorer(0.0, 1.0, 0.0);
+		System.out.println("UG");
+		testCombinedScorer(0.0, 0.0, 1.0);
 		System.out.println("Dist + QA");
 		testCombinedScorer(1.0, 1.0, 0.0);
 		System.out.println("Dist + UG");
