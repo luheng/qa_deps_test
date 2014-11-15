@@ -2,13 +2,13 @@ package optimization;
 
 import java.util.ArrayList;
 
+import scorer.DistanceScorer;
+import scorer.UniversalGrammarScorer;
 import util.LatticeUtils;
-import util.StringUtils;
 import data.Accuracy;
 import data.AnnotatedSentence;
+import data.DepSentence;
 import data.Evaluation;
-import data.QAPair;
-import decoding.AdjacencyGraph;
 import decoding.Decoder;
 import decoding.QADecoder;
 
@@ -23,20 +23,23 @@ public class DualDecompositionOptimizer {
 		Accuracy accuracy = new Accuracy(0, 0);
 		System.out.println("========== Optimization Starts =========");
 		
+		// Use scorers.
+		DistanceScorer distScorer = new DistanceScorer();
+		UniversalGrammarScorer ugScorer =
+				new UniversalGrammarScorer(instances.get(0).depSentence.corpus);
+		
 		for (AnnotatedSentence sentence : instances) {
 		//for (int sid = 0; sid < 3; sid++) {
 			//AnnotatedSentence sentence = instances.get(sid);
 			int length = sentence.depSentence.length + 1;
 			int numQAs = sentence.qaList.size();
 			double[][][] u = new double[numQAs][length][length];
-			double[][] scores = new double[length][length];
+			double[][] scores = new double[length][length],
+					   tempScores = new double[length][length];
 			int[] y = new int[length - 1];
 			int[][][] z = new int[numQAs][length][length];
 			// Number of components for each edge.
 			int[][] cnt = new int[length][length];
-					  
-			AdjacencyGraph dist =
-					AdjacencyGraph.getDistanceWeightedGraph(length - 1);
 			
 			LatticeUtils.fill(u, 0.0);
 			
@@ -45,7 +48,11 @@ public class DualDecompositionOptimizer {
 				
 				// y* = argmax f(y) + u.y
 				// simply take an average of the constraint scores.
-				LatticeUtils.copy(scores, dist.edges);
+				DepSentence depSentence = sentence.depSentence;
+				distScorer.getScores(scores, depSentence);
+				ugScorer.getScores(tempScores, depSentence);
+				LatticeUtils.addTo(scores, tempScores, 1.0);
+				
 				if (iter > 0) {
 					for (int i = 0; i < numQAs; i++) {
 						for (int j = 0; j < length; j++) {

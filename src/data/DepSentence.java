@@ -68,4 +68,38 @@ public class DepSentence {
 		}
 		return jsonSent;
 	}
+	
+	/**
+	 * Adapted from Luke's code ...
+	 * @param gold
+	 * @param scorer
+	 * @return
+	 */
+	public void prettyPrintDebugString(int[] prediction, double[][] scores){
+		for (int i = 0; i <length; i++) {
+			int predParent = prediction[i],
+				goldParent = parents[i];
+			if (getPostagString(i).equals(".")) {
+				System.out.print(
+						String.format("%2d\t%-15s\t%-5s\t-\t-\t-\t-",
+								i,
+								getTokenString(i), 
+								getPostagString(i)));
+			} else {
+				System.out.print(
+						String.format("%2d\t%-15s\t%-5s\t%2d\t(%2.2f)\t%2d\t(%2.2f)",
+								i,
+								getTokenString(i), 
+								getPostagString(i),
+								predParent,
+								scores[predParent + 1][i + 1],
+								goldParent,
+								scores[goldParent + 1][i + 1]));
+				if (goldParent != predParent){
+					System.out.print("\t**");
+				}
+			}		
+			System.out.println();
+		}
+	}
 }
