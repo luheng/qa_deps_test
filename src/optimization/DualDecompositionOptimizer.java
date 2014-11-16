@@ -96,12 +96,6 @@ public class DualDecompositionOptimizer {
 							}
 							if (z[i][j][k] != -1) {
 								cnt[j][k] ++;
-								/*
-								if (cnt[j][k] > 1) {
-									System.out.println(j + ", " + k + ", " +
-													   cnt[j][k] + ", " + u[i][j][k]);
-								}
-								*/
 							}
 						}
 					}

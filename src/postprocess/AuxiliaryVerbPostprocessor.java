@@ -1,6 +1,5 @@
 package postprocess;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 
 import util.LatticeUtils;
@@ -71,37 +70,10 @@ public class AuxiliaryVerbPostprocessor {
 					isVerb(sentence, i + 2)) {
 					// change parent
 					switchHead(newParents, i, i + 1, i + 2);
-					/*
-					System.out.println(String.format("%s(%d) %s(%d) %s(%d)",
-									   sentence.getTokenString(i), i,
-									   sentence.getTokenString(i+1), i + 1,
-									   sentence.getTokenString(i + 2), i + 2));
-					System.out.println("gold:\t" + sentence.parents[i] + ", " +
-									   sentence.parents[i+1] + ", " +
-									   sentence.parents[i+2]);
-					System.out.println("pred:\t" + parents[i] + ", " +
-							   			parents[i+1] + ", " +
-							   			parents[i+2]);
-					System.out.println("fixed:\t" + newParents[i] + ", " +
-				   						newParents[i+1] + ", " +
-				   						newParents[i+2]);
-				   	*/
 					i += 2;
 				} else if (isVerb(sentence, i + 1)) {
 					// change parent
 					switchHead(newParents, i, i + 1);
-					/*
-					System.out.println(sentence.toString());
-					System.out.println(String.format("%s(%d) %s(%d)",
-							   		   sentence.getTokenString(i), i,
-							   		   sentence.getTokenString(i+1), i + 1));
-					System.out.println("gold:\t" + sentence.parents[i] + ", " +
-							   		   sentence.parents[i+1]);
-					System.out.println("pred:\t" + parents[i] + ", " +
-							   		   parents[i+1]);
-					System.out.println("fixed:\t" + newParents[i] + ", " +
-					   		   			newParents[i+1]);
-					*/
 					i ++;
 				}
 				

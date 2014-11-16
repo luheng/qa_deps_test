@@ -32,9 +32,9 @@ public class DualDecompositionExperiment {
 				ExperimentUtils.loadAnnotatedSentences(trainCorpus);
 		ExperimentUtils.doGreedyAlignment(annotatedSentences);
 		
-		int numIterations = 20;
+		//int numIterations = 20;
 		//double[] stepSizes = { 0.1, 0.
-		runDualDecomposition(20, 0.01);
+		runDualDecomposition(1000, 0.01);
 	}
 		
 }
