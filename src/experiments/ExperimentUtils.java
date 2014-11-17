@@ -23,7 +23,7 @@ public class ExperimentUtils {
 	//public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
 	public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 	
-	public static int maxNumSentences = 10;
+	public static int maxNumSentences = 5;
 	
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
@@ -78,6 +78,15 @@ public class ExperimentUtils {
 		}
 		return annotatedSentences;
 	}
+	
+	// TODO
+	/*
+	public static ArrayList<AnnotatedSentence> loadNumberedAnnotation(
+			DepCorpus corpus) {
+		
+	}
+	*/
+	
 	
 	public static void doGreedyAlignment
 			(ArrayList<AnnotatedSentence> annotatedSentences) {

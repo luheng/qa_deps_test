@@ -29,8 +29,6 @@ public class DualDecompositionOptimizer {
 				new UniversalGrammarScorer(instances.get(0).depSentence.corpus);
 		
 		for (AnnotatedSentence sentence : instances) {
-		//for (int sid = 0; sid < 3; sid++) {
-			//AnnotatedSentence sentence = instances.get(sid);
 			int length = sentence.depSentence.length + 1;
 			int numQAs = sentence.qaList.size();
 			double[][][] u = new double[numQAs][length][length];

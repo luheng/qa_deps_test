@@ -114,12 +114,13 @@ public class CombinedScorerExperiment {
 		System.out.println("Dist + UG");
 		testCombinedScorer(1.0, 0.0, 1.0);
 		*/
-		/*
+		
 		System.out.println("QA + UG");
 		testCombinedScorer(0.0, 1.0, 1.0);
-		*/
+		/*
 		System.out.println("Dist + QA + UG");
 		testCombinedScorer(1.0, 1.0, 1.0);
+		*/
 	
 	}
 }
