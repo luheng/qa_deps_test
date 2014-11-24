@@ -71,11 +71,13 @@ public class CombinedScorerExperiment {
 			averagedAccuracy2.add(acc2);
 			
 			// Print out analysis
+			/*
 			System.out.println(String.format("ID: %d\tAccuracy: %.2f",
 					depSentence.sentenceID, 100.0 * acc.accuracy()));
 			//depSentence.prettyPrintDebugString(fixedParents, scores);
 			depSentence.prettyPrintDebugString(parents, scores);
 			System.out.println();
+			*/
 		}
 		System.out.println(
 				String.format("Combined accuracy:\t%.2f",
@@ -87,7 +89,8 @@ public class CombinedScorerExperiment {
 	
 	public static void main(String[] args) {
 		trainCorpus = ExperimentUtils.loadDepCorpus();
-		annotatedSentences = ExperimentUtils.loadAnnotatedSentences(trainCorpus);
+		//annotatedSentences = ExperimentUtils.loadAnnotatedSentences(trainCorpus);
+		annotatedSentences = ExperimentUtils.loadNumberedAnnotation(trainCorpus);
 		ExperimentUtils.doGreedyAlignment(annotatedSentences);
 		decoder = new ViterbiDecoder();
 		
