@@ -71,13 +71,11 @@ public class CombinedScorerExperiment {
 			averagedAccuracy2.add(acc2);
 			
 			// Print out analysis
-			/*
 			System.out.println(String.format("ID: %d\tAccuracy: %.2f",
 					depSentence.sentenceID, 100.0 * acc.accuracy()));
 			//depSentence.prettyPrintDebugString(fixedParents, scores);
 			depSentence.prettyPrintDebugString(parents, scores);
 			System.out.println();
-			*/
 		}
 		System.out.println(
 				String.format("Combined accuracy:\t%.2f",
@@ -92,10 +90,15 @@ public class CombinedScorerExperiment {
 		if (ExperimentUtils.useNumberedAnnotation) {
 			annotatedSentences = ExperimentUtils.loadNumberedAnnotation(trainCorpus);
 		} else {
-			// annotatedSentences = ExperimentUtils.loadAnnotatedSentences(trainCorpus);
-			// ExperimentUtils.doGreedyAlignment(annotatedSentences);
+			annotatedSentences = ExperimentUtils.loadAnnotatedSentences(trainCorpus);
+			ExperimentUtils.doGreedyAlignment(annotatedSentences);
 		}		
 		decoder = new ViterbiDecoder();
+		
+		// For debugging: print out loaded QA pairs.
+		for (AnnotatedSentence sentence : annotatedSentences) {
+			System.out.println(sentence.toString());
+		}
 		
 		double avgSentenceLength = 0.0, avgNumQAs = 0.0;
 		for (AnnotatedSentence sentence : annotatedSentences) {

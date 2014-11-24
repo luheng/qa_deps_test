@@ -20,7 +20,7 @@ public class AnnotatedSentence {
 		String retStr = depSentence.sentenceID + "\t" +
 					    depSentence.getTokensString() + "\n";
 		for (int i = 0; i < qaList.size(); i++) {			
-			retStr += "\tQA" + i + "\t" + qaList.get(i).toString() + "\n";
+			retStr += "QA" + i + "\t" + qaList.get(i).toString() + "\n";
 		}
 		return retStr;
 	}
