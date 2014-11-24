@@ -25,6 +25,7 @@ public class ExperimentUtils {
 	//public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
 	//public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 	public static String annotationFilename = "manual_annotation/luke_first5.csv";
+	public static boolean useNumberedAnnotation = true;
 	
 	public static int maxNumSentences = 5;
 	
@@ -128,7 +129,7 @@ public class ExperimentUtils {
 			reader.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}		
 		return annotatedSentences;
 	}
 	

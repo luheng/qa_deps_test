@@ -89,9 +89,12 @@ public class CombinedScorerExperiment {
 	
 	public static void main(String[] args) {
 		trainCorpus = ExperimentUtils.loadDepCorpus();
-		//annotatedSentences = ExperimentUtils.loadAnnotatedSentences(trainCorpus);
-		annotatedSentences = ExperimentUtils.loadNumberedAnnotation(trainCorpus);
-		ExperimentUtils.doGreedyAlignment(annotatedSentences);
+		if (ExperimentUtils.useNumberedAnnotation) {
+			annotatedSentences = ExperimentUtils.loadNumberedAnnotation(trainCorpus);
+		} else {
+			// annotatedSentences = ExperimentUtils.loadAnnotatedSentences(trainCorpus);
+			// ExperimentUtils.doGreedyAlignment(annotatedSentences);
+		}		
 		decoder = new ViterbiDecoder();
 		
 		double avgSentenceLength = 0.0, avgNumQAs = 0.0;
