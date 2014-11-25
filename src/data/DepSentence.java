@@ -76,7 +76,7 @@ public class DepSentence {
 	 * @return
 	 */
 	public void prettyPrintDebugString(int[] prediction, double[][] scores){
-		for (int i = 0; i <length; i++) {
+		for (int i = 0; i < length; i++) {
 			int predParent = prediction[i],
 				goldParent = parents[i];
 			if (getPostagString(i).equals(".")) {
@@ -101,5 +101,43 @@ public class DepSentence {
 			}		
 			System.out.println();
 		}
+	}
+	
+	/* Used for simple arc visualizer.
+	 * example:
+	 * 	{ "id":1, "words":["a", "b"], "tags":["A", "B"], "gold":[0,1], "pred":[2,0] }
+	 */
+	public void prettyPrintJSONDebugString(int[] prediction) {
+		String jsonStr = "{ \"id\":" + this.sentenceID + ",";
+		jsonStr += "\n\"words\": [";
+		for (int i = 0; i < length; i++) {
+			if (i > 0) {
+				jsonStr += ", ";
+			}
+			jsonStr += "\"" + this.getTokenString(i) + "\"";
+		}
+		jsonStr += "],\n\"tags\": [";
+		for (int i = 0; i < length; i++) {
+			if (i > 0) {
+				jsonStr += ", ";
+			}
+			jsonStr += "\"" + this.getPostagString(i) + "\"";
+		}
+		jsonStr += "],\n\"gold\": [";
+		for (int i = 0; i < length; i++) {
+			if (i > 0) {
+				jsonStr += ", ";
+			}
+			jsonStr += this.parents[i] + 1;
+		}
+		jsonStr += "], \n\"pred\": [";
+		for (int i = 0; i < length; i++) {
+			if (i > 0) {
+				jsonStr += ", ";
+			}
+			jsonStr += prediction[i] + 1;
+		}
+		jsonStr += "] }";
+		System.out.println(jsonStr);
 	}
 }

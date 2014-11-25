@@ -14,11 +14,13 @@ import data.DepSentence;
  *  of the parse tree is assigned to another verb (the closest one), and all its
  *  children are also moved under the new head.
  *  
- *  Handle these two common cases:
+ *  Handle these three common cases:
  *  	1. "will do ...", where the main verb follows the auxiliary verb
  *  		immediately.
  *  	2. "will be doing", where the main verb follows two consequtive
- *  		auxiliary verbs. 
+ *  		auxiliary verbs.
+ *  	3. Negation. "has n't done", "has n't been doing", or "will not ..."
+ *  		(not sure if that last one is grammatical though). 
  *   
  * @author luheng
  *
@@ -71,6 +73,15 @@ public class AuxiliaryVerbPostprocessor {
 					// change parent
 					switchHead(newParents, i, i + 1, i + 2);
 					i += 2;
+				} else if (isAuxiliaryVerb(sentence, i + 1) &&
+						   isNegationWord(sentence, i + 2) &&
+						   isVerb(sentence, i + 3)) {
+					switchHead(newParents, i, i + 1, i + 3);
+					i += 3;
+				} else if (isNegationWord(sentence, i + 1) &&
+						   isVerb(sentence, i + 2)) {
+					switchHead(newParents, i, i + 2);
+					i += 2;
 				} else if (isVerb(sentence, i + 1)) {
 					// change parent
 					switchHead(newParents, i, i + 1);
@@ -89,6 +100,12 @@ public class AuxiliaryVerbPostprocessor {
 		return //isVerb(sentence, id) &&
 			   id < sentence.length &&
 			   enAuxiliaryVerbSet.contains(sentence.tokens[id]);
+	}
+	
+	private boolean isNegationWord(DepSentence sentence, int id) {
+		String word = sentence.getTokenString(id);
+		return id < sentence.length &&
+			   (word.equalsIgnoreCase("not") || word.equalsIgnoreCase("n\'t")); 
 	}
 	
 	private void switchHead(int[] parents, int auxVerb1, int auxVerb2,

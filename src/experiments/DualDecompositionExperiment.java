@@ -34,7 +34,7 @@ public class DualDecompositionExperiment {
 		
 		//int numIterations = 20;
 		//double[] stepSizes = { 0.1, 0.
-		runDualDecomposition(1000, 0.01);
+		runDualDecomposition(5000, 0.1);
 	}
 		
 }

@@ -3,8 +3,10 @@ package decoding;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import scorer.QuestionAnswerScorer;
 import util.LatticeUtils;
 import util.StringUtils;
+import data.AnnotatedSentence;
 import data.DepSentence;
 import data.QAPair;
 
@@ -54,6 +56,41 @@ public class QADecoder {
 						   bestScore);
 		*/
 		return bestScore;
+	}
+	
+	/**
+	 * Simple adaptation of the QA scorer.
+	 * @param sentence
+	 * @param qa
+	 * @param u
+	 * @param bestDecoded
+	 * @return
+	 */
+	public double decodeEntireSentence(DepSentence sentence, QAPair qa,
+									   double[][] u, int[] bestDecoded) {
+		
+		QuestionAnswerScorer scorer = new QuestionAnswerScorer();
+		ViterbiDecoder decoder = new ViterbiDecoder();
+		double[][] scores = new double[sentence.length + 1][sentence.length + 1];
+		scorer.getScores(scores, sentence, qa);
+		LatticeUtils.addTo(scores, u, -1.0);
+		return decoder.decode(scores, bestDecoded);
+	}
+	
+	public double decodeEntireSentence(AnnotatedSentence sentence, double[][] u,
+									   int[] bestDecoded) {
+		QuestionAnswerScorer scorer = new QuestionAnswerScorer();
+		ViterbiDecoder decoder = new ViterbiDecoder();
+		int length = sentence.depSentence.length + 1;
+		double[][] scores = new double[length][length],
+				   tempScores = new double[length][length];
+		LatticeUtils.fill(scores, 0.0);
+		for (QAPair qa  : sentence.qaList) {
+			scorer.getScores(tempScores, sentence.depSentence, qa);
+			LatticeUtils.addTo(scores, tempScores);
+		}
+		LatticeUtils.addTo(scores, u, -1.0); 
+		return decoder.decode(scores, bestDecoded);
 	}
 	
 	private double computeScore(int[][] decoded, double[][] u) {

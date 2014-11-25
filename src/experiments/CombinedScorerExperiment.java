@@ -71,10 +71,13 @@ public class CombinedScorerExperiment {
 			averagedAccuracy2.add(acc2);
 			
 			// Print out analysis
+			/*
 			System.out.println(String.format("ID: %d\tAccuracy: %.2f",
-					depSentence.sentenceID, 100.0 * acc.accuracy()));
-			//depSentence.prettyPrintDebugString(fixedParents, scores);
-			depSentence.prettyPrintDebugString(parents, scores);
+					depSentence.sentenceID, 100.0 * acc2.accuracy()));
+			depSentence.prettyPrintDebugString(fixedParents, scores);
+			//depSentence.prettyPrintDebugString(parents, scores);
+			 */
+			depSentence.prettyPrintJSONDebugString(fixedParents);
 			System.out.println();
 		}
 		System.out.println(
