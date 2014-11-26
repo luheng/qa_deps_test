@@ -7,6 +7,11 @@ public class NonEmptyQuestionConstraint implements AbstractConstraint {
 
 	@Override
 	public boolean validate(DepSentence sentence, QAPair qa) {
+		return validate(sentence, qa, sentence.parents);
+	}
+	
+	@Override
+	public boolean validate(DepSentence sentence, QAPair qa, int[] tree) {
 		int numAligned = 0;
 		for (int i : qa.questionAlignment) {
 			if (i != -1) {

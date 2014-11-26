@@ -15,6 +15,11 @@ public class AnswerIsSubtreeConstraint implements AbstractConstraint {
 	
 	@Override
 	public boolean validate(DepSentence sentence, QAPair qa) {
+		return validate(sentence, qa, sentence.parents);
+	}
+	
+	@Override
+	public boolean validate(DepSentence sentence, QAPair qa, int[] tree) {
 		int[] inverseAlignment = new int[sentence.length];
 		Arrays.fill(inverseAlignment, -1);
 		for (int i = 0; i < qa.answerAlignment.length; i++) {
@@ -25,7 +30,7 @@ public class AnswerIsSubtreeConstraint implements AbstractConstraint {
 		int numOutGoingEdges = 0;
 		for (int i = 0; i < sentence.length; i++) {
 			if (inverseAlignment[i] != -1) {
-				int parent = sentence.parents[i];
+				int parent = tree[i];
 				if (parent == -1 || inverseAlignment[parent] == -1) {
 					numOutGoingEdges += 1;
 				}

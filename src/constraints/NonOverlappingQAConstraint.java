@@ -10,5 +10,11 @@ public class NonOverlappingQAConstraint implements AbstractConstraint {
 		
 		return false;
 	}
+	
+	@Override
+	public boolean validate(DepSentence sentence, QAPair qa, int[] tree) {
+		
+		return false;
+	}
 
 }

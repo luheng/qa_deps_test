@@ -25,7 +25,9 @@ public class UniversalGrammarScorer {
 			{"VERB", "."},
 			{"NOUN", "NOUN"},
 			{"NOUN", "ADJ"},
+			{"NOUN", "ADP"},
 			{"NOUN", "DET"},
+			{"ADP", "NOUN"},
 			
 	};
 	double[][] universalGrammarWeights;

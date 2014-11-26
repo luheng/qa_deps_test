@@ -28,6 +28,9 @@ import data.DepSentence;
 public class AuxiliaryVerbPostprocessor {
 	private final String[] enAuxiliaryVerbs = {
 			"be",
+			"is",
+			"are",
+			"were",
 			"can",
 			"could",
 			"dare",

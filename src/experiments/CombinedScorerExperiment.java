@@ -2,6 +2,7 @@ package experiments;
 
 import java.util.ArrayList;
 
+import constraints.ConstraintChecker;
 import postprocess.AuxiliaryVerbPostprocessor;
 import scorer.DistanceScorer;
 import scorer.QuestionAnswerScorer;
@@ -38,6 +39,8 @@ public class CombinedScorerExperiment {
 		Accuracy averagedAccuracy = new Accuracy(),
 				 averagedAccuracy2 = new Accuracy();
 		
+		int numConstraintViolation = 0, numGoldViolation = 0, totalNumQA = 0;
+		
 		for (AnnotatedSentence sentence : annotatedSentences) {
 			DepSentence depSentence = sentence.depSentence;
 			int length = depSentence.length + 1;
@@ -71,14 +74,27 @@ public class CombinedScorerExperiment {
 			averagedAccuracy2.add(acc2);
 			
 			// Print out analysis
-			/*
 			System.out.println(String.format("ID: %d\tAccuracy: %.2f",
 					depSentence.sentenceID, 100.0 * acc2.accuracy()));
 			depSentence.prettyPrintDebugString(fixedParents, scores);
 			//depSentence.prettyPrintDebugString(parents, scores);
-			 */
-			depSentence.prettyPrintJSONDebugString(fixedParents);
+			
+			//depSentence.prettyPrintJSONDebugString(fixedParents);
 			System.out.println();
+			
+			// Check constraint violation
+			for (QAPair qa : sentence.qaList) {
+				if (!ConstraintChecker.check(sentence.depSentence, qa,
+											 fixedParents)) {
+					numConstraintViolation ++;
+					System.out.println(qa.toString());
+				}
+				if (!ConstraintChecker.check(sentence.depSentence, qa,
+						 sentence.depSentence.parents)) {
+					numGoldViolation ++;
+				}
+			}
+			totalNumQA += sentence.qaList.size();
 		}
 		System.out.println(
 				String.format("Combined accuracy:\t%.2f",
@@ -86,6 +102,12 @@ public class CombinedScorerExperiment {
 		System.out.println(
 				String.format("Combined accuracy with post-processing:\t%.2f",
 				   			100.0 * averagedAccuracy2.accuracy()));
+		System.out.println(
+				String.format("Violated constraints: %d(%d)\t",
+						numConstraintViolation, totalNumQA));
+		System.out.println(
+				String.format("Gold violated constraints: %d(%d)\t",
+						numGoldViolation, totalNumQA));
 	}
 	
 	public static void main(String[] args) {

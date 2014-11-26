@@ -2,7 +2,6 @@ package constraints;
 
 import java.util.Arrays;
 
-import util.StringUtils;
 import data.DepSentence;
 import data.QAPair;
 
@@ -11,7 +10,7 @@ import data.QAPair;
  */
 public class SingleEdgeQAConstraint implements AbstractConstraint {
 
-	private int getSubtreeHead(DepSentence sentence, QAPair qa) {
+	private int getSubtreeHead(DepSentence sentence, QAPair qa, int[] tree) {
 		int[] inverseAlignment = new int[sentence.length];
 		Arrays.fill(inverseAlignment, -1);
 		for (int i = 0; i < qa.answerAlignment.length; i++) {
@@ -23,7 +22,7 @@ public class SingleEdgeQAConstraint implements AbstractConstraint {
 		for (int i = 0; i < sentence.length; i++) {
 			int aligned = inverseAlignment[i];
 			if (aligned != -1) {
-				int parent = sentence.parents[i];
+				int parent = tree[i];
 				if (parent == -1) {
 					numOutGoingEdges += 1;
 					headInside = i;
@@ -51,7 +50,12 @@ public class SingleEdgeQAConstraint implements AbstractConstraint {
 	
 	@Override
 	public boolean validate(DepSentence sentence, QAPair qa) {
-		int subtreeHead = getSubtreeHead(sentence, qa);
+		return validate(sentence, qa, sentence.parents);
+	}
+	
+	@Override
+	public boolean validate(DepSentence sentence, QAPair qa, int[] tree) {
+		int subtreeHead = getSubtreeHead(sentence, qa, tree);
 		if (subtreeHead < 0) {
 			// Answer does not represent a single subtree.
 			return false;			
@@ -59,7 +63,7 @@ public class SingleEdgeQAConstraint implements AbstractConstraint {
 		// System.out.println("subtree head:\t" + subtreeHead);
 		for (int i : qa.questionAlignment) {
 			// Here we allow question to contain the answer 's head.
-			if (i == sentence.parents[subtreeHead] || i == subtreeHead) {
+			if (i == tree[subtreeHead] || i == subtreeHead) {
 				return true;
 			}
 		}

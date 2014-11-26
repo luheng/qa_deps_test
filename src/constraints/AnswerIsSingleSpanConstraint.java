@@ -10,6 +10,11 @@ public class AnswerIsSingleSpanConstraint implements AbstractConstraint {
 
 	@Override
 	public boolean validate(DepSentence sentence, QAPair qa) {
+		return validate(sentence, qa, sentence.parents);
+	}
+	
+	@Override
+	public boolean validate(DepSentence sentence, QAPair qa, int[] tree) {
 		int spanStart = -1;
 		int numSpans = 0;
 		for (int i = 0; i < qa.answerAlignment.length; i++) {
