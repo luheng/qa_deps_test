@@ -11,13 +11,13 @@ public class GreedyQuestionAnswerAligner implements QuestionAnswerAligner {
 	public void align(DepSentence sentence, QAPair qa) {
 		String[] sentenceTokens = sentence.corpus.wordDict.getStringArray(
 				sentence.tokens);
-		greedyMatch(sentenceTokens, qa.questionTokens, qa.questionAlignment);
-		greedyMatch(sentenceTokens, qa.answerTokens, qa.answerAlignment);
+		greedyMatch(qa.questionAlignment, sentenceTokens, qa.questionTokens);
+		greedyMatch(qa.answerAlignment, sentenceTokens, qa.answerTokens);
 	}
 	
 	// Always prefer longest spans.
-	private void greedyMatch(String[] sentenceTokens, String[] qaTokens,
-							 int alignment[]) {
+	private void greedyMatch(int[] alignment, String[] sentenceTokens,
+							 String[] qaTokens) {
 		boolean[] matched = new boolean[sentenceTokens.length];
 		Arrays.fill(alignment, -1);
 		Arrays.fill(matched, false);
