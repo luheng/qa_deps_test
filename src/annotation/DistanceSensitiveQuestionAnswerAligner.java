@@ -7,7 +7,7 @@ import data.DepSentence;
 import data.QAPair;
 
 public class DistanceSensitiveQuestionAnswerAligner
-		implements QuestionAnswerAligner {
+		implements AbstractQuestionAnswerAligner {
 
 	@Override
 	public void align(DepSentence sentence, QAPair qa) {

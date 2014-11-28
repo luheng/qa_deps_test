@@ -5,7 +5,7 @@ import java.util.Arrays;
 import data.DepSentence;
 import data.QAPair;
 
-public class GreedyQuestionAnswerAligner implements QuestionAnswerAligner {
+public class GreedyQuestionAnswerAligner implements AbstractQuestionAnswerAligner {
 
 	@Override
 	public void align(DepSentence sentence, QAPair qa) {

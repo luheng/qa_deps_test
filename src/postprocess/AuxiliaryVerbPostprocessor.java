@@ -25,7 +25,7 @@ import data.DepSentence;
  * @author luheng
  *
  */
-public class AuxiliaryVerbPostprocessor {
+public class AuxiliaryVerbPostprocessor implements AbstractPostprocessor {
 	private final String[] enAuxiliaryVerbs = {
 			"be",
 			"is",
@@ -65,6 +65,7 @@ public class AuxiliaryVerbPostprocessor {
 		verbPosId = corpus.posDict.lookupString("VERB"); 
 	}
 	
+	@Override
 	public void postprocess(int[] newParents, int[] parents,
 							DepSentence sentence) {
 		LatticeUtils.copy(newParents, parents);

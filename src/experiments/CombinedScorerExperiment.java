@@ -3,7 +3,9 @@ package experiments;
 import java.util.ArrayList;
 
 import constraints.ConstraintChecker;
+import postprocess.AbstractPostprocessor;
 import postprocess.AuxiliaryVerbPostprocessor;
+import postprocess.FlatNounPhrasePostprocessor;
 import scorer.DistanceScorer;
 import scorer.QuestionAnswerScorer;
 import scorer.UniversalGrammarScorer;
@@ -34,8 +36,10 @@ public class CombinedScorerExperiment {
 		QuestionAnswerScorer qaScorer = new QuestionAnswerScorer();
 		UniversalGrammarScorer ugScorer =
 				new UniversalGrammarScorer(trainCorpus);
-		AuxiliaryVerbPostprocessor fixer =
+		AbstractPostprocessor verbFixer =
 				new AuxiliaryVerbPostprocessor(trainCorpus);
+		AbstractPostprocessor npFixer =
+				new FlatNounPhrasePostprocessor(trainCorpus); 
 		Accuracy averagedAccuracy = new Accuracy(),
 				 averagedAccuracy2 = new Accuracy();
 		
@@ -48,7 +52,8 @@ public class CombinedScorerExperiment {
 					   tempScores = new double[length][length];
 						
 			int[] parents = new int[length - 1],
-				  fixedParents = new int[length - 1];
+				  fixedParents = new int[length - 1],
+				  fixedParents2 = new int[length - 1];
 			
 			LatticeUtils.fill(scores, 0.0);
 			
@@ -69,14 +74,15 @@ public class CombinedScorerExperiment {
 			averagedAccuracy.add(acc);
 			
 			// Go through post-processor.
-			fixer.postprocess(fixedParents, parents, depSentence);
-			Accuracy acc2 = Evaluation.getAccuracy(depSentence, fixedParents);
+			verbFixer.postprocess(fixedParents, parents, depSentence);
+			npFixer.postprocess(fixedParents2, fixedParents, depSentence);
+			Accuracy acc2 = Evaluation.getAccuracy(depSentence, fixedParents2);
 			averagedAccuracy2.add(acc2);
 			
 			// Print out analysis
 			System.out.println(String.format("ID: %d\tAccuracy: %.2f",
 					depSentence.sentenceID, 100.0 * acc2.accuracy()));
-			depSentence.prettyPrintDebugString(fixedParents, scores);
+			depSentence.prettyPrintDebugString(fixedParents2, scores);
 			//depSentence.prettyPrintDebugString(parents, scores);
 			
 			//depSentence.prettyPrintJSONDebugString(fixedParents);

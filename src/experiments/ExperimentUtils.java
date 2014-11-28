@@ -10,7 +10,7 @@ import util.CSVUtils;
 import util.StringUtils;
 import annotation.DistanceSensitiveQuestionAnswerAligner;
 import annotation.GreedyQuestionAnswerAligner;
-import annotation.QuestionAnswerAligner;
+import annotation.AbstractQuestionAnswerAligner;
 import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.QAPair;
@@ -28,9 +28,9 @@ public class ExperimentUtils {
 	public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 	// public static String annotationFilename = "manual_annotation/luke_first5.csv";
 	public static boolean useNumberedAnnotation = false;
-	public static boolean useDistanceSensitiveAlignment = false;
+	public static boolean useDistanceSensitiveAlignment = true;
 	
-	public static int maxNumSentences = 10;
+	public static int maxNumSentences = 5;
 	
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
@@ -138,7 +138,7 @@ public class ExperimentUtils {
 	
 	public static void doGreedyAlignment
 			(ArrayList<AnnotatedSentence> annotatedSentences) {
-		QuestionAnswerAligner aligner;
+		AbstractQuestionAnswerAligner aligner;
 		if (useDistanceSensitiveAlignment) {
 			aligner = new DistanceSensitiveQuestionAnswerAligner();
 		} else {

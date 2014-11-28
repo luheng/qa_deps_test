@@ -87,7 +87,7 @@ public class DepSentence {
 								getPostagString(i)));
 			} else {
 				System.out.print(
-						String.format("%2d\t%-15s\t%-5s\t%2d\t(%2.2f)\t%2d\t(%2.2f)",
+						String.format("%2d\t%-15s\t%-5s\t%2d\t%2.2f\t%2d\t%2.2f",
 								i,
 								getTokenString(i), 
 								getPostagString(i),
