@@ -121,7 +121,7 @@ When to raise funds ? ### Before it expires .
 What expires ? ### The current authority .
 Authority of what ? ### To issue debt .
 When does it expires ? ### At midnight .
-When does it expires ? ### At midnight tonight .
+When does it expires ? ### Tonight .
 What happened due to that ? ### Yesterday 's auction was structured differently from previous sales .
 What was structured ? ### Yesterday 's auction .
 Which auction ? ### Yesterday 's .

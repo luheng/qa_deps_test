@@ -12,10 +12,11 @@ public class ConstraintChecker {
 		AbstractConstraint
 			answerConstraint1 = new AnswerIsSubtreeConstraint(),
 			answerConstraint2 = new AnswerIsHeadlessSubtreeConstraint(),							
-			qaConstraint = new SingleEdgeQAConstraint();
-		return (answerConstraint1.validate(sentence, qa) ||
-			   answerConstraint2.validate(sentence, qa)) &&
-			   qaConstraint.validate(sentence, qa);
+			//qaConstraint = new SingleEdgeQAConstraint();
+			qaConstraint = new StrictSingleEdgeQAConstraint();
+		return (answerConstraint1.validate(sentence, qa, tree) ||
+			   answerConstraint2.validate(sentence, qa, tree)) &&
+			   qaConstraint.validate(sentence, qa, tree);
 	}
 }
 ;

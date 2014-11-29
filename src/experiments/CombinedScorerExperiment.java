@@ -36,6 +36,7 @@ public class CombinedScorerExperiment {
 		QuestionAnswerScorer qaScorer = new QuestionAnswerScorer();
 		UniversalGrammarScorer ugScorer =
 				new UniversalGrammarScorer(trainCorpus);
+		
 		AbstractPostprocessor verbFixer =
 				new AuxiliaryVerbPostprocessor(trainCorpus);
 		AbstractPostprocessor npFixer =
@@ -85,20 +86,25 @@ public class CombinedScorerExperiment {
 			depSentence.prettyPrintDebugString(fixedParents2, scores);
 			//depSentence.prettyPrintDebugString(parents, scores);
 			
-			depSentence.prettyPrintJSONDebugString(fixedParents);
+			depSentence.prettyPrintJSONDebugString(fixedParents2);
 			System.out.println();
 			
 			// Check constraint violation
 			for (QAPair qa : sentence.qaList) {
-				if (!ConstraintChecker.check(sentence.depSentence, qa,
-											 fixedParents)) {
-					numConstraintViolation ++;
-					System.out.println(qa.toString());
-				}
-				if (!ConstraintChecker.check(sentence.depSentence, qa,
-						 sentence.depSentence.parents)) {
+				boolean goldViolation = !ConstraintChecker.check(
+						sentence.depSentence, qa, sentence.depSentence.parents);
+				if (goldViolation) {
 					numGoldViolation ++;
 				}
+				if (!ConstraintChecker.check(sentence.depSentence, qa,
+											 fixedParents2)) {
+					numConstraintViolation ++;
+					if (!goldViolation) {
+						System.out.println("Constrint Violation::\t" +
+								qa.toString());
+					}
+				}
+				
 			}
 			totalNumQA += sentence.qaList.size();
 		}
