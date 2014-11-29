@@ -111,18 +111,23 @@ What had that resulted in ? ### Sharply higher profit .
 What resulted in higher profit ? ### Domestic demand .
 
 3501	Due to the Treasury 's need to raise funds quickly before the current authority to issue debt expires at midnight tonight , yesterday 's auction was structured differently from previous sales .
-Who need to raise funds ? ### Treasury .
-Whose need ? ### Treasury 's .
-What is its need ? ### To raise funds quickly before the current authority to issue debt expires at midnight tonight .
-What is its need ? ### To raise funds quickly .
-When to raise funds ? ### Before the current authority to issue debt expires at midnight tonight.
-When to raise funds ? ### Before the current authority expires .
-What authority ? ### To issue debt .
-Authority to do what ? ### Issue debt .
-When it expires ? ### At midnight tonight .
-What was structured differently ? ### Yesterday 's auction .
-How was the auction structured ? ### Differently from previous sales .
-What was the it structured differently from ? ### Previous sales .
+Due to what ? ### The Treasury 's need to raise funds quickly .
+Whose need ? ### The Treasury 's .
+Need of what ? ### To raise funds quickly .
+How to raise funds ? ### Quickly .
+To raise what ? ### Funds .
+When to raise funds ? ### Before the current authority to issue debt expires .
+When to raise funds ? ### Before it expires .
+What expires ? ### The current authority .
+Authority of what ? ### To issue debt .
+When does it expires ? ### At midnight .
+When does it expires ? ### At midnight tonight .
+What happened due to that ? ### Yesterday 's auction was structured differently from previous sales .
+What was structured ? ### Yesterday 's auction .
+Which auction ? ### Yesterday 's .
+How was it structured ? ### Differently .
+How differently ? ### From previous sales .
+Differently from what ? ### Previous sales .
 
 3389	Dealers said the market was supported to some extent by a firmer pound , gains on Wall Street and shopping by market-makers to cover internal requirements for selected stocks in the 100-share index .
 Who said that ? ### Dealers .

@@ -30,6 +30,7 @@ public class AuxiliaryVerbPostprocessor implements AbstractPostprocessor {
 			"be",
 			"is",
 			"are",
+			"was",
 			"were",
 			"can",
 			"could",

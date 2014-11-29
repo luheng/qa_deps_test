@@ -85,7 +85,7 @@ public class CombinedScorerExperiment {
 			depSentence.prettyPrintDebugString(fixedParents2, scores);
 			//depSentence.prettyPrintDebugString(parents, scores);
 			
-			//depSentence.prettyPrintJSONDebugString(fixedParents);
+			depSentence.prettyPrintJSONDebugString(fixedParents);
 			System.out.println();
 			
 			// Check constraint violation
