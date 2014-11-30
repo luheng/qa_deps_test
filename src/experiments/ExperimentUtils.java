@@ -30,7 +30,7 @@ public class ExperimentUtils {
 	public static boolean useNumberedAnnotation = false;
 	public static boolean useDistanceSensitiveAlignment = true;
 	
-	public static int maxNumSentences = 10;
+	public static int maxNumSentences = 5;
 	
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");

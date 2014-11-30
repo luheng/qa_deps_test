@@ -100,7 +100,7 @@ public class CombinedScorerExperiment {
 											 fixedParents2)) {
 					numConstraintViolation ++;
 					if (!goldViolation) {
-						System.out.println("Constrint Violation::\t" +
+						System.out.println("Constraint Violation::\t" +
 								qa.toString());
 					}
 				}
