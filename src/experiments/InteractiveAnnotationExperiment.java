@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
+import util.StringUtils;
 import annotation.BasicQuestionTemplates;
 import annotation.QuestionTemplate;
 import data.AnnotatedSentence;
@@ -120,7 +121,7 @@ public class InteractiveAnnotationExperiment {
 				if (qtemp.matches(sentence, wordID, currentSpan)) {
 					// Show numbered sentence and question.
 					System.out.println(
-							qtemp.getNumberedQuestion(sentence, wordID));
+							qtemp.getNumberedQuestionString(sentence, wordID));
 					String inputStr = console.readLine(
 							"Input answer range (a-b), 0 for no answer:");
 					int[] answerSpan = processAnswerSpan(inputStr);
@@ -129,13 +130,19 @@ public class InteractiveAnnotationExperiment {
 					if (answerSpan[0] == -1) {
 						continue;
 					}
-					String question = qtemp.getQuestion(sentence, wordID);
+					String question = qtemp.getQuestionString(sentence, wordID);
 					String answer = getAnswerSpanString(sentence, answerSpan);
-					System.out.print("Answer:\t" + answer);
+					System.out.println("Answer:\t" + answer);
 					
 					// Create new QA pair.
 					QAPair qa = new QAPair(question, answer);
-					// TODO: create unambiguous alignment, yay!
+					qa.questionAlignment[qtemp.getSlotID()] = wordID;
+					for (int i = answerSpan[0]; i < answerSpan[1]; i++) {
+						qa.answerAlignment[i - answerSpan[0]] = i;
+					}
+					// Print QA alignment
+					System.out.println(StringUtils.intArrayToString(" ", qa.questionAlignment));
+					System.out.println(StringUtils.intArrayToString(" ", qa.answerAlignment));
 				}
 			}
 

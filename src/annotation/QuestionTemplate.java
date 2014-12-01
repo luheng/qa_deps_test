@@ -5,8 +5,10 @@ import data.DepSentence;
 
 public class QuestionTemplate {
 
-	String postag, token, whWord, question;
+	String postag, token, whWord;
+	String[] questionTokens;
 	int argNum; // 0 or 1.
+	int slotID;
 	boolean requireLeftTokens, requireRightTokens;
 	
 	public QuestionTemplate(String postag, String token, String whWord,
@@ -17,7 +19,13 @@ public class QuestionTemplate {
 		this.token = token;
 		this.whWord = whWord;
 		this.argNum = argNum;
-		this.question = question;
+		this.questionTokens = question.split("\\s+");
+		this.slotID = -1;
+		for (int i = 0; i < questionTokens.length; i++) {
+			if (questionTokens[i].equals("###")) {
+				slotID = i;
+			}
+		}
 		this.requireLeftTokens = requireLeftTokens;
 		this.requireRightTokens = requireRightTokens;
 	}
@@ -40,15 +48,33 @@ public class QuestionTemplate {
 			   (!this.requireRightTokens || wordID + 1 < span[1]));
 	}
 	
-	public String getQuestion(DepSentence sentence, int wordID) {
+	public String getQuestionString(DepSentence sentence, int wordID) {
 		String word = sentence.getTokenString(wordID);
-		return this.question.replace("###", word.toLowerCase());
+		String qstr = "";
+		for (int i = 0; i < questionTokens.length; i++) {
+			if (i > 0) {
+				qstr += " ";
+			}
+			qstr += (i == slotID ? word : questionTokens[i]);
+		}
+		return qstr;
 	}
 	
-	public String getNumberedQuestion(DepSentence sentence, int wordID) {
+	public String getNumberedQuestionString(DepSentence sentence, int wordID) {
 		String word = sentence.getTokenString(wordID);
-		return this.question.replace("###",
-				String.format("%s(%d)", word.toLowerCase(), wordID));
+		String qstr = "";
+		for (int i = 0; i < questionTokens.length; i++) {
+			if (i > 0) {
+				qstr += " ";
+			}
+			qstr += (i == slotID ? String.format("%s(%d)", word, wordID) :
+					questionTokens[i]);
+		}
+		return qstr;
+	}
+	
+	public int getSlotID() {
+		return slotID;
 	}
 }
 	
