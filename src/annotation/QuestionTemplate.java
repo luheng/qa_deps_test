@@ -30,6 +30,7 @@ public class QuestionTemplate {
 		this.requireRightTokens = requireRightTokens;
 	}
 
+	/*
 	public boolean matches(DepSentence sentence, int wordID) {
 		return (this.postag.isEmpty() ||
 				sentence.getPostagString(wordID).equalsIgnoreCase(
@@ -37,15 +38,15 @@ public class QuestionTemplate {
 			   (this.token.isEmpty() ||
 			    sentence.getTokenString(wordID).equalsIgnoreCase(this.token));
 	}
+	*/
 	
 	public boolean matches(DepSentence sentence, int wordID, int[] span) {
 		return (this.postag.isEmpty() ||
-				sentence.getPostagString(wordID).equalsIgnoreCase(
-						this.postag)) &&
+				sentence.getPostagString(wordID).equalsIgnoreCase(this.postag)) &&
 			   (this.token.isEmpty() ||
-			    sentence.getTokenString(wordID).equalsIgnoreCase(this.token) &&
+				sentence.getTokenString(wordID).equalsIgnoreCase(this.token)) &&
 			   (!this.requireLeftTokens || wordID > span[0]) &&
-			   (!this.requireRightTokens || wordID + 1 < span[1]));
+			   (!this.requireRightTokens || wordID + 1 < span[1]);
 	}
 	
 	public String getQuestionString(DepSentence sentence, int wordID) {

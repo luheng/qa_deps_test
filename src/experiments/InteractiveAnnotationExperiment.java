@@ -63,7 +63,6 @@ public class InteractiveAnnotationExperiment {
 	 * @return
 	 */
 	private static int[] processAnswerSpan(String inputStr) {
-		
 		int split = inputStr.indexOf('-');
 		if (split > 0) {
 			try {
@@ -105,19 +104,35 @@ public class InteractiveAnnotationExperiment {
 		for (WordRank word : wordRanks) {
 			System.out.println(word.toString());
 		}
+		boolean[] asked = new boolean[sentence.length];
+		Arrays.fill(asked, false);
 		int[] currentSpan = new int[] {0, sentence.length};
-		
+		int currentQA = -1;
 		// FIXME: Auxiliary verb problem when extracting verbs.
 		// FIXME: Print numbered sentence in a better way.
 		showNumberedSentence(sentence);
 		
-		for (WordRank word : wordRanks) {
-			// Retrieve word from ranked pool.
+		while (true) {
+			// Retrieve highest ranked word in the current span.
 			// int wordID = wordRanks.get(0).wordID;
-			int wordID = word.wordID;
+			
+			int wordID = -1;
+			for (WordRank word : wordRanks) {
+				if (!asked[word.wordID] && word.score > -1 &&
+					word.wordID >= currentSpan[0] &&
+					word.wordID < currentSpan[1]) {
+					wordID = word.wordID;
+					break;
+				}
+			}
+			if (wordID == -1) {
+				System.out.println("All words processed");
+			}
 			
 			// Suggest word + wh-word combination.
+			boolean foundQuestion = false;
 			for (QuestionTemplate qtemp : questionTemplates.templates) {
+				// System.out.println("q-gen:\t" + qtemp.getQuestionString(sentence, wordID));
 				if (qtemp.matches(sentence, wordID, currentSpan)) {
 					// Show numbered sentence and question.
 					System.out.println(
@@ -141,11 +156,24 @@ public class InteractiveAnnotationExperiment {
 						qa.answerAlignment[i - answerSpan[0]] = i;
 					}
 					// Print QA alignment
-					System.out.println(StringUtils.intArrayToString(" ", qa.questionAlignment));
-					System.out.println(StringUtils.intArrayToString(" ", qa.answerAlignment));
+					// System.out.println(StringUtils.intArrayToString(" ", qa.questionAlignment));
+					// System.out.println(StringUtils.intArrayToString(" ", qa.answerAlignment));
+					
+					annotatedSentence.addQA(qa);
+					foundQuestion = true;
 				}
 			}
 
+			// Move onto the next word;
+			asked[wordID] = true;
+			if (foundQuestion) {
+				currentQA ++;
+				int[] ans = annotatedSentence.qaList.get(currentQA).answerAlignment;
+				currentSpan[0] = ans[0];
+				currentSpan[1] = ans[ans.length - 1] + 1;
+				System.out.println("current span:\t" + currentSpan[0] + ", " +
+									currentSpan[1]);
+			}
 		}
 		
 	}
