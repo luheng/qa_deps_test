@@ -86,8 +86,10 @@ public class CombinedScorerExperiment {
 			depSentence.prettyPrintDebugString(fixedParents2, scores);
 			//depSentence.prettyPrintDebugString(parents, scores);
 			
+			/*
 			depSentence.prettyPrintJSONDebugString(fixedParents2);
 			System.out.println();
+			*/
 			
 			// Check constraint violation
 			for (QAPair qa : sentence.qaList) {
@@ -100,8 +102,8 @@ public class CombinedScorerExperiment {
 											 fixedParents2)) {
 					numConstraintViolation ++;
 					if (!goldViolation) {
-						System.out.println("Constraint Violation::\t" +
-								qa.toString());
+						//System.out.println("Constraint Violation::\t" +
+						//		qa.toString());
 					}
 				}
 				
