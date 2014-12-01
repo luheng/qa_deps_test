@@ -8,8 +8,10 @@ import java.util.Comparator;
 
 import annotation.BasicQuestionTemplates;
 import annotation.QuestionTemplate;
+import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.DepSentence;
+import data.QAPair;
 import decoding.Decoder;
 import decoding.ViterbiDecoder;
 
@@ -35,13 +37,54 @@ public class InteractiveAnnotationExperiment {
 		}
 	};
 	
+	private static void showNumberedSentence(DepSentence sentence) {
+		for (int i = 0; i < sentence.length; i++) {
+			System.out.print(String.format("%s(%d) ",
+					sentence.getTokenString(i), i));
+		}
+		System.out.println();
+	}
+	
+	private static String getAnswerSpanString(DepSentence sentence, int[] span) {
+		String answerStr = "";
+		for (int i = span[0]; i < span[1]; i++) {
+			if (i > span[0]) {
+				answerStr += " ";
+			}
+ 			answerStr +=  sentence.getTokenString(i);
+		}
+		return answerStr;
+	}
+	
+	/**
+	 * Parse input answer span string into [a, b]. return [-1, -1] if failed.
+	 * @param inputStr
+	 * @return
+	 */
+	private static int[] processAnswerSpan(String inputStr) {
+		
+		int split = inputStr.indexOf('-');
+		if (split > 0) {
+			try {
+				int a = Integer.parseInt(inputStr.substring(0, split));
+				int b = Integer.parseInt(inputStr.substring(split + 1));
+				// Add one for the convention ...
+				return new int[] {a, b + 1};
+			} catch (NumberFormatException e) {
+			}
+		}
+		return new int[] {-1, -1};
+	}
+	
 	private static void annotateSentence(DepSentence sentence) {
+		// Initialize annotation data structure.
+		AnnotatedSentence annotatedSentence = new AnnotatedSentence(sentence);
+		
 		// Initialize word ranks.
-		int length = sentence.length;
 		ArrayList<WordRank> wordRanks =new ArrayList<WordRank>();
 		BasicQuestionTemplates questionTemplates = new BasicQuestionTemplates();
 		
-		for (int i = 0; i < length; i++) {
+		for (int i = 0; i < sentence.length; i++) {
 			WordRank word = new WordRank(sentence, i);
 			// Compute score ...
 			String postag = sentence.getPostagString(i); 
@@ -61,8 +104,11 @@ public class InteractiveAnnotationExperiment {
 		for (WordRank word : wordRanks) {
 			System.out.println(word.toString());
 		}
+		int[] currentSpan = new int[] {0, sentence.length};
 		
-		// Word rank: there is the auxiliary verb problem.
+		// FIXME: Auxiliary verb problem when extracting verbs.
+		// FIXME: Print numbered sentence in a better way.
+		showNumberedSentence(sentence);
 		
 		for (WordRank word : wordRanks) {
 			// Retrieve word from ranked pool.
@@ -71,15 +117,28 @@ public class InteractiveAnnotationExperiment {
 			
 			// Suggest word + wh-word combination.
 			for (QuestionTemplate qtemp : questionTemplates.templates) {
-				if (qtemp.matches(sentence, wordID)) {
+				if (qtemp.matches(sentence, wordID, currentSpan)) {
 					// Show numbered sentence and question.
 					System.out.println(
 							qtemp.getNumberedQuestion(sentence, wordID));
+					String inputStr = console.readLine(
+							"Input answer range (a-b), 0 for no answer:");
+					int[] answerSpan = processAnswerSpan(inputStr);
+					
+					// Confirm answer ..
+					if (answerSpan[0] == -1) {
+						continue;
+					}
+					String question = qtemp.getQuestion(sentence, wordID);
+					String answer = getAnswerSpanString(sentence, answerSpan);
+					System.out.print("Answer:\t" + answer);
+					
+					// Create new QA pair.
+					QAPair qa = new QAPair(question, answer);
+					// TODO: create unambiguous alignment, yay!
 				}
 			}
-			// Align answer.
-			
-			// Update.
+
 		}
 		
 	}

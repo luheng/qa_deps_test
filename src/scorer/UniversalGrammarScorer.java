@@ -1,7 +1,6 @@
 package scorer;
 
 import util.LatticeUtils;
-import util.StringUtils;
 import data.DepCorpus;
 import data.DepSentence;
 

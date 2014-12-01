@@ -27,19 +27,25 @@ public class BasicQuestionTemplates {
 	
 	public BasicQuestionTemplates() {
 		templates = new ArrayList<QuestionTemplate>();
+		templates.add(new QuestionTemplate("VERB", "", "who", 0, "Who ### ?",
+										   true, false));
+		
 		templates.add(
-				new QuestionTemplate("VERB", "", "who", 0, "Who ### that ?"));
+				new QuestionTemplate("VERB", "", "what", 1, "What did X ### ?",
+									 false, true));
 		templates.add(
-				new QuestionTemplate("VERB", "", "what", 1, "What did X ### ?"));
+				new QuestionTemplate("VERB", "", "how", 0,
+									 "How did X ### ?", false, false));
+		// templates.add(
+		//		new QuestionTemplate("VERB", "", "when", 0, "When did X ### that ?"));
+		// templates.add(
+		//		new QuestionTemplate("VERB", "", "where", 0, "Where did X ### that ?"));
+		
 		templates.add(
-				new QuestionTemplate("VERB", "", "how", 0, "How did X ### that ?"));
+				new QuestionTemplate("NOUN", "", "what", 0, "What ### ?",
+									 true, false));
 		templates.add(
-				new QuestionTemplate("VERB", "", "when", 0, "When did X ### that ?"));
-		templates.add(
-				new QuestionTemplate("VERB", "", "where", 0, "Where did X ### that ?"));
-		templates.add(
-				new QuestionTemplate("NOUN", "", "what", 0, "What kind of ### ?"));
-		templates.add(
-				new QuestionTemplate("ADJ", "", "how", 0, "How ### ?"));
+				new QuestionTemplate("ADJ", "", "how", 0, "How ### ?",
+									 true, false));
 	}
 }
