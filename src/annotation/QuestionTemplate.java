@@ -42,7 +42,8 @@ public class QuestionTemplate {
 	
 	public boolean matches(DepSentence sentence, int wordID, int[] span) {
 		return (this.postag.isEmpty() ||
-				sentence.getPostagString(wordID).equalsIgnoreCase(this.postag)) &&
+				sentence.getPostagString(wordID).equalsIgnoreCase(
+						this.postag)) &&
 			   (this.token.isEmpty() ||
 				sentence.getTokenString(wordID).equalsIgnoreCase(this.token)) &&
 			   (!this.requireLeftTokens || wordID > span[0]) &&

@@ -17,7 +17,7 @@ import data.DepSentence;
  *  Handle these three common cases:
  *  	1. "will do ...", where the main verb follows the auxiliary verb
  *  		immediately.
- *  	2. "will be doing", where the main verb follows two consequtive
+ *  	2. "will be doing", where the main verb follows two consecutive
  *  		auxiliary verbs.
  *  	3. Negation. "has n't done", "has n't been doing", or "will not ..."
  *  		(not sure if that last one is grammatical though). 
@@ -54,7 +54,7 @@ public class AuxiliaryVerbPostprocessor implements AbstractPostprocessor {
 			"would"
 	};
 	
-	private int verbPosId;
+	private int verbPosID, advPosID;
 	private HashSet<Integer> enAuxiliaryVerbSet;
 	
 	public AuxiliaryVerbPostprocessor(DepCorpus corpus) {
@@ -65,7 +65,8 @@ public class AuxiliaryVerbPostprocessor implements AbstractPostprocessor {
 				enAuxiliaryVerbSet.add(verbID);
 			}
 		}
-		verbPosId = corpus.posDict.lookupString("VERB"); 
+		verbPosID = corpus.posDict.lookupString("VERB");
+		advPosID = corpus.posDict.lookupString("ADV");
 	}
 	
 	@Override
@@ -81,11 +82,11 @@ public class AuxiliaryVerbPostprocessor implements AbstractPostprocessor {
 					switchHead(newParents, i, i + 1, i + 2);
 					i += 2;
 				} else if (isAuxiliaryVerb(sentence, i + 1) &&
-						   isNegationWord(sentence, i + 2) &&
+						   isModifierWord(sentence, i + 2) &&
 						   isVerb(sentence, i + 3)) {
 					switchHead(newParents, i, i + 1, i + 3);
 					i += 3;
-				} else if (isNegationWord(sentence, i + 1) &&
+				} else if (isModifierWord(sentence, i + 1) &&
 						   isVerb(sentence, i + 2)) {
 					switchHead(newParents, i, i + 2);
 					i += 2;
@@ -101,7 +102,7 @@ public class AuxiliaryVerbPostprocessor implements AbstractPostprocessor {
 	}
 	
 	private boolean isVerb(DepSentence sentence, int id) {
-		return id < sentence.length && sentence.postags[id] == verbPosId;
+		return id < sentence.length && sentence.postags[id] == verbPosID;
 	}
 	private boolean isAuxiliaryVerb(DepSentence sentence, int id) {
 		return //isVerb(sentence, id) &&
@@ -109,11 +110,17 @@ public class AuxiliaryVerbPostprocessor implements AbstractPostprocessor {
 			   enAuxiliaryVerbSet.contains(sentence.tokens[id]);
 	}
 	
+	private boolean isModifierWord(DepSentence sentence, int id) {
+		return id < sentence.length && sentence.postags[id] == advPosID;
+	}
+	
+	/*
 	private boolean isNegationWord(DepSentence sentence, int id) {
 		String word = sentence.getTokenString(id);
 		return id < sentence.length &&
 			   (word.equalsIgnoreCase("not") || word.equalsIgnoreCase("n\'t")); 
 	}
+	*/
 	
 	private void switchHead(int[] parents, int auxVerb1, int auxVerb2,
 							int mainVerb) {

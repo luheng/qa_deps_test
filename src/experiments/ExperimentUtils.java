@@ -24,13 +24,13 @@ public class ExperimentUtils {
 	public static final String testFilename =
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
 	
-	//public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
-	public static String annotationFilename = "manual_annotation/en-upperbound.txt";
+	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
+	// public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 	// public static String annotationFilename = "manual_annotation/luke_first5.csv";
 	public static boolean useNumberedAnnotation = false;
 	public static boolean useDistanceSensitiveAlignment = true;
 	
-	public static int maxNumSentences = 5;
+	public static int maxNumSentences = 50;
 	
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
