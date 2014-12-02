@@ -27,8 +27,8 @@ public class BasicQuestionTemplates {
 	
 	public BasicQuestionTemplates() {
 		templates = new ArrayList<QuestionTemplate>();
-		templates.add(new QuestionTemplate("VERB", "", "who", 0, "Who ### ?",
-										   true, false));
+		templates.add(new QuestionTemplate("VERB", "", "who/what", 0,
+										   "Who/what ### ?", true, false));
 		
 		templates.add(
 				new QuestionTemplate("VERB", "", "what", 1, "What did X ### ?",

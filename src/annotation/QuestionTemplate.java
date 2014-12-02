@@ -40,37 +40,42 @@ public class QuestionTemplate {
 	}
 	*/
 	
-	public boolean matches(DepSentence sentence, int wordID, int[] span) {
+	public boolean matches(DepSentence sentence, WordRank word, int[] span) {
+		int wordID = word.wordID;
 		return (this.postag.isEmpty() ||
 				sentence.getPostagString(wordID).equalsIgnoreCase(
 						this.postag)) &&
 			   (this.token.isEmpty() ||
 				sentence.getTokenString(wordID).equalsIgnoreCase(this.token)) &&
-			   (!this.requireLeftTokens || wordID > span[0]) &&
-			   (!this.requireRightTokens || wordID + 1 < span[1]);
+			   (!this.requireLeftTokens || word.wordSpan[0] > span[0]) &&
+			   (!this.requireRightTokens || word.wordSpan[1] + 1 < span[1]);
 	}
 	
-	public String getQuestionString(DepSentence sentence, int wordID) {
-		String word = sentence.getTokenString(wordID);
+	public String getQuestionString(DepSentence sentence, WordRank word) {
+		String wordStr = sentence.getTokenString(word.wordSpan);
 		String qstr = "";
 		for (int i = 0; i < questionTokens.length; i++) {
 			if (i > 0) {
 				qstr += " ";
 			}
-			qstr += (i == slotID ? word : questionTokens[i]);
+			qstr += (i == slotID ? wordStr : questionTokens[i]);
 		}
 		return qstr;
 	}
 	
-	public String getNumberedQuestionString(DepSentence sentence, int wordID) {
-		String word = sentence.getTokenString(wordID);
+	public String getNumberedQuestionString(DepSentence sentence,
+			WordRank word) {
+		String wordStr = "";
+		for (int i = word.wordSpan[0]; i < word.wordSpan[1]; i++) {
+			wordStr += String.format("%s(%d) ", sentence.getTokenString(i), i);
+		}
+		wordStr = wordStr.trim();
 		String qstr = "";
 		for (int i = 0; i < questionTokens.length; i++) {
 			if (i > 0) {
 				qstr += " ";
 			}
-			qstr += (i == slotID ? String.format("%s(%d)", word, wordID) :
-					questionTokens[i]);
+			qstr += (i == slotID ? wordStr : questionTokens[i]);
 		}
 		return qstr;
 	}

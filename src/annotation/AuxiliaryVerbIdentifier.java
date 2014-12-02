@@ -1,11 +1,10 @@
 package annotation;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import data.DepCorpus;
 import data.DepSentence;
-import data.Span;
 
 public class AuxiliaryVerbIdentifier {
 	private final String[] enAuxiliaryVerbs = {
@@ -55,35 +54,40 @@ public class AuxiliaryVerbIdentifier {
 	 * Identify auxiliary verb groups by simple pattern matching.
 	 * @param sentence
 	 */
-	public ArrayList<Span> process(DepSentence sentence) {
-		ArrayList<Span> auxVerbs = new ArrayList<Span>();
+	public void process(DepSentence sentence, int[] verbHeads) {
+		Arrays.fill(verbHeads, -1);
+		// ArrayList<Span> auxVerbs = new ArrayList<Span>();
 		for (int i = 0; i < sentence.length; i++) {
 			if (isAuxiliaryVerb(sentence, i)) {
 				if (isAuxiliaryVerb(sentence, i + 1) &&
 					isVerb(sentence, i + 2)) {
 					// e.g. has been doing
-					auxVerbs.add(new Span(i, i + 3));
+					//auxVerbs.add(new Span(i, i + 3));
+					verbHeads[i] = verbHeads[i+1] = i + 2;
 					i += 2;
 				} else if (isAuxiliaryVerb(sentence, i + 1) &&
 						   isModifierWord(sentence, i + 2) &&
 						   isVerb(sentence, i + 3)) {
 					// e.g. has n't been doing
-					auxVerbs.add(new Span(i, i + 4));
+					//auxVerbs.add(new Span(i, i + 4));
+					verbHeads[i] = verbHeads[i+1] = verbHeads[i+2] = i + 3;
 					i += 3;
 				} else if (isModifierWord(sentence, i + 1) &&
 						   isVerb(sentence, i + 2)) {
 					// e.g. is hurriedly doing
-					auxVerbs.add(new Span(i, i + 3));
+					//auxVerbs.add(new Span(i, i + 3));
+					verbHeads[i] = verbHeads[i+1] = i + 2;
 					i += 2;
 				} else if (isVerb(sentence, i + 1)) {
 					// change parent
-					auxVerbs.add(new Span(i, i + 2));
+					//auxVerbs.add(new Span(i, i + 2));
+					verbHeads[i] = i + 1;
 					i ++;
 				}
 				
 			}
 		}
-		return auxVerbs;
+		//return auxVerbs;
 	}
 	
 	private boolean isVerb(DepSentence sentence, int id) {

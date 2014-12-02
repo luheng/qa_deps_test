@@ -26,6 +26,17 @@ public class DepSentence {
 		return corpus.wordDict.getString(tokens[index]);
 	}
 	
+	public String getTokenString(int[] span) {
+		String str = "";
+		for (int i = span[0]; i < span[1]; i++) {
+			if (i > span[0]) {
+				str += " ";
+			}
+			str += getTokenString(i);
+		}
+		return str;
+	}
+	
 	public String getPostagString(int index) {
 		return corpus.posDict.getString(postags[index]);
 	}

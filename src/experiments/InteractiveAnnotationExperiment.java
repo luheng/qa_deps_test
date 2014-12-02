@@ -7,8 +7,10 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import util.StringUtils;
+import annotation.AuxiliaryVerbIdentifier;
 import annotation.BasicQuestionTemplates;
 import annotation.QuestionTemplate;
+import annotation.WordRank;
 import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.DepSentence;
@@ -34,7 +36,10 @@ public class InteractiveAnnotationExperiment {
 	private static Comparator<WordRank> wordRankComparator =
 			new Comparator<WordRank>() {
 		public int compare(WordRank w1, WordRank w2) {
-			return (int) (w2.score - w1.score);
+			if (w1.score > w2.score + 1e-8) {
+				return -1;
+			}
+			return w1.score + 1e-8 < w2.score ? 1 : 0;
 		}
 	};
 	
@@ -84,10 +89,25 @@ public class InteractiveAnnotationExperiment {
 		ArrayList<WordRank> wordRanks =new ArrayList<WordRank>();
 		BasicQuestionTemplates questionTemplates = new BasicQuestionTemplates();
 		
+		// Pre-processing: get auxiliary verb spans.
+		AuxiliaryVerbIdentifier auxVerbIdentifier =
+				new AuxiliaryVerbIdentifier(trainCorpus);
+		int[] verbHeads = new int[sentence.length];
+		auxVerbIdentifier.process(sentence, verbHeads);
+		
 		for (int i = 0; i < sentence.length; i++) {
-			WordRank word = new WordRank(sentence, i);
 			// Compute score ...
-			String postag = sentence.getPostagString(i); 
+			String postag = sentence.getPostagString(i);
+			if (verbHeads[i] != -1) {
+				// Is a group of auxiliary verbs and verbs.
+				WordRank word = new WordRank(sentence, i,
+						new int[] {i, verbHeads[i] + 1});
+				word.score = 3.5;
+				wordRanks.add(word);
+				i = verbHeads[i];
+				continue;
+			}
+			WordRank word = new WordRank(sentence, i);
 			if (postag.equals("VERB")) {
 				word.score = 3;
 			} else if (postag.equals("NOUN")) {
@@ -116,27 +136,29 @@ public class InteractiveAnnotationExperiment {
 			// Retrieve highest ranked word in the current span.
 			// int wordID = wordRanks.get(0).wordID;
 			
-			int wordID = -1;
+			WordRank currentWord = null;
 			for (WordRank word : wordRanks) {
 				if (!asked[word.wordID] && word.score > -1 &&
-					word.wordID >= currentSpan[0] &&
-					word.wordID < currentSpan[1]) {
-					wordID = word.wordID;
+					word.wordSpan[0] >= currentSpan[0] &&
+					word.wordSpan[1] < currentSpan[1]) {
+					currentWord = word;
 					break;
 				}
 			}
-			if (wordID == -1) {
+			if (currentWord == null) {
 				System.out.println("All words processed");
+				break;
 			}
 			
 			// Suggest word + wh-word combination.
 			boolean foundQuestion = false;
 			for (QuestionTemplate qtemp : questionTemplates.templates) {
 				// System.out.println("q-gen:\t" + qtemp.getQuestionString(sentence, wordID));
-				if (qtemp.matches(sentence, wordID, currentSpan)) {
+				if (qtemp.matches(sentence, currentWord, currentSpan)) {
 					// Show numbered sentence and question.
 					System.out.println(
-							qtemp.getNumberedQuestionString(sentence, wordID));
+							qtemp.getNumberedQuestionString(sentence,
+									currentWord));
 					String inputStr = console.readLine(
 							"Input answer range (a-b), 0 for no answer:");
 					int[] answerSpan = processAnswerSpan(inputStr);
@@ -145,19 +167,24 @@ public class InteractiveAnnotationExperiment {
 					if (answerSpan[0] == -1) {
 						continue;
 					}
-					String question = qtemp.getQuestionString(sentence, wordID);
+					String question = qtemp.getQuestionString(sentence,
+							currentWord);
 					String answer = getAnswerSpanString(sentence, answerSpan);
 					System.out.println("Answer:\t" + answer);
 					
 					// Create new QA pair.
 					QAPair qa = new QAPair(question, answer);
-					qa.questionAlignment[qtemp.getSlotID()] = wordID;
+					for (int i = currentWord.wordSpan[0], j = qtemp.getSlotID();
+							i < currentWord.wordSpan[1]; i++, j++) {
+						qa.questionAlignment[j] = i;
+					}
+					
 					for (int i = answerSpan[0]; i < answerSpan[1]; i++) {
 						qa.answerAlignment[i - answerSpan[0]] = i;
 					}
 					// Print QA alignment
-					// System.out.println(StringUtils.intArrayToString(" ", qa.questionAlignment));
-					// System.out.println(StringUtils.intArrayToString(" ", qa.answerAlignment));
+					System.out.println(StringUtils.intArrayToString(" ", qa.questionAlignment));
+					System.out.println(StringUtils.intArrayToString(" ", qa.answerAlignment));
 					
 					annotatedSentence.addQA(qa);
 					foundQuestion = true;
@@ -165,7 +192,7 @@ public class InteractiveAnnotationExperiment {
 			}
 
 			// Move onto the next word;
-			asked[wordID] = true;
+			asked[currentWord.wordID] = true;
 			if (foundQuestion) {
 				currentQA ++;
 				int[] ans = annotatedSentence.qaList.get(currentQA).answerAlignment;
@@ -188,21 +215,4 @@ public class InteractiveAnnotationExperiment {
 		annotateSentence(trainCorpus.sentences.get(sentenceIDs[0]));
 	}
 	
-}
-
-class WordRank {
-	public DepSentence sentence;
-	public int wordID;
-	public double score;
-	
-	public WordRank(DepSentence sentence, int wordID) {
-		this.sentence = sentence;
-		this.wordID = wordID;
-		this.score = 0.0;
-	}
-	
-	public String toString() {
-		return String.format("<%s,%s,%.2f>", sentence.getTokenString(wordID),
-				sentence.getPostagString(wordID), score);
-	}
 }
