@@ -139,14 +139,14 @@ public class InteractiveAnnotationExperiment {
 		for (QuestionWord word : questionWords) {
 			System.out.println(word.toString());
 		}
-		boolean[] asked = new boolean[sentence.length];
-		Arrays.fill(asked, false);
+		boolean[] tried = new boolean[sentence.length];
+		Arrays.fill(tried, false);
 
 		// FIXME: Auxiliary verb problem when extracting verbs.
 		// FIXME: Print numbered sentence in a better way.
 		System.out.println(
 				"Input answer number (a) or range (a-b), " +
-				"if there are multiple spans, delimit by comma. " +
+				"if there are multiple answers, delimit by comma. " +
 				"Enter empty string if there is no answer applied.\n");
 		
 		showNumberedSentence(sentence, 20);
@@ -156,11 +156,9 @@ public class InteractiveAnnotationExperiment {
 		
 		while (true) {
 			// Retrieve highest ranked word in the current span.
-			// int wordID = wordRanks.get(0).wordID;
-			
 			QuestionWord qWord = null;
 			for (QuestionWord word : questionWords) {
-				if (!asked[word.wordID] && word.score > -1) {
+				if (!tried[word.wordID] && word.score > -1) {
 					qWord = word;
 					break;
 				}
@@ -169,9 +167,9 @@ public class InteractiveAnnotationExperiment {
 				System.out.println("All words processed");
 				break;
 			}
-			/*
+			
 			System.out.println(qWord.toString());
-			*/
+			
 			
 			// Suggest word + wh-word combination.
 			boolean foundQuestion = false;
@@ -204,29 +202,30 @@ public class InteractiveAnnotationExperiment {
 					
 					// Generate question and answer strings to form QA pair.
 					String question = qtemp.getQuestionString(sentence, qWord);
-					String answer = getAnswerSpanString(sentence, answerSpans);
-					System.out.println("Answer:\t" + answer);
+					for (int[] answerSpan : answerSpans) {
+						String answer = sentence.getTokenString(answerSpan);
+						System.out.println("Answer:\t" + answer);
 					
-					// Create new QA pair.
-					QAPair qa = new QAPair(question, answer);
-					int questionPtr = qtemp.getSlotID();
-					for (int i = qWord.wordSpan[0]; i < qWord.wordSpan[1];
-							i++) {
-						qa.questionAlignment[questionPtr++] = i;
-					}
-			
-					int answerPtr = 0;
-					for (int[] span : answerSpans) {
-						for (int i = span[0]; i < span[1]; i++) {
+						// Create new QA pair.
+						QAPair qa = new QAPair(question, answer);
+						int questionPtr = qtemp.getSlotID();
+						for (int i = qWord.wordSpan[0]; i < qWord.wordSpan[1];
+								i++) {
+							qa.questionAlignment[questionPtr++] = i;
+						}
+				
+						int answerPtr = 0;
+						for (int i = answerSpan[0]; i < answerSpan[1]; i++) {
 							qa.answerAlignment[answerPtr++] = i;
 						}
+						
+						// Print QA alignment
+						/*
+						qa.printAlignment();
+						*/
+						annotatedSentence.addQA(qa);
 					}
-					
-					// Print QA alignment
-					/*
-					qa.printAlignment();
-					*/
-					
+				
 					// Update effective spans of question words.
 					for (QuestionWord word : questionWords) {
 						if (word.wordID == qWord.wordID) {
@@ -243,24 +242,21 @@ public class InteractiveAnnotationExperiment {
 							}
 						}
 					}
-					
-					annotatedSentence.addQA(qa);
 					foundQuestion = true;
 				}
 			}
 
+			tried[qWord.wordID] = true;
 			if (foundQuestion) {
 				// Compute accuracy.
 				CombinedScorerExperiment.testSentence(annotatedSentence,
 						0.0, /* weight of distance scorer */
 						1.0, /* weight of QA scorer */
-						1.0  /* weight of UG scorer */);
+						1.0,  /* weight of UG scorer */
+						true /* print analysis */);
 				
 				// Update on word ranks.
-				asked[qWord.wordID] = true;
-				if (foundQuestion) {
-					Collections.sort(questionWords, QuestionWord.comparator);
-				}
+				Collections.sort(questionWords, QuestionWord.comparator);
 			}
 		}
 		

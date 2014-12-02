@@ -33,7 +33,8 @@ public class CombinedScorerExperiment {
 	public static void testSentence(AnnotatedSentence sentence,
 									double distWeight,
 									double qaWeight,
-									double ugWeight) {
+									double ugWeight,
+									boolean printAnalysis) {
 		DepSentence depSentence = sentence.depSentence;
 		trainCorpus = depSentence.corpus;
 		int length = depSentence.length + 1;
@@ -81,16 +82,13 @@ public class CombinedScorerExperiment {
 		Accuracy acc2 = Evaluation.getAccuracy(depSentence, fixedParents2);
 		
 		// Print out analysis
-		/*
-		System.out.println(String.format("ID: %d\tAccuracy: %.2f",
-				depSentence.sentenceID, 100.0 * acc2.accuracy()));
-		depSentence.prettyPrintDebugString(fixedParents2, scores);
-		//depSentence.prettyPrintDebugString(parents, scores);
-		*/
-		/*
-		depSentence.prettyPrintJSONDebugString(fixedParents2);
-		System.out.println();
-		*/
+		if (printAnalysis) {
+			depSentence.prettyPrintDebugString(fixedParents2, scores);
+			/*
+			depSentence.prettyPrintJSONDebugString(fixedParents2);
+			System.out.println();
+			*/
+		}		
 		System.out.println(
 				String.format("Acc: %.2f%%, after post-processing: %.2f%%",
 							100.0 * acc.accuracy(), 100.0 * acc2.accuracy()));
