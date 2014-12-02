@@ -217,12 +217,7 @@ public class InteractiveAnnotationExperiment {
 						}
 					}
 					// Print QA alignment
-					/*
-					System.out.println(StringUtils.intArrayToString(" ",
-							qa.questionAlignment));
-					System.out.println(StringUtils.intArrayToString(" ",
-							qa.answerAlignment));
-					*/
+					qa.printAlignment();
 					
 					// Update effective spans of question words.
 					for (QuestionWord word : questionWords) {
