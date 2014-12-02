@@ -149,9 +149,10 @@ public class InteractiveAnnotationExperiment {
 				"if there are multiple spans, delimit by comma. " +
 				"Enter empty string if there is no answer applied.\n");
 		
-		showNumberedSentence(sentence, 16);
+		showNumberedSentence(sentence, 20);
 		
 		System.out.println();
+		int questionCounter = 0;
 		
 		while (true) {
 			// Retrieve highest ranked word in the current span.
@@ -168,8 +169,10 @@ public class InteractiveAnnotationExperiment {
 				System.out.println("All words processed");
 				break;
 			}
-			
+			/*
 			System.out.println(qWord.toString());
+			*/
+			
 			// Suggest word + wh-word combination.
 			boolean foundQuestion = false;
 			for (QuestionTemplate qtemp : questionTemplates.templates) {
@@ -184,6 +187,8 @@ public class InteractiveAnnotationExperiment {
 								  qWord.effectiveSpan)) {
 					
 					// Show numbered sentence and question.
+					System.out.print(
+							String.format("Question %d:\t", ++questionCounter));
 					System.out.println(
 							qtemp.getNumberedQuestionString(sentence,
 									qWord));
@@ -216,8 +221,11 @@ public class InteractiveAnnotationExperiment {
 							qa.answerAlignment[answerPtr++] = i;
 						}
 					}
+					
 					// Print QA alignment
+					/*
 					qa.printAlignment();
+					*/
 					
 					// Update effective spans of question words.
 					for (QuestionWord word : questionWords) {
@@ -241,16 +249,18 @@ public class InteractiveAnnotationExperiment {
 				}
 			}
 
-			// Compute accuracy.
-			CombinedScorerExperiment.testSentence(annotatedSentence,
-					0.0, /* weight of distance scorer */
-					1.0, /* weight of QA scorer */
-					1.0  /* weight of UG scorer */);
-			
-			// Update on word ranks.
-			asked[qWord.wordID] = true;
 			if (foundQuestion) {
-				Collections.sort(questionWords, QuestionWord.comparator);
+				// Compute accuracy.
+				CombinedScorerExperiment.testSentence(annotatedSentence,
+						0.0, /* weight of distance scorer */
+						1.0, /* weight of QA scorer */
+						1.0  /* weight of UG scorer */);
+				
+				// Update on word ranks.
+				asked[qWord.wordID] = true;
+				if (foundQuestion) {
+					Collections.sort(questionWords, QuestionWord.comparator);
+				}
 			}
 		}
 		
@@ -262,7 +272,7 @@ public class InteractiveAnnotationExperiment {
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();
 		// annotateSentence(trainCorpus.sentences.get(sentenceIDs[1]));
-		annotateSentence(trainCorpus.sentences.get(123));
+		annotateSentence(trainCorpus.sentences.get(1234));
 	}
 	
 }
