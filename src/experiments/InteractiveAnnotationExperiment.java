@@ -214,6 +214,12 @@ public class InteractiveAnnotationExperiment {
 				}
 			}
 
+			// Compute accuracy.
+			CombinedScorerExperiment.testSentence(annotatedSentence,
+					0.0, /* weight of distance scorer */
+					1.0, /* weight of QA scorer */
+					1.0  /* weight of UG scorer */);
+			
 			// Update on word ranks.
 			asked[qWord.wordID] = true;
 			if (foundQuestion) {
@@ -230,7 +236,7 @@ public class InteractiveAnnotationExperiment {
 				
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();
-		annotateSentence(trainCorpus.sentences.get(sentenceIDs[0]));
+		annotateSentence(trainCorpus.sentences.get(sentenceIDs[1]));
 	}
 	
 }

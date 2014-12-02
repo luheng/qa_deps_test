@@ -30,6 +30,72 @@ public class CombinedScorerExperiment {
 	private static ArrayList<AnnotatedSentence> annotatedSentences = null;
 	private static Decoder decoder = null;
 	
+	public static void testSentence(AnnotatedSentence sentence,
+									double distWeight,
+									double qaWeight,
+									double ugWeight) {
+		DepSentence depSentence = sentence.depSentence;
+		trainCorpus = depSentence.corpus;
+		int length = depSentence.length + 1;
+		
+		DistanceScorer distScorer = new DistanceScorer();
+		QuestionAnswerScorer qaScorer = new QuestionAnswerScorer();
+		UniversalGrammarScorer ugScorer =
+				new UniversalGrammarScorer(trainCorpus);
+		
+		AbstractPostprocessor verbFixer =
+				new AuxiliaryVerbPostprocessor(trainCorpus);
+		AbstractPostprocessor npFixer =
+				new FlatNounPhrasePostprocessor(trainCorpus);
+		
+		decoder = new ViterbiDecoder();
+		
+		
+		double[][] scores = new double[length][length],
+				   tempScores = new double[length][length];
+					
+		int[] parents = new int[length - 1],
+			  fixedParents = new int[length - 1],
+			  fixedParents2 = new int[length - 1];
+		
+		LatticeUtils.fill(scores, 0.0);
+		
+		// Compute distance scores.
+		distScorer.getScores(tempScores, depSentence);
+		LatticeUtils.addTo(scores, tempScores, distWeight);
+		// Compute QA scores.
+		for (QAPair qa : sentence.qaList) {
+			qaScorer.getScores(tempScores, depSentence, qa);
+			LatticeUtils.addTo(scores, tempScores, qaWeight);
+		}
+		// Compute UG scores
+		ugScorer.getScores(tempScores, depSentence);
+		LatticeUtils.addTo(scores, tempScores, ugWeight);
+		
+		decoder.decode(scores, parents);
+		Accuracy acc = Evaluation.getAccuracy(depSentence, parents);
+		
+		// Go through post-processor.
+		verbFixer.postprocess(fixedParents, parents, depSentence);
+		npFixer.postprocess(fixedParents2, fixedParents, depSentence);
+		Accuracy acc2 = Evaluation.getAccuracy(depSentence, fixedParents2);
+		
+		// Print out analysis
+		/*
+		System.out.println(String.format("ID: %d\tAccuracy: %.2f",
+				depSentence.sentenceID, 100.0 * acc2.accuracy()));
+		depSentence.prettyPrintDebugString(fixedParents2, scores);
+		//depSentence.prettyPrintDebugString(parents, scores);
+		*/
+		/*
+		depSentence.prettyPrintJSONDebugString(fixedParents2);
+		System.out.println();
+		*/
+		System.out.println(
+				String.format("Acc: %.2f%%, after post-processing: %.2f%%",
+							acc.accuracy(), acc2.accuracy()));
+	}
+	
 	private static void testCombinedScorer(double distWeight, double qaWeight,
 										   double ugWeight) {
 		DistanceScorer distScorer = new DistanceScorer();
