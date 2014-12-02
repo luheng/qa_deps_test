@@ -93,7 +93,7 @@ public class CombinedScorerExperiment {
 		*/
 		System.out.println(
 				String.format("Acc: %.2f%%, after post-processing: %.2f%%",
-							acc.accuracy(), acc2.accuracy()));
+							100.0 * acc.accuracy(), 100.0 * acc2.accuracy()));
 	}
 	
 	private static void testCombinedScorer(double distWeight, double qaWeight,

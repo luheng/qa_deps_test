@@ -31,15 +31,11 @@ public class BasicQuestionTemplates {
 										   "Who/what ### ?", true, false));
 		
 		templates.add(
-				new QuestionTemplate("VERB", "", "what", 1, "What did X ### ?",
+				new QuestionTemplate("VERB", "", "what", 1, "### what ?",
 									 false, true));
 		templates.add(
 				new QuestionTemplate("VERB", "", "how", 0,
 									 "How did X ### ?", false, false));
-		// templates.add(
-		//		new QuestionTemplate("VERB", "", "when", 0, "When did X ### that ?"));
-		// templates.add(
-		//		new QuestionTemplate("VERB", "", "where", 0, "Where did X ### that ?"));
 		
 		templates.add(
 				new QuestionTemplate("NOUN", "", "what", 0, "What ### ?",

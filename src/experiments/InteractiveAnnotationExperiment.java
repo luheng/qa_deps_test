@@ -1,12 +1,9 @@
 package experiments;
 
-import java.io.Console;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 
-import util.StringUtils;
 import annotation.AuxiliaryVerbIdentifier;
 import annotation.BasicQuestionTemplates;
 import annotation.QuestionTemplate;
@@ -15,8 +12,6 @@ import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.DepSentence;
 import data.QAPair;
-import decoding.Decoder;
-import decoding.ViterbiDecoder;
 
 /**
  * Interactive annotation using the workflow:
@@ -28,30 +23,36 @@ public class InteractiveAnnotationExperiment {
 	
 	private static DepCorpus trainCorpus = null;
 	// private static ArrayList<AnnotatedSentence> annotatedSentences = null;
-	private static Decoder decoder = null;
 	
 	private static InteractiveConsole console = null;
-	private static int[] sentenceIDs = new int[] {6251, 9080, 8241, 8828, 55};
+	private static int[] sentenceIDs =
+			new int[] {6251, 9080, 8241, 8828, 55};
 	
 	
 	
-	private static void showNumberedSentence(DepSentence sentence) {
+	private static void showNumberedSentence(DepSentence sentence,
+											 int maxNumTokensPerLine) {
+		int counter = 0;
 		for (int i = 0; i < sentence.length; i++) {
 			System.out.print(String.format("%s(%d) ",
 					sentence.getTokenString(i), i));
+			if (++counter == maxNumTokensPerLine) {
+				System.out.println();
+				counter = 0;
+			}
 		}
 		System.out.println();
 	}
 	
-	private static String getAnswerSpanString(DepSentence sentence, int[] span) {
+	private static String getAnswerSpanString(DepSentence sentence,
+											  ArrayList<int[]> spans) {
 		String answerStr = "";
-		for (int i = span[0]; i < span[1]; i++) {
-			if (i > span[0]) {
-				answerStr += " ";
+		for (int[] span : spans) {
+			for (int i = span[0]; i < span[1]; i++) {
+	 			answerStr += sentence.getTokenString(i) + " ";
 			}
- 			answerStr += sentence.getTokenString(i);
 		}
-		return answerStr;
+		return answerStr.trim();
 	}
 	
 	/**
@@ -59,27 +60,35 @@ public class InteractiveAnnotationExperiment {
 	 * @param inputStr
 	 * @return
 	 */
-	private static int[] processAnswerSpan(String inputStr) {
-		if (inputStr.isEmpty()) {
-			return new int[] {-1, -1};
-		}
-		int split = inputStr.indexOf('-');
-		if (split > 0) {
-			try {
-				int a = Integer.parseInt(inputStr.substring(0, split));
-				int b = Integer.parseInt(inputStr.substring(split + 1));
-				// Add one for the convention ...
-				return new int[] {a, b + 1};
-			} catch (NumberFormatException e) {
+	private static ArrayList<int[]> processAnswerSpan(String inputStr) {
+		ArrayList<int[]> spans = new ArrayList<int[]>();
+		if (!inputStr.isEmpty()) {
+			String[] spanStrs = inputStr.split(",");
+			for (String spanStr : spanStrs) {
+				int split = spanStr.indexOf('-');
+				if (split > 0) {
+					try {
+						int a = Integer.parseInt(spanStr.substring(0, split));
+						int b = Integer.parseInt(spanStr.substring(split + 1));
+						// Add one for the convention ...
+						int[] span = new int[] {a, b + 1};
+						spans.add(span);
+					} catch (NumberFormatException e) {
+					}
+				} else {
+					try {
+						int a = Integer.parseInt(spanStr);
+						int[] span = new int[] {a, a + 1};
+						spans.add(span);
+					} catch (NumberFormatException e) {
+					}
+				}
 			}
-		} else {
-			try {
-				int a = Integer.parseInt(inputStr);
-				return new int[] {a, a + 1};
-			} catch (NumberFormatException e) {
-			}
+			return spans;
 		}
-		return new int[] {-1, -1};
+		int[] span = new int[] {-1, -1};
+		spans.add(span);
+		return spans;
 	}
 	
 	private static boolean insideSpan(int[] smallerSpan, int[] largerSpan) {
@@ -135,7 +144,14 @@ public class InteractiveAnnotationExperiment {
 
 		// FIXME: Auxiliary verb problem when extracting verbs.
 		// FIXME: Print numbered sentence in a better way.
-		showNumberedSentence(sentence);
+		System.out.println(
+				"Input answer number (a) or range (a-b), " +
+				"if there are multiple spans, delimit by comma. " +
+				"Enter empty string if there is no answer applied.\n");
+		
+		showNumberedSentence(sentence, 16);
+		
+		System.out.println();
 		
 		while (true) {
 			// Retrieve highest ranked word in the current span.
@@ -157,7 +173,11 @@ public class InteractiveAnnotationExperiment {
 			// Suggest word + wh-word combination.
 			boolean foundQuestion = false;
 			for (QuestionTemplate qtemp : questionTemplates.templates) {
-				// System.out.println("q-gen:\t" + qtemp.getQuestionString(sentence, wordID));
+				
+				/*
+				System.out.println("q-gen:\t" +
+						qtemp.getQuestionString(sentence, qWord));
+				*/
 				
 				if (qtemp.matches(sentence,
 								  qWord,
@@ -168,44 +188,56 @@ public class InteractiveAnnotationExperiment {
 							qtemp.getNumberedQuestionString(sentence,
 									qWord));
 					String inputStr = console.readLine(
-							"Input answer nubmer (a) or range (a-b) , " +
-							"enter for no answer:");
-					int[] answerSpan = processAnswerSpan(inputStr.trim());
+							"Input answer:\t");
+					ArrayList<int[]> answerSpans =
+							processAnswerSpan(inputStr.trim());
 					
 					// Confirm answer ..
-					if (answerSpan[0] == -1) {
+					if (answerSpans.get(0)[0] == -1) {
 						continue;
 					}
-					String question = qtemp.getQuestionString(sentence,
-							qWord);
-					String answer = getAnswerSpanString(sentence, answerSpan);
+					
+					// Generate question and answer strings to form QA pair.
+					String question = qtemp.getQuestionString(sentence, qWord);
+					String answer = getAnswerSpanString(sentence, answerSpans);
 					System.out.println("Answer:\t" + answer);
 					
 					// Create new QA pair.
 					QAPair qa = new QAPair(question, answer);
-					for (int i = qWord.wordSpan[0], j = qtemp.getSlotID();
-							i < qWord.wordSpan[1]; i++, j++) {
-						qa.questionAlignment[j] = i;
+					int questionPtr = qtemp.getSlotID();
+					for (int i = qWord.wordSpan[0]; i < qWord.wordSpan[1];
+							i++) {
+						qa.questionAlignment[questionPtr++] = i;
 					}
-					
-					for (int i = answerSpan[0]; i < answerSpan[1]; i++) {
-						qa.answerAlignment[i - answerSpan[0]] = i;
+			
+					int answerPtr = 0;
+					for (int[] span : answerSpans) {
+						for (int i = span[0]; i < span[1]; i++) {
+							qa.answerAlignment[answerPtr++] = i;
+						}
 					}
 					// Print QA alignment
+					/*
 					System.out.println(StringUtils.intArrayToString(" ",
 							qa.questionAlignment));
 					System.out.println(StringUtils.intArrayToString(" ",
 							qa.answerAlignment));
+					*/
 					
 					// Update effective spans of question words.
 					for (QuestionWord word : questionWords) {
-						if (insideSpan(word.wordSpan, answerSpan)) {
-							word.effectiveSpan[0] =
-									Math.max(word.effectiveSpan[0],
-											 answerSpan[0]);
-							word.effectiveSpan[1] =
-									Math.min(word.effectiveSpan[1],
-											 answerSpan[1]);
+						if (word.wordID == qWord.wordID) {
+							// Do not want to shrink on the current question
+							// word, yet.
+							continue;
+						}
+						for (int[] span : answerSpans) {
+							if (insideSpan(word.wordSpan, span)) {
+								word.effectiveSpan[0] =
+									Math.max(word.effectiveSpan[0], span[0]);
+								word.effectiveSpan[1] =
+									Math.min(word.effectiveSpan[1], span[1]);
+							}
 						}
 					}
 					
@@ -231,12 +263,11 @@ public class InteractiveAnnotationExperiment {
 	
 	public static void main(String[] args) {
 		trainCorpus = ExperimentUtils.loadDepCorpus();
-		decoder = new ViterbiDecoder();
-		// Do not load annotation yet, haha.
-				
+		
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();
-		annotateSentence(trainCorpus.sentences.get(sentenceIDs[1]));
+		// annotateSentence(trainCorpus.sentences.get(sentenceIDs[1]));
+		annotateSentence(trainCorpus.sentences.get(123));
 	}
 	
 }
