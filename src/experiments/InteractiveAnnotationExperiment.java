@@ -267,8 +267,8 @@ public class InteractiveAnnotationExperiment {
 		
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();
-		// annotateSentence(trainCorpus.sentences.get(sentenceIDs[1]));
-		annotateSentence(trainCorpus.sentences.get(1234));
+		annotateSentence(trainCorpus.sentences.get(sentenceIDs[0]));
+		// annotateSentence(trainCorpus.sentences.get(1234));
 	}
 	
 }

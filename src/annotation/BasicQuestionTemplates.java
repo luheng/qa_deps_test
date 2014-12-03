@@ -37,7 +37,7 @@ public class BasicQuestionTemplates {
 		// TODO: also, we might be expecting an Adverb here, specifically.
 		templates.add(
 				new QuestionTemplate("VERB", "", "how", 0,
-									 "How did X ### ?", false, false));
+									 "### how ?", false, false));
 		
 		templates.add(
 				new QuestionTemplate("NOUN", "", "what", 0, "What ### ?",
@@ -45,6 +45,10 @@ public class BasicQuestionTemplates {
 		templates.add(
 				new QuestionTemplate("ADJ", "", "how", 0, "How ### ?",
 									 true, false));
+		
+		templates.add(
+				new QuestionTemplate("ADP", "", "what", 0, "### what ?",
+									 false, true));
 		
 		templates.add(
 				new QuestionTemplate("CONJ", "and", "what", 1, "... ### what ?",
