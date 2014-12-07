@@ -24,6 +24,9 @@ public class ExperimentUtils {
 	public static final String testFilename =
 			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
 	
+	public static final String srlTrainFilename =
+			"/Users/luheng/data/conll05st-release/conll05_train.srl";
+	
 	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
 	// public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 	// public static String annotationFilename = "manual_annotation/luke_first5.csv";
