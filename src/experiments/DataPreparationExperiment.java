@@ -78,7 +78,7 @@ public class DataPreparationExperiment {
 	public static void main(String[] args) {
 		DepCorpus trainCorpus = new DepCorpus("en-universal-train");
 		try {
-			trainCorpus.loadCoNLL(trainFilename);
+			trainCorpus.loadUniversalDependencyData(trainFilename);
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}

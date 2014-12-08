@@ -27,6 +27,9 @@ public class ExperimentUtils {
 	public static final String srlTrainFilename =
 			"/Users/luheng/data/conll05st-release/conll05_train.srl";
 	
+	public static final String conll2009TrialFilename =
+			"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
+	
 	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
 	// public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 	// public static String annotationFilename = "manual_annotation/luke_first5.csv";
@@ -38,7 +41,7 @@ public class ExperimentUtils {
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
 		try {
-			corpus.loadCoNLL(trainFilename);
+			corpus.loadUniversalDependencyData(trainFilename);
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}

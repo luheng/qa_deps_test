@@ -34,8 +34,7 @@ public class VerbFrame {
             // Process predicates.
             NodeList predicates = doc.getElementsByTagName("predicate"),
             		 rolesets,
-            		 roles,
-            		 examples;
+            		 roles;
             
             for (int i = 0; i < predicates.getLength(); i++) {
             	Node pNode = predicates.item(i);

@@ -37,7 +37,7 @@ public class ConstrainedParsingExperiment {
 	private static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
 		try {
-			corpus.loadCoNLL(trainFilename);
+			corpus.loadUniversalDependencyData(trainFilename);
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}

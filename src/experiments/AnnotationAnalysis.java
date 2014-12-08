@@ -36,7 +36,7 @@ public class AnnotationAnalysis {
 		DepCorpus trainCorpus = new DepCorpus("en-universal-train");
 		
 		try {
-			trainCorpus.loadCoNLL(trainFilename);
+			trainCorpus.loadUniversalDependencyData(trainFilename);
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}

@@ -22,7 +22,7 @@ public class DepCorpus {
 	}
 	
 	// Using the dictionary of the other corpus. i.e. 
-	//   testCorpus = new DepCorpus(trainCorpus).
+	// testCorpus = new DepCorpus(trainCorpus).
 	public DepCorpus(String corpusName, DepCorpus baseCorpus) {
 		this.corpusName = corpusName;
 		this.wordDict = baseCorpus.wordDict;
@@ -30,7 +30,7 @@ public class DepCorpus {
 		this.depDict = baseCorpus.depDict;
 	}
 	
-	public void loadCoNLL(String corpusFilename)
+	public void loadUniversalDependencyData(String corpusFilename)
 			throws NumberFormatException, IOException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				new FileInputStream(corpusFilename)));
