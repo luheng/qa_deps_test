@@ -25,7 +25,7 @@ public class DependencySRLEvaluation {
 	}
 	
 	public static F1Metric getLabeledAccuracy(SRLSentence sentence,
-							    				String[][] prediction) {
+							    			  String[][] prediction) {
 		String[][] gold = sentence.getSemanticArcs();
 		F1Metric accuracy = new F1Metric();
 		for (int i = 0; i < gold.length; i++) {

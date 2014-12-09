@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import util.DebugUtils;
 import util.LatticeUtils;
 import annotation.AuxiliaryVerbIdentifier;
 import annotation.BasicQuestionTemplates;
@@ -173,8 +174,10 @@ public class InteractiveAnnotationExperiment {
 		// Get semantic arcs for evaluation.
 		String[][] semPred =
 				new String[sentence.length + 1][sentence.length + 1];
-		LatticeUtils.fill(semPred, "");
-	
+		String[][] semGold =
+				sentence.getSemanticArcs();
+		DebugUtils.printSemanticArcs(sentence, semGold);
+		
 		// Initialize annotation data structure.
 		AnnotatedSentence annotatedSentence = new AnnotatedSentence(sentence);
 		
@@ -302,6 +305,7 @@ public class InteractiveAnnotationExperiment {
 				F1Metric f1 = DependencySRLEvaluation.getUnlabeledAccuracy(
 						sentence, semPred);
 				System.out.println(f1.toString());
+				DebugUtils.printSemanticArcs(sentence, semPred);
 				
 				// Update on word ranks.
 				Collections.sort(candidates, CandidateProposition.comparator);

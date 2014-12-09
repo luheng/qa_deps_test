@@ -45,7 +45,9 @@ public class SRLSentence extends DepSentence {
 			int pid = prop.propID + 1;
 			arcs[0][pid] = propDict.index2str.get(prop.propType);
 			for (int i = 0; i < prop.argIDs.length; i++) {
-				arcs[pid][prop.argIDs[i] + 1] = String.format("A%d", i);
+				if (prop.argIDs[i] >= 0) {
+					arcs[pid][prop.argIDs[i] + 1] = String.format("A%d", i);
+				}
 			}
 			for (int i = 0; i < prop.argModIDs.size(); i++) {
 				arcs[pid][prop.argModIDs.get(i) + 1] =
