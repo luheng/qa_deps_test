@@ -4,30 +4,30 @@ import java.util.ArrayList;
 
 public class SRLSentence extends DepSentence {
 	int[] lemmas;
-	ArrayList<Predicate> predicates;
+	ArrayList<Proposition> propositions;
 	
 	public SRLSentence(int[] tokens, int[] lemmas, int[] postags, int[] parents,
-					   int[] deptags, ArrayList<Predicate> predicates,
+					   int[] deptags, ArrayList<Proposition> predicates,
 					   SRLCorpus corpus, int sentenceID) {
 		super(tokens, postags, parents, deptags, corpus, sentenceID);
 		this.lemmas = lemmas;
-		this.predicates = new ArrayList<Predicate>();
-		for (Predicate pred : predicates) {
-			Predicate newPred = pred.clone();
-			newPred.sentence = this;
-			this.predicates.add(newPred);
+		this.propositions = new ArrayList<Proposition>();
+		for (Proposition prop : predicates) {
+			Proposition newProp = prop.clone();
+			newProp.sentence = this;
+			this.propositions.add(newProp);
 		}
 	}
 	
-	public void addPedicate(Predicate pred) {
-		pred.sentence = this;
-		this.predicates.add(pred);
+	public void addPedicate(Proposition prop) {
+		prop.sentence = this;
+		this.propositions.add(prop);
 	}
 	
 	@Override
 	public String toString() {
 		String str = super.toString() + "\n";
-		for (Predicate pred : predicates) {
+		for (Proposition pred : propositions) {
 			str += pred.toString();
 		}
 		return str;

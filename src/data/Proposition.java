@@ -3,9 +3,9 @@ package data;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Predicate {
+public class Proposition {
 	public SRLSentence sentence;
-	public int predID, predType;
+	public int propID, propType;
 	// In argIDs, -1 denotes this argument is not present
 	// (i.e. only has A2, A3).
 	public int[] argIDs;
@@ -13,17 +13,17 @@ public class Predicate {
 	
 	private static final int maxNumArguments = 6; 
 	
-	public Predicate() {
-		this.predID = this.predType = -1;
+	public Proposition() {
+		this.propID = this.propType = -1;
 		this.argIDs = new int[maxNumArguments];
 		Arrays.fill(argIDs, -1);
 		this.argModIDs = new ArrayList<Integer>();
 		this.argModTypes = new ArrayList<Integer>();
 	}
 	
-	public void setPredicate(int predID, int predType) {
-		this.predID = predID;
-		this.predType = predType;
+	public void setPredicate(int propID, int propType) {
+		this.propID = propID;
+		this.propType = propType;
 	}
 	
 	public void addArgument(int argID, int argNum) {
@@ -36,16 +36,16 @@ public class Predicate {
 	}
 	
 	@Override
-	public Predicate clone() {
-		Predicate newPred = new Predicate();
-		newPred.predID = this.predID;
-		newPred.predType = this.predType;
-		newPred.argIDs = Arrays.copyOf(this.argIDs, this.argIDs.length);
+	public Proposition clone() {
+		Proposition newProp = new Proposition();
+		newProp.propID = this.propID;
+		newProp.propType = this.propType;
+		newProp.argIDs = Arrays.copyOf(this.argIDs, this.argIDs.length);
 		for (int i = 0; i < this.argModIDs.size(); i++) {
-			newPred.argModIDs.add(this.argModIDs.get(i));
-			newPred.argModTypes.add(this.argModTypes.get(i));
+			newProp.argModIDs.add(this.argModIDs.get(i));
+			newProp.argModTypes.add(this.argModTypes.get(i));
 		}
-		return newPred;
+		return newProp;
 	}
 	
 	// Example:
@@ -56,8 +56,8 @@ public class Predicate {
 	@Override
 	public String toString() {
 		SRLCorpus corpus = (SRLCorpus) sentence.corpus;
-		String str = sentence.getTokenString(predID) + "\t" +
-					 corpus.predDict.index2str.get(predType) + "\n";
+		String str = sentence.getTokenString(propID) + "\t" +
+					 corpus.propDict.index2str.get(propType) + "\n";
 		for (int i = 0; i < maxNumArguments; i++) {
 			if (argIDs[i] >= 0) {
 				str += "A" + i + "\t" +

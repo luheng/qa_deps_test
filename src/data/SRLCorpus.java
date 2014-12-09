@@ -11,20 +11,20 @@ import java.util.ArrayList;
 
 public class SRLCorpus extends DepCorpus {
 
-	CountDictionary lemmaDict, argModDict, predDict;
+	CountDictionary lemmaDict, argModDict, propDict;
 	
 	public SRLCorpus(String corpusName) {
 		super(corpusName);
 		this.lemmaDict = new CountDictionary();
 		this.argModDict = new CountDictionary();
-		this.predDict = new CountDictionary();
+		this.propDict = new CountDictionary();
 	}
 	
 	public SRLCorpus(String corpusName, SRLCorpus baseCorpus) {
 		super(corpusName, baseCorpus);
 		this.lemmaDict = baseCorpus.lemmaDict;
 		this.argModDict = baseCorpus.argModDict;
-		this.predDict = baseCorpus.predDict;
+		this.propDict = baseCorpus.propDict;
 	}
 	
 	/** The CoNLL 2009 File Format:
@@ -55,8 +55,8 @@ public class SRLCorpus extends DepCorpus {
 				      parents = new TIntArrayList(),
 				      deptags = new TIntArrayList(),
 				      lemmas = new TIntArrayList();
-		ArrayList<Predicate> predicates = new ArrayList<Predicate>();
-		int numPredicates = -1, predCount = -1;
+		ArrayList<Proposition> propositions = new ArrayList<Proposition>();
+		int numPropositions = -1, propCount = -1;
 		
 		while ((currLine = reader.readLine()) != null) {
 			String[] columns = currLine.split("\\s+");
@@ -68,16 +68,16 @@ public class SRLCorpus extends DepCorpus {
 						                      postags.toArray(),
 						                      parents.toArray(),
 						                      deptags.toArray(),
-						                      predicates,
+						                      propositions,
 						                      this, nextSentenceID));
 				tokens.clear();
 				lemmas.clear();
 				postags.clear();
 				parents.clear();
 				deptags.clear();
-				predicates.clear();
-				numPredicates = -1;
-				predCount = -1;
+				propositions.clear();
+				numPropositions = -1;
+				propCount = -1;
 			} else {
 				tokens.add(wordDict.addString(columns[1]));
 				if (readGold) {
@@ -91,27 +91,27 @@ public class SRLCorpus extends DepCorpus {
 					parents.add(Integer.valueOf(columns[9]) - 1);
 					deptags.add(depDict.addString(columns[11]));
 				}
-				if (numPredicates == -1) {
-					numPredicates = columns.length - 14;
-					predCount = 0;
-					for (int i = 0; i < numPredicates; i++) {
-						predicates.add(new Predicate());
+				if (numPropositions == -1) {
+					numPropositions = columns.length - 14;
+					propCount = 0;
+					for (int i = 0; i < numPropositions; i++) {
+						propositions.add(new Proposition());
 					}
 				}
 				// Add predicate.
 				int wordCount = tokens.size() - 1;
 				if (columns[12].equals("Y")) {
-					predicates.get(predCount).setPredicate(wordCount,
-							predDict.addString(columns[13]));
-					predCount ++;
+					propositions.get(propCount).setPredicate(wordCount,
+							propDict.addString(columns[13]));
+					propCount ++;
 				}
-				for (int i = 0; i < numPredicates; i++) {
+				for (int i = 0; i < numPropositions; i++) {
 					String info = columns[14 + i];
 					if (info.startsWith("AM")) {
-						predicates.get(i).addArgumentModifier(wordCount,
+						propositions.get(i).addArgumentModifier(wordCount,
 								argModDict.addString(info));
 					} else if (info.startsWith("A")) {
-						predicates.get(i).addArgument(wordCount,
+						propositions.get(i).addArgument(wordCount,
 								Integer.parseInt(info.substring(1)));
 					}
 				}
