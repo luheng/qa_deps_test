@@ -30,11 +30,11 @@ public class CombinedScorerExperiment {
 	private static ArrayList<AnnotatedSentence> annotatedSentences = null;
 	private static Decoder decoder = null;
 	
-	public static void testSentence(AnnotatedSentence sentence,
-									double distWeight,
-									double qaWeight,
-									double ugWeight,
-									boolean printAnalysis) {
+	public static int[] testSentence(AnnotatedSentence sentence,
+						   			 double distWeight,
+									 double qaWeight,
+									 double ugWeight,
+									 boolean printAnalysis) {
 		DepSentence depSentence = sentence.depSentence;
 		trainCorpus = depSentence.corpus;
 		int length = depSentence.length + 1;
@@ -77,21 +77,19 @@ public class CombinedScorerExperiment {
 		Accuracy acc = Evaluation.getAccuracy(depSentence, parents);
 		
 		// Go through post-processor.
-		verbFixer.postprocess(fixedParents, parents, depSentence);
-		npFixer.postprocess(fixedParents2, fixedParents, depSentence);
-		Accuracy acc2 = Evaluation.getAccuracy(depSentence, fixedParents2);
+		//verbFixer.postprocess(fixedParents, parents, depSentence);
+		//npFixer.postprocess(fixedParents2, fixedParents, depSentence);
+		npFixer.postprocess(fixedParents, parents, depSentence);
+		Accuracy acc2 = Evaluation.getAccuracy(depSentence, fixedParents);
 		
 		// Print out analysis
 		if (printAnalysis) {
-			depSentence.prettyPrintDebugString(fixedParents2, scores);
-			/*
-			depSentence.prettyPrintJSONDebugString(fixedParents2);
-			System.out.println();
-			*/
+			depSentence.prettyPrintDebugString(fixedParents, scores);
 		}		
 		System.out.println(
 				String.format("Acc: %.2f%%, after post-processing: %.2f%%",
 							100.0 * acc.accuracy(), 100.0 * acc2.accuracy()));
+		return parents;
 	}
 	
 	private static void testCombinedScorer(double distWeight, double qaWeight,

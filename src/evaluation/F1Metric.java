@@ -28,4 +28,10 @@ public class F1Metric {
 		return precision + recall == 0 ?
 				0 : 2 * precision * recall / (precision + recall); 
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("Precision:\t%.2f\tRecall:%.2f\tF1:%.2f",
+				precision(), recall(), f1());
+	}
 }

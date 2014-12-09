@@ -40,7 +40,7 @@ public class BasicQuestionTemplates {
 									 "### how ?", false, false));
 		
 		templates.add(
-				new QuestionTemplate("NOUN", "", "what", 0, "What ### ?",
+				new QuestionTemplate("NOUN", "", "what", 0, "Which ### ?",
 									 true, false));
 		templates.add(
 				new QuestionTemplate("ADJ", "", "how", 0, "How ### ?",

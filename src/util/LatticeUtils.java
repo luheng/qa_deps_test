@@ -28,6 +28,14 @@ public class LatticeUtils {
 		}
 	}
 	
+	public static void fill(String[][] arr, String val) {
+		for (int i = 0; i< arr.length; i++) {
+			for (int j = 0; j < arr[i].length; j++) {
+				arr[i][j] = val;
+			}
+		}
+	}
+	
 	public static void copy(int[] dest, int[] src) {
 		for (int i = 0; i < src.length; i++) {
 			dest[i] = src[i];

@@ -3,16 +3,20 @@ package experiments;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 
+import util.LatticeUtils;
 import annotation.AuxiliaryVerbIdentifier;
 import annotation.BasicQuestionTemplates;
 import annotation.QuestionTemplate;
-import annotation.QuestionWord;
+import annotation.CandidateProposition;
 import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.DepSentence;
 import data.QAPair;
 import data.SRLSentence;
+import evaluation.DependencySRLEvaluation;
+import evaluation.F1Metric;
 
 /**
  * Interactive annotation using the workflow:
@@ -26,10 +30,44 @@ public class InteractiveAnnotationExperiment {
 	// private static ArrayList<AnnotatedSentence> annotatedSentences = null;
 	
 	private static InteractiveConsole console = null;
-	private static int[] sentenceIDs =
-			new int[] {6251, 9080, 8241, 8828, 55};
+	// private static int[] sentenceIDs =
+	//		new int[] {6251, 9080, 8241, 8828, 55};
 	
-	
+	private static ArrayList<CandidateProposition> getCandidatePropositions(
+			DepSentence sentence) {
+		// Pre-processing: get auxiliary verb spans.
+		AuxiliaryVerbIdentifier auxVerbIdentifier =
+				new AuxiliaryVerbIdentifier(trainCorpus);
+		int[] verbHeads = new int[sentence.length];
+		auxVerbIdentifier.process(sentence, verbHeads);
+		
+		ArrayList<CandidateProposition> propositions =
+				new ArrayList<CandidateProposition>();
+		for (int i = 0; i < sentence.length; i++) {
+			// Compute score ...
+			String postag = sentence.getPostagString(i);
+			if (verbHeads[i] != -1) {
+				// Is a group of auxiliary verbs and verbs.
+				CandidateProposition word = new CandidateProposition(sentence,
+						i, new int[] {i, verbHeads[i] + 1});
+				word.score = 3;
+				propositions.add(word);
+				i = verbHeads[i];
+				continue;
+			}
+			CandidateProposition word = new CandidateProposition(sentence, i);
+			if (postag.equals("VERB")) {
+				word.score = 2;
+			} else if (postag.equals("NOUN")) {
+				word.score = 1;
+			} else {
+				word.score = -1;
+			}
+			propositions.add(word);
+ 		}
+		Collections.sort(propositions, CandidateProposition.comparator);
+		return propositions;
+	}
 	
 	private static void showNumberedSentence(DepSentence sentence,
 											 int maxNumTokensPerLine) {
@@ -43,17 +81,6 @@ public class InteractiveAnnotationExperiment {
 			}
 		}
 		System.out.println();
-	}
-	
-	private static String getAnswerSpanString(DepSentence sentence,
-											  ArrayList<int[]> spans) {
-		String answerStr = "";
-		for (int[] span : spans) {
-			for (int i = span[0]; i < span[1]; i++) {
-	 			answerStr += sentence.getTokenString(i) + " ";
-			}
-		}
-		return answerStr.trim();
 	}
 	
 	/**
@@ -97,54 +124,71 @@ public class InteractiveAnnotationExperiment {
 			   smallerSpan[1] <= largerSpan[1];
 	}
 	
+	// For each answer span, the word that has outcoming arc is the head of the
+	// argument.
+	// FIXME: Temporary solution. This is inefficient.
+	private static int getAnswerHead(QAPair qa, int[] tree) { 
+		HashSet<Integer> answerIDs = new HashSet<Integer>();
+		for (int i:  qa.answerAlignment) {
+			if (i != -1) {
+				answerIDs.add(i);
+			}
+		}
+		int answerHead = -1;
+		for (int i : qa.answerAlignment) {
+			if (i != -1) {
+				if (!answerIDs.contains(tree[i])) {
+					answerHead = i;
+				}
+			}
+		}
+		return answerHead;
+	}
+	
+	private static int getQuestionHead(QAPair qa) {
+		for (int i : qa.questionAlignment) {
+			if (i != -1) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	private static void updateSemanticArcs(String[][] semPred, int[] synPred,
+			AnnotatedSentence annotatedSentence) {
+		LatticeUtils.fill(semPred, "");
+		SRLSentence sentence = (SRLSentence) annotatedSentence.depSentence;
+		for (QAPair qa : annotatedSentence.qaList) {
+			int propID = getQuestionHead(qa);
+			int argID = getAnswerHead(qa, synPred);
+			if (propID < 0 || argID < 0) {
+				continue;
+			}
+			semPred[0][propID + 1] = sentence.getTokenString(propID);
+			semPred[propID + 1][argID + 1] = "A?";
+		}
+	}
+	
 	private static void annotateSentence(SRLSentence sentence) {
 		// Get semantic arcs for evaluation.
-		String[][] semanticArcs = sentence.getSemanticArcs();
+		String[][] semPred =
+				new String[sentence.length + 1][sentence.length + 1];
+		LatticeUtils.fill(semPred, "");
 	
 		// Initialize annotation data structure.
 		AnnotatedSentence annotatedSentence = new AnnotatedSentence(sentence);
 		
-		// Initialize word ranks.
-		ArrayList<QuestionWord> questionWords =new ArrayList<QuestionWord>();
+		// Extract candidate propositions.
+		ArrayList<CandidateProposition> candidates =
+				getCandidatePropositions(sentence);
 		BasicQuestionTemplates questionTemplates = new BasicQuestionTemplates();
 		
-		// Pre-processing: get auxiliary verb spans.
-		AuxiliaryVerbIdentifier auxVerbIdentifier =
-				new AuxiliaryVerbIdentifier(trainCorpus);
-		int[] verbHeads = new int[sentence.length];
-		auxVerbIdentifier.process(sentence, verbHeads);
-		
-		for (int i = 0; i < sentence.length; i++) {
-			// Compute score ...
-			String postag = sentence.getPostagString(i);
-			if (verbHeads[i] != -1) {
-				// Is a group of auxiliary verbs and verbs.
-				QuestionWord word = new QuestionWord(sentence, i,
-						new int[] {i, verbHeads[i] + 1});
-				word.score = 3.5;
-				questionWords.add(word);
-				i = verbHeads[i];
-				continue;
-			}
-			QuestionWord word = new QuestionWord(sentence, i);
-			if (postag.equals("VERB")) {
-				word.score = 2;
-			} else if (postag.equals("NOUN")) {
-				word.score = 1;
-			} else {
-				word.score = -1;
-			}
-			questionWords.add(word);
- 		}
-		Collections.sort(questionWords, QuestionWord.comparator);
-		for (QuestionWord word : questionWords) {
+		for (CandidateProposition word : candidates) {
 			System.out.println(word.toString());
 		}
 		boolean[] tried = new boolean[sentence.length];
 		Arrays.fill(tried, false);
 
-		// FIXME: Auxiliary verb problem when extracting verbs.
-		// FIXME: Print numbered sentence in a better way.
 		System.out.println(
 				"Input answer number (a) or range (a-b), " +
 				"if there are multiple answers, delimit by comma. " +
@@ -157,8 +201,8 @@ public class InteractiveAnnotationExperiment {
 		
 		while (true) {
 			// Retrieve highest ranked word in the current span.
-			QuestionWord qWord = null;
-			for (QuestionWord word : questionWords) {
+			CandidateProposition qWord = null;
+			for (CandidateProposition word : candidates) {
 				if (!tried[word.wordID] && word.score > -1) {
 					qWord = word;
 					break;
@@ -168,19 +212,15 @@ public class InteractiveAnnotationExperiment {
 				System.out.println("All words processed");
 				break;
 			}
-			
 			System.out.println(qWord.toString());
-			
 			
 			// Suggest word + wh-word combination.
 			boolean foundQuestion = false;
 			for (QuestionTemplate qtemp : questionTemplates.templates) {
-				
 				/*
 				System.out.println("q-gen:\t" +
 						qtemp.getQuestionString(sentence, qWord));
 				*/
-				
 				if (qtemp.matches(sentence,
 								  qWord,
 								  qWord.effectiveSpan)) {
@@ -228,7 +268,7 @@ public class InteractiveAnnotationExperiment {
 					}
 				
 					// Update effective spans of question words.
-					for (QuestionWord word : questionWords) {
+					for (CandidateProposition word : candidates) {
 						if (word.wordID == qWord.wordID) {
 							// Do not want to shrink on the current question
 							// word, yet.
@@ -250,17 +290,23 @@ public class InteractiveAnnotationExperiment {
 			tried[qWord.wordID] = true;
 			if (foundQuestion) {
 				// Compute accuracy.
-				CombinedScorerExperiment.testSentence(annotatedSentence,
+				int[] synPred = CombinedScorerExperiment.testSentence(
+						annotatedSentence,
 						0.0, /* weight of distance scorer */
 						1.0, /* weight of QA scorer */
 						1.0,  /* weight of UG scorer */
 						true /* print analysis */);
 				
+				// Update semantic prediction.
+				updateSemanticArcs(semPred, synPred, annotatedSentence);
+				F1Metric f1 = DependencySRLEvaluation.getUnlabeledAccuracy(
+						sentence, semPred);
+				System.out.println(f1.toString());
+				
 				// Update on word ranks.
-				Collections.sort(questionWords, QuestionWord.comparator);
+				Collections.sort(candidates, CandidateProposition.comparator);
 			}
 		}
-		
 	}
 	
 	public static void main(String[] args) {
@@ -271,5 +317,4 @@ public class InteractiveAnnotationExperiment {
 		console = new InteractiveConsole();
 		annotateSentence((SRLSentence) trainCorpus.sentences.get(0));
 	}
-	
 }

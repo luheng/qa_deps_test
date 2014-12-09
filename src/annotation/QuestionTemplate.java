@@ -40,7 +40,7 @@ public class QuestionTemplate {
 	}
 	*/
 	
-	public boolean matches(DepSentence sentence, QuestionWord word, int[] span) {
+	public boolean matches(DepSentence sentence, CandidateProposition word, int[] span) {
 		int wordID = word.wordID;
 		return (this.postag.isEmpty() ||
 				sentence.getPostagString(wordID).equalsIgnoreCase(
@@ -51,7 +51,7 @@ public class QuestionTemplate {
 			   (!this.requireRightTokens || word.wordSpan[1] + 1 < span[1]);
 	}
 	
-	public String getQuestionString(DepSentence sentence, QuestionWord word) {
+	public String getQuestionString(DepSentence sentence, CandidateProposition word) {
 		String wordStr = sentence.getTokenString(word.wordSpan);
 		String qstr = "";
 		for (int i = 0; i < questionTokens.length; i++) {
@@ -64,7 +64,7 @@ public class QuestionTemplate {
 	}
 	
 	public String getNumberedQuestionString(DepSentence sentence,
-			QuestionWord word) {
+			CandidateProposition word) {
 		String wordStr = "";
 		for (int i = word.wordSpan[0]; i < word.wordSpan[1]; i++) {
 			wordStr += String.format("%s(%d) ", sentence.getTokenString(i), i);

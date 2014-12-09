@@ -2,6 +2,8 @@ package data;
 
 import java.util.ArrayList;
 
+import util.LatticeUtils;
+
 public class SRLSentence extends DepSentence {
 	int[] lemmas;
 	ArrayList<Proposition> propositions;
@@ -38,11 +40,7 @@ public class SRLSentence extends DepSentence {
 		CountDictionary propDict = srlCorpus.propDict,
 					    argModDict = srlCorpus.argModDict;
 		String[][] arcs = new String[length + 1][length + 1];
-		for (int i = 0; i < arcs.length; i++) {
-			for (int j = 0; j < arcs[i].length; j++) {
-				arcs[i][j] = "";
-			}
-		}
+		LatticeUtils.fill(arcs, "");
 		for (Proposition prop : propositions) {
 			int pid = prop.propID + 1;
 			arcs[0][pid] = propDict.index2str.get(prop.propType);
