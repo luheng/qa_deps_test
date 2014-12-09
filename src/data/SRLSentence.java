@@ -11,9 +11,11 @@ public class SRLSentence extends DepSentence {
 					   SRLCorpus corpus, int sentenceID) {
 		super(tokens, postags, parents, deptags, corpus, sentenceID);
 		this.lemmas = lemmas;
-		this.predicates = predicates;
+		this.predicates = new ArrayList<Predicate>();
 		for (Predicate pred : predicates) {
-			pred.sentence = this;
+			Predicate newPred = pred.clone();
+			newPred.sentence = this;
+			this.predicates.add(newPred);
 		}
 	}
 	
@@ -21,5 +23,13 @@ public class SRLSentence extends DepSentence {
 		pred.sentence = this;
 		this.predicates.add(pred);
 	}
-
+	
+	@Override
+	public String toString() {
+		String str = super.toString() + "\n";
+		for (Predicate pred : predicates) {
+			str += pred.toString();
+		}
+		return str;
+	}
 }

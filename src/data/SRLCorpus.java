@@ -1,10 +1,10 @@
 package data;
 
+import experiments.ExperimentUtils;
 import gnu.trove.list.array.TIntArrayList;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -76,6 +76,8 @@ public class SRLCorpus extends DepCorpus {
 				parents.clear();
 				deptags.clear();
 				predicates.clear();
+				numPredicates = -1;
+				predCount = -1;
 			} else {
 				tokens.add(wordDict.addString(columns[1]));
 				if (readGold) {
@@ -126,6 +128,25 @@ public class SRLCorpus extends DepCorpus {
 		reader.close();
 		System.out.println(String.format("Read %d sentences from %s.\n",
 				                         sentences.size(), corpusFilename));
+	}
+	
+	
+	public static void main(String[] args) {
+		SRLCorpus corpus = new SRLCorpus("trial");
+		try {
+			corpus.loadCoNLL2009Data(ExperimentUtils.conll2009TrialFilename,
+									 true);
+			
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		for (DepSentence s : corpus.sentences) {
+			SRLSentence sentence = (SRLSentence) s;
+			System.out.println(sentence.toString());
+		}
 	}
 
 }
