@@ -14,6 +14,8 @@ import annotation.AbstractQuestionAnswerAligner;
 import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.QAPair;
+import data.SRLCorpus;
+import data.UniversalPostagMap;
 
 public class ExperimentUtils {
 
@@ -30,6 +32,9 @@ public class ExperimentUtils {
 	public static final String conll2009TrialFilename =
 			"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
 	
+	public static final String enUnivPostagFilename =
+			"/Users/luheng/data/CONLL-x/univmap/en-ptb.map";
+	
 	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
 	// public static String annotationFilename = "manual_annotation/en-upperbound.txt";
 	// public static String annotationFilename = "manual_annotation/luke_first5.csv";
@@ -42,6 +47,21 @@ public class ExperimentUtils {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
 		try {
 			corpus.loadUniversalDependencyData(trainFilename);
+		} catch (NumberFormatException | IOException e) {
+			e.printStackTrace();
+		}
+		return corpus;
+	}
+	
+	public static SRLCorpus loadSRLCorpus() {
+		SRLCorpus corpus = new SRLCorpus("en-srl-trial");
+		UniversalPostagMap univmap = new UniversalPostagMap();
+		try {
+			univmap.loadFromFile(enUnivPostagFilename);
+			corpus.loadCoNLL2009Data(ExperimentUtils.conll2009TrialFilename,
+									 univmap,
+									 true /* load gold syntax info */);
+			
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}

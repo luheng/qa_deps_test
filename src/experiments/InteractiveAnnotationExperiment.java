@@ -124,13 +124,10 @@ public class InteractiveAnnotationExperiment {
 			}
 			QuestionWord word = new QuestionWord(sentence, i);
 			if (postag.equals("VERB")) {
-				word.score = 3;
-			} else if (postag.equals("NOUN")) {
 				word.score = 2;
-			} else if (postag.equals("ADP")) {
+			} else if (postag.equals("NOUN")) {
 				word.score = 1;
-			} else if (postag.equals("X") || postag.equals(".") ||
-					   postag.equals("DET")) {
+			} else {
 				word.score = -1;
 			}
 			questionWords.add(word);
@@ -263,11 +260,12 @@ public class InteractiveAnnotationExperiment {
 	}
 	
 	public static void main(String[] args) {
-		trainCorpus = ExperimentUtils.loadDepCorpus();
+		// trainCorpus = ExperimentUtils.loadDepCorpus();
+		trainCorpus = ExperimentUtils.loadSRLCorpus();
 		
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();
-		annotateSentence(trainCorpus.sentences.get(sentenceIDs[0]));
+		annotateSentence(trainCorpus.sentences.get(0));
 		// annotateSentence(trainCorpus.sentences.get(1234));
 	}
 	

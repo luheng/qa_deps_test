@@ -44,8 +44,9 @@ public class SRLCorpus extends DepCorpus {
 		13: pred
 		14: Apreds
 	 */
-	public void loadCoNLL2009Data(String corpusFilename, boolean readGold)
-			throws NumberFormatException, IOException {
+	public void loadCoNLL2009Data(String corpusFilename,
+			UniversalPostagMap univmap, boolean readGold)
+					throws NumberFormatException, IOException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				new FileInputStream(corpusFilename)));
 		
@@ -80,14 +81,15 @@ public class SRLCorpus extends DepCorpus {
 				propCount = -1;
 			} else {
 				tokens.add(wordDict.addString(columns[1]));
+				String postag = readGold ? columns[4] : columns[5];
+				postags.add(posDict.addString(univmap == null ?
+						postag : univmap.getUnivPostag(postag)));
 				if (readGold) {
 					lemmas.add(lemmaDict.addString(columns[2]));
-					postags.add(posDict.addString(columns[4]));
 					parents.add(Integer.valueOf(columns[8]) - 1);
 					deptags.add(depDict.addString(columns[10]));
 				} else {
 					lemmas.add(lemmaDict.addString(columns[3]));
-					postags.add(posDict.addString(columns[5]));
 					parents.add(Integer.valueOf(columns[9]) - 1);
 					deptags.add(depDict.addString(columns[11]));
 				}
@@ -135,7 +137,8 @@ public class SRLCorpus extends DepCorpus {
 		SRLCorpus corpus = new SRLCorpus("trial");
 		try {
 			corpus.loadCoNLL2009Data(ExperimentUtils.conll2009TrialFilename,
-									 true);
+									 null /* univ postag map */,
+									 true /* load gold */);
 			
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
