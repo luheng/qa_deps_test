@@ -10,16 +10,16 @@ import java.util.Arrays;
 import util.LatticeUtils;
 import util.StringUtils;
 import annotation.GreedyQuestionAnswerAligner;
-import data.Accuracy;
 import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.DepSentence;
-import data.Evaluation;
 import data.QAPair;
 import decoding.AdjacencyGraph;
 import decoding.Decoder;
 import decoding.QADecoder;
 import decoding.ViterbiDecoder;
+import evaluation.Accuracy;
+import evaluation.Evaluation;
 
 public class ConstrainedParsingExperiment {
 	

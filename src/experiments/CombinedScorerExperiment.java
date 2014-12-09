@@ -10,14 +10,14 @@ import scorer.DistanceScorer;
 import scorer.QuestionAnswerScorer;
 import scorer.UniversalGrammarScorer;
 import util.LatticeUtils;
-import data.Accuracy;
 import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.DepSentence;
-import data.Evaluation;
 import data.QAPair;
 import decoding.Decoder;
 import decoding.ViterbiDecoder;
+import evaluation.Accuracy;
+import evaluation.Evaluation;
 
 /**
  * Test the different scorers.

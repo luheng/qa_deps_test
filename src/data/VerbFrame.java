@@ -90,5 +90,6 @@ public class VerbFrame {
 		// Test VerbFrame reader.
 		String filename = "/Users/luheng/data/PropBank/data/frames/keep.xml";
 		VerbFrame vf = VerbFrame.readPropBankVerbFrame(filename);
+		System.out.println(vf.toString());
 	}
 }

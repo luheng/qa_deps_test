@@ -6,12 +6,12 @@ import scorer.DistanceScorer;
 import scorer.UniversalGrammarScorer;
 import util.LatticeUtils;
 import util.StringUtils;
-import data.Accuracy;
 import data.AnnotatedSentence;
 import data.DepSentence;
-import data.Evaluation;
 import decoding.Decoder;
 import decoding.QADecoder;
+import evaluation.Accuracy;
+import evaluation.Evaluation;
 
 public class DualDecompositionOptimizer {
 

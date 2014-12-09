@@ -12,6 +12,7 @@ import data.AnnotatedSentence;
 import data.DepCorpus;
 import data.DepSentence;
 import data.QAPair;
+import data.SRLSentence;
 
 /**
  * Interactive annotation using the workflow:
@@ -96,7 +97,10 @@ public class InteractiveAnnotationExperiment {
 			   smallerSpan[1] <= largerSpan[1];
 	}
 	
-	private static void annotateSentence(DepSentence sentence) {
+	private static void annotateSentence(SRLSentence sentence) {
+		// Get semantic arcs for evaluation.
+		String[][] semanticArcs = sentence.getSemanticArcs();
+	
 		// Initialize annotation data structure.
 		AnnotatedSentence annotatedSentence = new AnnotatedSentence(sentence);
 		
@@ -265,8 +269,7 @@ public class InteractiveAnnotationExperiment {
 		
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();
-		annotateSentence(trainCorpus.sentences.get(0));
-		// annotateSentence(trainCorpus.sentences.get(1234));
+		annotateSentence((SRLSentence) trainCorpus.sentences.get(0));
 	}
 	
 }

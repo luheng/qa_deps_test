@@ -1,4 +1,6 @@
-package data;
+package evaluation;
+
+import data.DepSentence;
 
 public class Evaluation {
 	

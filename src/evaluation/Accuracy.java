@@ -1,4 +1,4 @@
-package data;
+package evaluation;
 
 public class Accuracy {
 	public int numMatched, numCounted;
