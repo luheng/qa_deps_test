@@ -22,5 +22,6 @@ public class DebugUtils {
 				System.out.println();
 			}
 		}
+		System.out.println();
 	}
 }

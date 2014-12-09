@@ -49,22 +49,22 @@ public class InteractiveAnnotationExperiment {
 			String postag = sentence.getPostagString(i);
 			if (verbHeads[i] != -1) {
 				// Is a group of auxiliary verbs and verbs.
-				CandidateProposition word = new CandidateProposition(sentence,
+				CandidateProposition cp = new CandidateProposition(sentence,
 						i, new int[] {i, verbHeads[i] + 1});
-				word.score = 3;
-				propositions.add(word);
+				cp.score = 3;
+				propositions.add(cp);
 				i = verbHeads[i];
 				continue;
 			}
-			CandidateProposition word = new CandidateProposition(sentence, i);
+			CandidateProposition cp = new CandidateProposition(sentence, i);
 			if (postag.equals("VERB")) {
-				word.score = 2;
+				cp.score = 2;
 			} else if (postag.equals("NOUN")) {
-				word.score = 1;
+				cp.score = 1;
 			} else {
-				word.score = -1;
+				continue;
 			}
-			propositions.add(word);
+			propositions.add(cp);
  		}
 		Collections.sort(propositions, CandidateProposition.comparator);
 		return propositions;
@@ -186,8 +186,8 @@ public class InteractiveAnnotationExperiment {
 				getCandidatePropositions(sentence);
 		BasicQuestionTemplates questionTemplates = new BasicQuestionTemplates();
 		
-		for (CandidateProposition word : candidates) {
-			System.out.println(word.toString());
+		for (CandidateProposition cp : candidates) {
+			System.out.println(cp.toString());
 		}
 		boolean[] tried = new boolean[sentence.length];
 		Arrays.fill(tried, false);
@@ -319,6 +319,6 @@ public class InteractiveAnnotationExperiment {
 		
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();
-		annotateSentence((SRLSentence) trainCorpus.sentences.get(0));
+		annotateSentence((SRLSentence) trainCorpus.sentences.get(1));
 	}
 }
