@@ -319,6 +319,6 @@ public class InteractiveAnnotationExperiment {
 		
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();
-		annotateSentence((SRLSentence) trainCorpus.sentences.get(1));
+		annotateSentence((SRLSentence) trainCorpus.sentences.get(2));
 	}
 }
