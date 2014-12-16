@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
 import javax.swing.JTextArea;
 
 import annotation.CandidateProposition;
@@ -22,7 +23,8 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	QuestionWordChooser whChooser;
 	PropositionChooser verbChooser;
 	PronounChooser pronChooser1, pronChooser2;
-	
+	JTextArea sentDisplay, verbInput, answerInput;
+	Label questionLabel, answerLabel; 
 	Button qsubButton, asubButton;
 	
 	public AnnotatorFrame(SRLSentence sentence,
@@ -42,46 +44,66 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	    layout.setAutoCreateContainerGaps(true);
 	    
 	    // Show sentence.
-	    JTextArea sentDisplay =
-	    		new JTextArea(sentence.getTokensString(), 3, 100);
+	    sentDisplay = new JTextArea(sentence.getTokensString(), 3, 100);
 	    sentDisplay.setEditable(false);
 	    sentDisplay.setLineWrap(true);
 	 
-	    panel.add(sentDisplay);
-	    
+	    questionLabel = new Label("Q:");
 	    whChooser = new QuestionWordChooser();
-	    panel.add(whChooser);	    
-	    
+
 	    String verbString = propositions.get(0).getPropositionString();
-	    verbChooser = new PropositionChooser(verbString);
-	    panel.add(verbChooser);
+	    verbInput = new JTextArea(verbString, 1, 50);	    
+	    verbInput.setEditable(true);
 	    
 	    pronChooser1 = new PronounChooser();
-	    panel.add(pronChooser1);
-	    
 	    pronChooser2 = new PronounChooser();
-	    panel.add(pronChooser2);
+	    
+	    answerLabel = new Label("A:");
+	    answerInput = new JTextArea(1,200);
+	    answerInput.setEditable(true);
 	    
 	    qsubButton = new Button("Submit Question");
 	    asubButton = new Button("Submit Answer");
 	    qsubButton.addActionListener(this);
 	    asubButton.addActionListener(this);
-	    panel.add(qsubButton);
-	    panel.add(asubButton);
+	    
 	    
 	    JTextArea qaDisplay =
 	    		new JTextArea(5,100);
 	    qaDisplay.setEditable(false);
 	    qaDisplay.setLineWrap(false);
+	    
+	    
+	    // Add everything.
+	    panel.add(sentDisplay);
+	    panel.add(whChooser);
+	    panel.add(verbInput);
+	    panel.add(pronChooser1);
+	    panel.add(pronChooser2);
+	    panel.add(qsubButton);
+	    panel.add(asubButton);
 	    panel.add(qaDisplay);
+	    
+	    Group horizontalQuestionGroup = layout.createSequentialGroup()
+	    		.addComponent(questionLabel)
+				.addComponent(whChooser)
+				.addComponent(verbInput)
+				.addComponent(pronChooser1)
+				.addComponent(pronChooser2);
+	    
+	    Group vertialQuestionGroup = layout.createParallelGroup()
+	    		.addComponent(questionLabel)
+				.addComponent(whChooser)
+				.addComponent(verbInput)
+				.addComponent(pronChooser1)
+				.addComponent(pronChooser2);
 	    
 	    layout.setHorizontalGroup(layout.createParallelGroup()
 	    		.addComponent(sentDisplay)
+	    		.addGroup(horizontalQuestionGroup)
 	    		.addGroup(layout.createSequentialGroup()
-	    				.addComponent(whChooser)
-	    				.addComponent(verbChooser)
-	    				.addComponent(pronChooser1)
-	    				.addComponent(pronChooser2))	    	
+	    				.addComponent(answerLabel)
+	    				.addComponent(answerInput))
 	    		.addGroup(layout.createSequentialGroup()
 	    				.addComponent(qsubButton)
 	    				.addComponent(asubButton))
@@ -89,14 +111,14 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	    		
 	    layout.setVerticalGroup(layout.createSequentialGroup()
 	    		.addComponent(sentDisplay)
-	    		.addGroup(layout.createParallelGroup(
-	    				GroupLayout.Alignment.BASELINE)
-	    				.addComponent(whChooser)
-	    				.addComponent(verbChooser)
-	    				.addComponent(pronChooser1)
-	    				.addComponent(pronChooser2))
-	    		.addGroup(layout.createParallelGroup(
-	    				GroupLayout.Alignment.BASELINE)
+	    		.addGroup(layout.createParallelGroup()
+	    				.addGroup(layout.createSequentialGroup()
+	    						.addComponent(questionLabel)
+	    						.addComponent(answerLabel))
+	    				.addGroup(layout.createSequentialGroup()
+	    						.addGroup(vertialQuestionGroup)
+	    						.addComponent(answerInput)))
+	    		.addGroup(layout.createParallelGroup()
 	    				.addComponent(qsubButton)
 	    				.addComponent(asubButton))
 	    		.addComponent(qaDisplay));
