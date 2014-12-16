@@ -33,6 +33,10 @@ public class CandidateProposition {
 		this.score = 0.0;
 	}
 	
+	public String getPropositionString() {
+		return sentence.getTokenString(wordSpan);
+	}
+	
 	public String toString() {
 		return String.format("<%s,%s,%.2f,%d-%d>",
 				sentence.getTokenString(wordSpan),

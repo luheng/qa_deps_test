@@ -34,11 +34,11 @@ public class InteractiveAnnotationExperiment {
 	// private static int[] sentenceIDs =
 	//		new int[] {6251, 9080, 8241, 8828, 55};
 	
-	private static ArrayList<CandidateProposition> getCandidatePropositions(
-			DepSentence sentence) {
+	public static ArrayList<CandidateProposition> getCandidatePropositions(
+			DepSentence sentence, boolean verbOnly) {
 		// Pre-processing: get auxiliary verb spans.
 		AuxiliaryVerbIdentifier auxVerbIdentifier =
-				new AuxiliaryVerbIdentifier(trainCorpus);
+				new AuxiliaryVerbIdentifier(sentence.corpus);
 		int[] verbHeads = new int[sentence.length];
 		auxVerbIdentifier.process(sentence, verbHeads);
 		
@@ -59,7 +59,7 @@ public class InteractiveAnnotationExperiment {
 			CandidateProposition cp = new CandidateProposition(sentence, i);
 			if (postag.equals("VERB")) {
 				cp.score = 2;
-			} else if (postag.equals("NOUN")) {
+			} else if (!verbOnly && postag.equals("NOUN")) {
 				cp.score = 1;
 			} else {
 				continue;
@@ -183,7 +183,7 @@ public class InteractiveAnnotationExperiment {
 		
 		// Extract candidate propositions.
 		ArrayList<CandidateProposition> candidates =
-				getCandidatePropositions(sentence);
+				getCandidatePropositions(sentence, false /* verb only */);
 		BasicQuestionTemplates questionTemplates = new BasicQuestionTemplates();
 		
 		for (CandidateProposition cp : candidates) {
