@@ -9,6 +9,9 @@ import javax.swing.GroupLayout.Group;
 import javax.swing.JTextArea;
 
 import annotation.CandidateProposition;
+import data.AnnotatedSentence;
+import data.DepSentence;
+import data.QAPair;
 import data.SRLCorpus;
 import data.SRLSentence;
 import experiments.ExperimentUtils;
@@ -23,56 +26,69 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	QuestionWordChooser whChooser;
 	PropositionChooser verbChooser;
 	PronounChooser pronChooser1, pronChooser2;
-	JTextArea sentDisplay, verbInput, answerInput;
-	Label questionLabel, answerLabel; 
-	Button qsubButton, asubButton;
+	JTextArea sentDisplay, verbInput, answerInput, qaDisplay;
+	Label questionLabel, answerLabel, questionMarkLabel; 
+	Button saveQAButton, prevPropButton, nextPropButton, prevSentButton,
+		   nextSentButton;
 	
-	public AnnotatorFrame(SRLSentence sentence,
-						  ArrayList<CandidateProposition> propositions) {
-		
+	ArrayList<AnnotatedSentence> annotatedSentences; 
+	ArrayList<CandidateProposition> currentPropositions;
+	int currentPropositionId, currentSentenceId;
+	
+	public AnnotatorFrame(ArrayList<DepSentence> sentences) {
 		super("Question-Answer Annotator");
-		
-		setSize(600, 280);
+		setSize(800, 360);
 		addWindowListener(new AnnotatorWindowMonitor());
-  
+	
 	    Panel panel = new Panel();
-	    //panel.setLayout(new FlowLayout(FlowLayout.LEFT));
-	    
 	    GroupLayout layout = new GroupLayout(panel);
 	    panel.setLayout(layout);
 	    layout.setAutoCreateGaps(true);
 	    layout.setAutoCreateContainerGaps(true);
 	    
+	    Font font = new Font("TimesRoman", Font.PLAIN, 20);
+	    
 	    // Show sentence.
-	    sentDisplay = new JTextArea(sentence.getTokensString(), 3, 100);
+	    sentDisplay = new JTextArea(3, 100);
 	    sentDisplay.setEditable(false);
 	    sentDisplay.setLineWrap(true);
-	 
+	    sentDisplay.setFont(font);
+	  
 	    questionLabel = new Label("Q:");
+	    questionLabel.setFont(font);
+	    
 	    whChooser = new QuestionWordChooser();
-
-	    String verbString = propositions.get(0).getPropositionString();
-	    verbInput = new JTextArea(verbString, 1, 50);	    
+	    
+	    verbInput = new JTextArea(1, 50);	    
 	    verbInput.setEditable(true);
+	    verbInput.setFont(font);
 	    
 	    pronChooser1 = new PronounChooser();
 	    pronChooser2 = new PronounChooser();
 	    
+	    questionMarkLabel = new Label("?");
+	    questionMarkLabel.setFont(font);
+	    
 	    answerLabel = new Label("A:");
 	    answerInput = new JTextArea(1,200);
 	    answerInput.setEditable(true);
+	    answerInput.setFont(font);
 	    
-	    qsubButton = new Button("Submit Question");
-	    asubButton = new Button("Submit Answer");
-	    qsubButton.addActionListener(this);
-	    asubButton.addActionListener(this);
+	    saveQAButton = new Button("Save QA");
+	    prevPropButton = new Button("Prev Proposition");
+	    nextPropButton = new Button("Next Proposition");
+	    prevSentButton = new Button("Prev Sentence");
+	    nextSentButton = new Button("Next Sentence");
 	    
+	    saveQAButton.addActionListener(this);
+	    prevPropButton.addActionListener(this);
+	    nextPropButton.addActionListener(this);
+	    prevSentButton.addActionListener(this);
+	    nextSentButton.addActionListener(this);
 	    
-	    JTextArea qaDisplay =
-	    		new JTextArea(5,100);
+	    qaDisplay = new JTextArea(5,100);
 	    qaDisplay.setEditable(false);
 	    qaDisplay.setLineWrap(false);
-	    
 	    
 	    // Add everything.
 	    panel.add(sentDisplay);
@@ -80,8 +96,12 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	    panel.add(verbInput);
 	    panel.add(pronChooser1);
 	    panel.add(pronChooser2);
-	    panel.add(qsubButton);
-	    panel.add(asubButton);
+	    panel.add(questionMarkLabel);
+	    panel.add(saveQAButton);
+	    panel.add(prevPropButton);
+	    panel.add(nextPropButton);
+	    panel.add(prevSentButton);
+	    panel.add(nextSentButton);
 	    panel.add(qaDisplay);
 	    
 	    Group horizontalQuestionGroup = layout.createSequentialGroup()
@@ -89,14 +109,31 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 				.addComponent(whChooser)
 				.addComponent(verbInput)
 				.addComponent(pronChooser1)
-				.addComponent(pronChooser2);
+				.addComponent(pronChooser2)
+				.addComponent(questionMarkLabel);
 	    
-	    Group vertialQuestionGroup = layout.createParallelGroup()
+	    Group vertialQuestionGroup = layout.createParallelGroup(
+	    			GroupLayout.Alignment.CENTER)
 	    		.addComponent(questionLabel)
 				.addComponent(whChooser)
 				.addComponent(verbInput)
 				.addComponent(pronChooser1)
-				.addComponent(pronChooser2);
+				.addComponent(pronChooser2)
+				.addComponent(questionMarkLabel);
+	    
+	    Group horizontalButtonGroup = layout.createSequentialGroup()
+	    		.addComponent(saveQAButton)
+	    		.addComponent(prevPropButton)
+				.addComponent(nextPropButton)
+				.addComponent(prevSentButton)
+				.addComponent(nextSentButton);
+	    
+	    Group verticalButtonGroup = layout.createParallelGroup()
+	    		.addComponent(saveQAButton)
+	    		.addComponent(prevPropButton)
+				.addComponent(nextPropButton)
+				.addComponent(prevSentButton)
+				.addComponent(nextSentButton);
 	    
 	    layout.setHorizontalGroup(layout.createParallelGroup()
 	    		.addComponent(sentDisplay)
@@ -104,9 +141,7 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	    		.addGroup(layout.createSequentialGroup()
 	    				.addComponent(answerLabel)
 	    				.addComponent(answerInput))
-	    		.addGroup(layout.createSequentialGroup()
-	    				.addComponent(qsubButton)
-	    				.addComponent(asubButton))
+	    		.addGroup(horizontalButtonGroup)
 	    		.addComponent(qaDisplay));
 	    		
 	    layout.setVerticalGroup(layout.createSequentialGroup()
@@ -118,28 +153,118 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	    				.addGroup(layout.createSequentialGroup()
 	    						.addGroup(vertialQuestionGroup)
 	    						.addComponent(answerInput)))
-	    		.addGroup(layout.createParallelGroup()
-	    				.addComponent(qsubButton)
-	    				.addComponent(asubButton))
+	    		.addGroup(verticalButtonGroup)
 	    		.addComponent(qaDisplay));
 	    
 	    add(panel, BorderLayout.CENTER);
+	    
+		// Data initialization.
+		initializeData(sentences);
+	    refreshPanel();
+	}
+	
+	private void refreshPanel() {
+		AnnotatedSentence annotatedSentence =
+				annotatedSentences.get(currentSentenceId);
+		SRLSentence sentence = (SRLSentence) annotatedSentence.depSentence;
+		
+		String sentDisplayString = String.format("(%d) %s", currentSentenceId,
+				sentence.getTokensString());
+		sentDisplay.setText(sentDisplayString);
+		verbInput.setText(currentPropositions.get(currentPropositionId)
+				.getPropositionString());
+		answerInput.setText("");
+		
+		if (currentPropositionId == 0) {
+			prevPropButton.setEnabled(false);
+		} else {
+			prevPropButton.setEnabled(true);
+		}
+		if (currentPropositionId == currentPropositions.size() - 1) {
+			nextPropButton.setEnabled(false);
+		} else {
+			nextPropButton.setEnabled(true);
+		}
+		if (currentSentenceId == 0) {
+			prevSentButton.setEnabled(false);
+		} else {
+			prevSentButton.setEnabled(true);
+		}
+		if (currentSentenceId == annotatedSentences.size() - 1) {
+			nextSentButton.setEnabled(false);
+		} else {
+			nextSentButton.setEnabled(true);
+		}
+		// Show current QAs
+		String qaText = "";
+		for (QAPair qa : annotatedSentence.qaList) {
+			qaText += qa.toString() + "\n";
+			
+		}
+		qaDisplay.setText(qaText);
+	}
+	
+	private void initializeData(ArrayList<DepSentence> sentences) {
+		annotatedSentences = new ArrayList<AnnotatedSentence>();
+		for (DepSentence sentence : sentences) {
+			annotatedSentences.add(new AnnotatedSentence(sentence));
+		}
+		currentPropositions = getPropositions();
+		currentSentenceId = 0;
+		currentPropositionId = 0;
+	}
+	
+	private ArrayList<CandidateProposition> getPropositions() {
+		SRLSentence sentence = (SRLSentence) annotatedSentences
+				.get(currentSentenceId).depSentence;
+		ArrayList<CandidateProposition> props =
+				InteractiveAnnotationExperiment.getCandidatePropositions(
+						sentence, true /* verb only */);
+		return props;
 	}
 
-	  public void actionPerformed(ActionEvent ae) {
-		  System.out.println(ae.getActionCommand());
-	  }
+	private String getQuestion() {
+		return whChooser.getSelectedItem().trim() + " " +
+				verbInput.getText().trim() +
+				pronChooser1.getSelectedItem().trim() +
+				pronChooser2.getSelectedItem().trim() + " " + "?";
+	}
+	
+	private String getAnswer() {
+		// TODO: validate answer to be a contiguous span.
+		return answerInput.getText().trim();
+	}
+	
+	public void actionPerformed(ActionEvent ae) {
+		String command = ae.getActionCommand();
+		if (command.equals("Save QA")) {
+			String question = getQuestion();
+			String answer = getAnswer();
+			// System.out.println(question + ", " + answer);
+			QAPair qa = new QAPair(question, answer);
+			annotatedSentences.get(currentSentenceId).addQA(qa);
+			refreshPanel();
+			
+		} else if (command.equals("Prev Proposition")) {
+			currentPropositionId --;
+			refreshPanel();
+		} else if (command.equals("Next Proposition")) {
+			currentPropositionId ++;
+			refreshPanel();
+		} else if (command.equals("Prev Sentence")) {
+			currentSentenceId --;
+			currentPropositions = getPropositions();
+			refreshPanel();
+		} else if (command.equals("Next Sentence")) {
+			currentSentenceId ++;
+			currentPropositions = getPropositions();
+			refreshPanel();
+		}
+	}
 
 	  public static void main(String args[]) {
 		  SRLCorpus corpus = ExperimentUtils.loadSRLCorpus();
-		  
-		  SRLSentence sentence = (SRLSentence) corpus.sentences.get(0);
-		  // Get a list of verbs.
-		  ArrayList<CandidateProposition> props =
-				  InteractiveAnnotationExperiment.getCandidatePropositions(
-						  sentence, true /* verb only */);
-
-		  AnnotatorFrame frame = new AnnotatorFrame(sentence, props);
+		  AnnotatorFrame frame = new AnnotatorFrame(corpus.sentences);
 		  
 		  frame.setVisible(true);
 	  }
