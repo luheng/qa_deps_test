@@ -30,7 +30,8 @@ public class ExperimentUtils {
 			"/Users/luheng/data/conll05st-release/conll05_train.srl";
 	
 	public static final String conll2009TrialFilename =
-			"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
+			//"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
+			"/Users/luheng/data/CoNLL2009-ST-English/CoNLL2009-ST-English-trial.txt";
 	
 	public static final String enUnivPostagFilename =
 			"/Users/luheng/data/CONLL-x/univmap/en-ptb.map";

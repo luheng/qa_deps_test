@@ -47,6 +47,14 @@ public class QAPair {
 		return qa;
 	}
 	
+	public String getQuestionString() {
+		return StringUtils.join(" ", questionTokens);
+	}
+	
+	public String getAnswerString() {
+		return StringUtils.join(" ", answerTokens);
+	}
+	
 	@Override
 	public String toString() {
 		return StringUtils.join(" ", questionTokens) + "\t" +

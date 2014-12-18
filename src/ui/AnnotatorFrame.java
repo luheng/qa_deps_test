@@ -2,12 +2,15 @@ package ui;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JTextArea;
 
+import util.DataUtils;
+import util.DebugUtils;
 import annotation.CandidateProposition;
 import data.AnnotatedSentence;
 import data.DepSentence;
@@ -202,6 +205,16 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 			
 		}
 		qaDisplay.setText(qaText);
+		
+		// Save everything.
+		String corpusName =
+				annotatedSentences.get(0).depSentence.corpus.corpusName;
+		try {
+			DataUtils.saveAnnotatedSentences(annotatedSentences,
+					String.format("%s.qa.tmp", corpusName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void initializeData(ArrayList<DepSentence> sentences) {
@@ -220,13 +233,18 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 		ArrayList<CandidateProposition> props =
 				InteractiveAnnotationExperiment.getCandidatePropositions(
 						sentence, true /* verb only */);
+		
+		// Print Gold;
+		String[][] semGold = sentence.getSemanticArcs();
+		DebugUtils.printSemanticArcs(sentence, semGold);
+		
 		return props;
 	}
 
 	private String getQuestion() {
 		return whChooser.getSelectedItem().trim() + " " +
-				verbInput.getText().trim() +
-				pronChooser1.getSelectedItem().trim() +
+				verbInput.getText().trim() + " " +
+				pronChooser1.getSelectedItem().trim() + " " +
 				pronChooser2.getSelectedItem().trim() + " " + "?";
 	}
 	
