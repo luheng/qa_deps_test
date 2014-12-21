@@ -9,14 +9,15 @@ import data.DepSentence;
 public class AuxiliaryVerbIdentifier {
 	private final String[] enAuxiliaryVerbs = {
 			"be",
+			"being",
 			"is",
 			"are",
 			"was",
 			"were",
 			"been",
-			"can",
-			"could",
-			"dare",
+			"will",
+			"would",
+			"wo", /* this is part of wo n't ... */
 			"do",
 			"does",
 			"did",
@@ -24,15 +25,17 @@ public class AuxiliaryVerbIdentifier {
 			"have",
 			"has",
 			"had",
+			"ca", /* in ca n't */
+			"can",
+			"could",
 			"may",
 			"might",
 			"must",
 			"need",
-			"ought",
 			"shall",
 			"should",
-			"will",
-			"would"
+		//	"ought to",
+		//	"is going to"
 	};
 	
 	private int verbPosID, advPosID;
