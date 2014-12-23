@@ -28,6 +28,8 @@ public class ExperimentUtils {
 	
 	public static final String srlTrainFilename =
 			"/Users/luheng/data/conll05st-release/conll05_train.srl";
+	public static final String srlAnnotationFilename =
+			"manual_annotation/sr_pilot_annotation_luheng.txt";
 	
 	public static final String conll2009TrialFilename =
 			//"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
@@ -61,8 +63,7 @@ public class ExperimentUtils {
 			univmap.loadFromFile(enUnivPostagFilename);
 			corpus.loadCoNLL2009Data(ExperimentUtils.conll2009TrialFilename,
 									 univmap,
-									 true /* load gold syntax info */);
-			
+									 true /* load gold syntax info */);	
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}
@@ -163,6 +164,77 @@ public class ExperimentUtils {
 		return annotatedSentences;
 	}
 	
+	/**
+	 * Load SRL annotated sentence (Tab delimited)
+	 * @param corpus
+	 * @return
+	 */
+	public static ArrayList<AnnotatedSentence> loadSRLAnnotationSentences(
+			SRLCorpus corpus) {
+		
+		BufferedReader reader;
+		ArrayList<AnnotatedSentence> annotatedSentences =
+				new ArrayList<AnnotatedSentence>();
+		try {
+			reader = new BufferedReader(new InputStreamReader(
+					new FileInputStream(srlAnnotationFilename)));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.trim().isEmpty()) {
+					continue;
+				}
+				String[] info = line.split("\t");
+				if (info.length < 10) {
+					try {
+						int sentID = Integer.parseInt(info[0]) - 1;
+						AnnotatedSentence sentence = new AnnotatedSentence(
+							corpus.sentences.get(sentID));
+						annotatedSentences.add(sentence);
+					} catch (NumberFormatException e) {
+						System.out.println("Error parsing line: " + line);
+						continue;
+					}
+				} else {
+					if (info[0].equals("[Propositions]")) {
+						continue;
+					}
+					// Slot 0: Proposition
+					// Slot 1: Wh-word
+					// Slot 9: Answer
+					String propositionString = info[0];
+					String questionString = StringUtils.join(" ", info, 1, 9);
+					String answerString = info[9].trim();
+					
+					annotatedSentences.get(annotatedSentences.size() - 1)
+						.addQA(new QAPair(questionString, answerString,
+								propositionString));		
+				}
+			}
+			System.out.println(String.format("Read %d annotated sentences.",
+					annotatedSentences.size()));
+			reader.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Align SRL QAs and Propositions.
+		AbstractQuestionAnswerAligner aligner;
+		aligner = new DistanceSensitiveQuestionAnswerAligner();
+		for (AnnotatedSentence sentence : annotatedSentences) {
+			for (QAPair qa : sentence.qaList) {
+				aligner.align(sentence.depSentence, qa);
+			}
+		}
+		
+		// Debug: check alignment.
+		/*
+		for (AnnotatedSentence sentence : annotatedSentences) {
+			sentence.prettyPrintAlignment();
+		}
+		*/
+		return annotatedSentences;
+	}
+	
 	public static void doGreedyAlignment
 			(ArrayList<AnnotatedSentence> annotatedSentences) {
 		AbstractQuestionAnswerAligner aligner;
@@ -177,4 +249,5 @@ public class ExperimentUtils {
 			}
 		}
 	}
+	
 }

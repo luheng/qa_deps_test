@@ -5,9 +5,12 @@ import java.util.Arrays;
 import util.StringUtils;
 
 public class QAPair {
-	public String[] questionTokens, answerTokens;
+	public String[] questionTokens, answerTokens, propositionTokens;
 	// Contains indices of words in the original sentence. -1 means unaligned.
-	public int[] questionAlignment, answerAlignment;
+	public int[] questionAlignment, answerAlignment, propositionAlignment;
+	// Index of the proposition in the original sentence.
+	// i.e. sentence is "John(0) admires(1) Mary(2)", and the question is
+	// "Who admires someone ?", and we have propositionHead = 1. 
 	
 	public QAPair(String question, String answer) {
 		questionTokens = question.split("\\s+");
@@ -18,10 +21,22 @@ public class QAPair {
 		for (int i = 0; i < answerTokens.length; i++) {
 			answerTokens[i] = answerTokens[i].trim();
 		}
+		propositionTokens = null;
+		
 		questionAlignment = new int[questionTokens.length];
 		answerAlignment = new int[answerTokens.length];
 		Arrays.fill(questionAlignment, -1);
 		Arrays.fill(answerAlignment, -1);
+	}
+	
+	public QAPair(String question, String answer, String proposition) {
+		this(question, answer);
+		this.propositionTokens = proposition.split("\\s+");
+		for (int i = 0; i < propositionTokens.length; i++) {
+			propositionTokens[i] = propositionTokens[i].trim();
+		}
+		propositionAlignment = new int[propositionTokens.length];
+		Arrays.fill(propositionAlignment, -1);
 	}
 	
 	public static QAPair parseNumberedQAPair(String question, String answer) {

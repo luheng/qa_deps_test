@@ -6,10 +6,26 @@ public class StringUtils {
 	public static String join(String delimiter, String[] stringArr) {
 		String joined = "";
 		for (int i = 0; i < stringArr.length; i++) {
-			if (i > 0) {
-				joined += delimiter;
+			if (!stringArr[i].trim().isEmpty()) {
+				if (!joined.isEmpty()) {
+					joined += delimiter;
+				}
+				joined += stringArr[i];
 			}
-			joined += stringArr[i];
+		}
+		return joined;
+	}
+	
+	public static String join(String delimiter, String[] stringArr,
+			int startIdx, int endIdx) {
+		String joined = "";
+		for (int i = startIdx; i < endIdx && i < stringArr.length; i++) {
+			if (!stringArr[i].trim().isEmpty()) {
+				if (!joined.isEmpty()) {
+					joined += delimiter;
+				}
+				joined += stringArr[i];
+			}
 		}
 		return joined;
 	}

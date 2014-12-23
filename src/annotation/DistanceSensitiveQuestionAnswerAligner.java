@@ -23,6 +23,12 @@ public class DistanceSensitiveQuestionAnswerAligner
 		//				   StringUtils.join(" ", qa.answerTokens));
 		greedyMatch(qa.questionAlignment, sentenceTokens, qa.questionTokens,
 				    answerSpan);
+		
+		// Aligning proposition, specifically for the SRL task.
+		if (qa.propositionTokens != null) {
+			greedyMatch(qa.propositionAlignment, sentenceTokens,
+					qa.propositionTokens, null);
+		}
 	}
 	
 	/**
@@ -39,6 +45,7 @@ public class DistanceSensitiveQuestionAnswerAligner
 		boolean[] matched = new boolean[sentenceTokens.length];
 		Arrays.fill(alignment, -1);
 		Arrays.fill(matched, false);
+	
 		for (int i = 0; i < qaTokens.length; i++) {
 			if (alignment[i] != -1) {
 				continue;
