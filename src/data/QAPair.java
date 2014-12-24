@@ -62,6 +62,13 @@ public class QAPair {
 		return qa;
 	}
 	
+	public int getPropositionHead() {
+		if (this.propositionTokens == null) {
+			return -1;
+		}
+		return propositionAlignment[propositionAlignment.length - 1];
+	}
+	
 	public String getQuestionString() {
 		return StringUtils.join(" ", questionTokens);
 	}

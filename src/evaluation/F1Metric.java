@@ -29,6 +29,12 @@ public class F1Metric {
 				0 : 2 * precision * recall / (precision + recall); 
 	}
 	
+	public void add(F1Metric f1) {
+		this.numMatched += f1.numMatched;
+		this.numGold += f1.numGold;
+		this.numProposed += f1.numProposed;
+	}
+	
 	@Override
 	public String toString() {
 		return String.format("Precision:\t%.2f\tRecall:%.2f\tF1:%.2f",
