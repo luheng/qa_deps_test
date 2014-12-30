@@ -31,6 +31,12 @@ public class SRLAnnotationValidationExperiment {
 	private static SRLCorpus trainCorpus = null;
 	private static ArrayList<AnnotatedSentence> annotatedSentences = null;
 	
+	// Evaluation settings.
+	private static boolean ignoreRootPropArcs = false;
+	private static boolean ignoreNominalArcs = true;
+	private static boolean ignoreAmModArcs = true;
+	private static boolean ignoreAmAdvArcs = true;
+	
 	private static boolean containedInAnswer(int idx, int[] answerAlignment) {
 		for (int answerIdx : answerAlignment) {
 			if (answerIdx == idx) {
@@ -52,31 +58,40 @@ public class SRLAnnotationValidationExperiment {
 			String[][] goldArcs = srlSentence.getSemanticArcs();
 			boolean[][] covered = new boolean[length][length];
 			int numUncoveredGoldArcs = 0, // Recall loss.
-				//numDistinctPred = 0, // Precision loss.
+				numUnmatchedPredSpans = 0, // Precision loss.
 				numGoldArcs = 0;
 			
 			for (int i = 0; i < length; i++) {
-				for (int j = 0; j < length; j++) {
-					if (i == 0) {
-						// Ignore Root->Proposition arcs.
+				for (int j = 1; j < length; j++) {
+					if (ignoreRootPropArcs && i == 0) {
+						goldArcs[i][j] = "";
+					} 
+					if (ignoreNominalArcs) {
+						if ((i == 0 && !srlSentence.getPostagString(j - 1)
+						   		.equals("VERB")) ||
+						   	(i > 0 && !srlSentence.getPostagString(i - 1)
+							   		.equals("VERB"))) {
+							goldArcs[i][j] = "";
+						}
+					}
+					if (ignoreAmModArcs &&
+							goldArcs[i][j].equals("AM-MOD")) {
 						goldArcs[i][j] = "";
 					}
-					else if (!srlSentence.getPostagString(i - 1).equals(
-							"VERB") ||
-							goldArcs[i][j].equals("AM-MOD") ||
+					if (ignoreAmAdvArcs &&
 							goldArcs[i][j].equals("AM-ADV")) {
-						// Ignore nominal propositions and AM-MOD
 						goldArcs[i][j] = "";
-					} else if (!goldArcs[i][j].isEmpty()) {
+					}
+					if (!goldArcs[i][j].isEmpty()) {
 						numGoldArcs ++;
 						numUncoveredGoldArcs ++;
 						covered[i][j] = false;
 					}
 				}
 			}
-			
+		
 			System.out.print(sentence.toString());
-							   //srlSentence.getTokensString());
+							 //srlSentence.getTokensString());
 			/*
 			for (int i = 1; i < length; i++) {
 				for (int j = 1; j < length; j++) {
@@ -91,33 +106,41 @@ public class SRLAnnotationValidationExperiment {
 			System.out.println();
 			*/
 			
-			/*
 			for (Proposition prop : srlSentence.propositions) {
 				System.out.println(prop.toString());
 			}
-			*/
-			 
+			
+			
+			
 			System.out.println("[Precision loss]:");
 			
 			for (QAPair qa : sentence.qaList) {
-				int propHead = qa.getPropositionHead();
-				assert (propHead != -1);
+				int propHead = qa.getPropositionHead() + 1;
+				assert (propHead > 0);
+				
+				if (!ignoreRootPropArcs) {
+					if (!goldArcs[0][propHead].isEmpty() &&
+						!covered[0][propHead]) {
+						numUncoveredGoldArcs --;
+						covered[0][propHead] = true;
+					}
+				}
+				
 				boolean matchedGold = false;
-				for (int i = 0; i < length; i++) {
-					if (goldArcs[propHead + 1][i] != "") {
-						if (containedInAnswer(i - 1, qa.answerAlignment)) {
-							if (!covered[propHead + 1][i]) {
+				for (int argHead = 1; argHead < length; argHead++) {
+					if (goldArcs[propHead][argHead] != "") {
+						if (containedInAnswer(argHead - 1, qa.answerAlignment)) {
+							if (!covered[propHead][argHead]) {
 								numUncoveredGoldArcs --;
-								covered[propHead + 1][i] = true;
+								covered[propHead][argHead] = true;
 							}
 							matchedGold = true;
 						}
 					}
 				}
 				if (!matchedGold) {
-					//++ numUnmatchedPredSpans;
+					++ numUnmatchedPredSpans;
 					// Output precision loss.
-					
 					// TODO: remove this big chunk later ...
 					System.out.print("[" + propHead + "]\t");
 					if (qa.propositionTokens != null) {
@@ -146,15 +169,14 @@ public class SRLAnnotationValidationExperiment {
 						}
 						System.out.println();
 					}
-					// Print qa alignment.
 				}
 			}
 			
 			// Output recall loss
-
-			F1Metric f1 = new F1Metric(numGoldArcs - numUncoveredGoldArcs,
+			int numMatchedArcs = numGoldArcs - numUncoveredGoldArcs;
+			F1Metric f1 = new F1Metric(numMatchedArcs,
 									   numGoldArcs,
-									   sentence.qaList.size());
+									   numMatchedArcs + numUnmatchedPredSpans);
 
 			if (numUncoveredGoldArcs > 0) {
 				System.out.println("[Recall loss]:");

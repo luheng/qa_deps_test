@@ -31,8 +31,8 @@ public class ExperimentUtils {
 	
 	public static final String srlAnnotationFilename =
 			//"manual_annotation/sr_pilot_annotation_mike.txt";
-			"manual_annotation/sr_pilot_annotation_luheng.txt";
-			//"manual_annotation/sr_pilot_annotation_luke.txt";
+			//"manual_annotation/sr_pilot_annotation_luheng.txt";
+			"manual_annotation/sr_pilot_annotation_luke.txt";
 	
 	public static final String conll2009TrialFilename =
 			//"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
