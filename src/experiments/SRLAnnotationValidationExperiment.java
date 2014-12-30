@@ -91,11 +91,13 @@ public class SRLAnnotationValidationExperiment {
 			System.out.println();
 			*/
 			
+			/*
 			for (Proposition prop : srlSentence.propositions) {
 				System.out.println(prop.toString());
 			}
+			*/
 			 
-			// System.out.println("[Precision loss]:");
+			System.out.println("[Precision loss]:");
 			
 			for (QAPair qa : sentence.qaList) {
 				int propHead = qa.getPropositionHead();
@@ -117,7 +119,6 @@ public class SRLAnnotationValidationExperiment {
 					// Output precision loss.
 					
 					// TODO: remove this big chunk later ...
-					/*
 					System.out.print("[" + propHead + "]\t");
 					if (qa.propositionTokens != null) {
 						for (int j = 0; j < qa.propositionTokens.length; j++) {
@@ -145,7 +146,6 @@ public class SRLAnnotationValidationExperiment {
 						}
 						System.out.println();
 					}
-					*/
 					// Print qa alignment.
 				}
 			}

@@ -30,7 +30,9 @@ public class ExperimentUtils {
 			"/Users/luheng/data/conll05st-release/conll05_train.srl";
 	
 	public static final String srlAnnotationFilename =
+			//"manual_annotation/sr_pilot_annotation_mike.txt";
 			"manual_annotation/sr_pilot_annotation_luheng.txt";
+			//"manual_annotation/sr_pilot_annotation_luke.txt";
 	
 	public static final String conll2009TrialFilename =
 			//"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
@@ -205,10 +207,26 @@ public class ExperimentUtils {
 					}
 					// Slot 0: Proposition
 					// Slot 1: Wh-word
+					// Slot 6: Preposition
 					// Slot 9: Answer
 					String propositionString = info[0];
 					String questionString = StringUtils.join(" ", info, 1, 9);
 					String answerString = info[9].trim();
+				
+					// Special case: if the question contains a preposition, and
+					// that same preposition immediately precedes the answer
+					// span, we attach it to the beginning of the answer.
+					AnnotatedSentence sentence =
+							annotatedSentences.get(annotatedSentences.size() - 1);
+					
+					if (!info[6].isEmpty()) {
+						String extendedAnswer = info[6].trim() + " " +
+								answerString;
+						if (sentence.depSentence.getTokensString()
+								.contains(extendedAnswer)) {
+							answerString = extendedAnswer;
+						}
+					}
 					
 					annotatedSentences.get(annotatedSentences.size() - 1)
 						.addQA(new QAPair(questionString, answerString,
