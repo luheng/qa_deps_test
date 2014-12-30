@@ -6,7 +6,7 @@ import util.LatticeUtils;
 
 public class SRLSentence extends DepSentence {
 	int[] lemmas;
-	ArrayList<Proposition> propositions;
+	public ArrayList<Proposition> propositions;
 	
 	public SRLSentence(int[] tokens, int[] lemmas, int[] postags, int[] parents,
 					   int[] deptags, ArrayList<Proposition> predicates,

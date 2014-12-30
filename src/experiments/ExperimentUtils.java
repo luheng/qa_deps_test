@@ -28,6 +28,7 @@ public class ExperimentUtils {
 	
 	public static final String srlTrainFilename =
 			"/Users/luheng/data/conll05st-release/conll05_train.srl";
+	
 	public static final String srlAnnotationFilename =
 			"manual_annotation/sr_pilot_annotation_luheng.txt";
 	
@@ -44,7 +45,7 @@ public class ExperimentUtils {
 	public static boolean useNumberedAnnotation = false;
 	public static boolean useDistanceSensitiveAlignment = true;
 	
-	public static int maxNumSentences = 50;
+	public static int maxNumSentences = 10;
 	
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
@@ -166,6 +167,7 @@ public class ExperimentUtils {
 	
 	/**
 	 * Load SRL annotated sentence (Tab delimited)
+	 * The format is specific to the pilot annotation.
 	 * @param corpus
 	 * @return
 	 */
@@ -187,6 +189,9 @@ public class ExperimentUtils {
 				if (info.length < 10) {
 					try {
 						int sentID = Integer.parseInt(info[0]) - 1;
+						if (sentID >= maxNumSentences) {
+							break;
+						}
 						AnnotatedSentence sentence = new AnnotatedSentence(
 							corpus.sentences.get(sentID));
 						annotatedSentences.add(sentence);
