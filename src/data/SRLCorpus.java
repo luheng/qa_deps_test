@@ -109,11 +109,8 @@ public class SRLCorpus extends DepCorpus {
 				}
 				for (int i = 0; i < numPropositions; i++) {
 					String info = columns[14 + i];
-					if (info.startsWith("C-") || info.startsWith("R-")) {
-						// FIXME: Find out what these two arg types are.
-						info = info.substring(2);
-					}
-					if (info.startsWith("AM") || info.startsWith("AA")) {
+					if (info.startsWith("AM") || info.startsWith("AA") ||
+						info.startsWith("C-") || info.startsWith("R-")) {
 						propositions.get(i).addArgumentModifier(wordCount,
 								argModDict.addString(info));
 					} else if (info.startsWith("A")) {
