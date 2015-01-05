@@ -200,7 +200,8 @@ public class SRLAnnotationValidationExperiment {
 	}
 	
 	public static void main(String[] args) {
-		trainCorpus = ExperimentUtils.loadSRLCorpus();
+		trainCorpus = ExperimentUtils.loadSRLCorpus(
+				ExperimentUtils.conll2009TrialFilename, "en-srl-trial");
 		annotatedSentences =
 				ExperimentUtils.loadSRLAnnotationSentences(trainCorpus);
 	

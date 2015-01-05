@@ -315,7 +315,8 @@ public class InteractiveAnnotationExperiment {
 	
 	public static void main(String[] args) {
 		// trainCorpus = ExperimentUtils.loadDepCorpus();
-		trainCorpus = ExperimentUtils.loadSRLCorpus();
+		trainCorpus = ExperimentUtils.loadSRLCorpus(
+				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
 		
 		// Interaction. Try the first sentence.
 		console = new InteractiveConsole();

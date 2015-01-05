@@ -31,8 +31,11 @@ public class ExperimentUtils {
 	
 	public static final String srlAnnotationFilename =
 			//"manual_annotation/sr_pilot_annotation_mike.txt";
-			//"manual_annotation/sr_pilot_annotation_luheng.txt";
-			"manual_annotation/sr_pilot_annotation_luke.txt";
+			"manual_annotation/sr_pilot_annotation_luheng.txt";
+			//"manual_annotation/sr_pilot_annotation_luke.txt";
+	
+	public static final String conll2009TrainFilename =
+			"/Users/luheng/data/CoNLL2009-ST-English/CoNLL2009-ST-English-train.txt";
 	
 	public static final String conll2009TrialFilename =
 			//"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
@@ -59,12 +62,13 @@ public class ExperimentUtils {
 		return corpus;
 	}
 	
-	public static SRLCorpus loadSRLCorpus() {
-		SRLCorpus corpus = new SRLCorpus("en-srl-trial");
+	public static SRLCorpus loadSRLCorpus(String corpusPath,
+			String corpusName) {
+		SRLCorpus corpus = new SRLCorpus(corpusName);
 		UniversalPostagMap univmap = new UniversalPostagMap();
 		try {
 			univmap.loadFromFile(enUnivPostagFilename);
-			corpus.loadCoNLL2009Data(ExperimentUtils.conll2009TrialFilename,
+			corpus.loadCoNLL2009Data(corpusPath,
 									 univmap,
 									 true /* load gold syntax info */);	
 		} catch (NumberFormatException | IOException e) {
@@ -222,8 +226,11 @@ public class ExperimentUtils {
 					if (!info[6].isEmpty()) {
 						String extendedAnswer = info[6].trim() + " " +
 								answerString;
+						
+						//if (sentence.depSentence.getTokensString()
+						//		.contains(extendedAnswer)) {
 						if (sentence.depSentence.getTokensString()
-								.contains(extendedAnswer)) {
+								.contains(info[6].trim())) {
 							answerString = extendedAnswer;
 						}
 					}

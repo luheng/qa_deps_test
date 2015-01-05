@@ -281,9 +281,16 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	}
 
 	  public static void main(String args[]) {
-		  SRLCorpus corpus = ExperimentUtils.loadSRLCorpus();
-		  AnnotatorFrame frame = new AnnotatorFrame(corpus.sentences);
+		  SRLCorpus corpus = ExperimentUtils.loadSRLCorpus(
+				  ExperimentUtils.conll2009TrainFilename, "en-srl-train");
 		  
+		  ArrayList<DepSentence> sentences = new ArrayList<DepSentence>();
+		  for (DepSentence sentence : corpus.sentences) {
+			  if (sentence.getTokensString().contains("expected to")) {
+				  sentences.add(sentence);
+			  }
+		  }
+		  AnnotatorFrame frame = new AnnotatorFrame(sentences);
 		  frame.setVisible(true);
 	  }
 }
