@@ -16,6 +16,19 @@ public class StringUtils {
 		return joined;
 	}
 	
+	public static String numberedJoin(String delimiter, String[] stringArr) {
+		String joined = "";
+		for (int i = 0; i < stringArr.length; i++) {
+			if (!stringArr[i].trim().isEmpty()) {
+				if (!joined.isEmpty()) {
+					joined += delimiter;
+				}
+				joined += stringArr[i] + "(" + i + ")";
+			}
+		}
+		return joined;
+	}
+	
 	public static String join(String delimiter, String[] stringArr,
 			int startIdx, int endIdx) {
 		String joined = "";

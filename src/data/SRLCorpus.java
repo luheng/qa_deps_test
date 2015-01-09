@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SRLCorpus extends DepCorpus {
 
@@ -109,18 +110,19 @@ public class SRLCorpus extends DepCorpus {
 				}
 				for (int i = 0; i < numPropositions; i++) {
 					String info = columns[14 + i];
-					if (info.startsWith("AM") || info.startsWith("AA") ||
+					if (info.startsWith("A") || //info.startsWith("AM") || info.startsWith("AA") ||
 						info.startsWith("C-") || info.startsWith("R-")) {
 						propositions.get(i).addArgumentModifier(wordCount,
 								argModDict.addString(info));
-					} else if (info.startsWith("A")) {
+					} /* else if (info.startsWith("A")) {
 						try {
 							propositions.get(i).addArgument(wordCount,
 									Integer.parseInt(info.substring(1)));
 						} catch (NumberFormatException e) {
 							System.out.println("Error parsing info: " + info);
 						}
-					} else if (!info.equals("_")) {
+					} */
+					else if (!info.equals("_")) {
 						System.out.println("Unrecognized argument:\t" + info);
 					}
 				}
@@ -143,7 +145,8 @@ public class SRLCorpus extends DepCorpus {
 	public static void main(String[] args) {
 		SRLCorpus corpus = new SRLCorpus("trial");
 		try {
-			corpus.loadCoNLL2009Data(ExperimentUtils.conll2009TrialFilename,
+			corpus.loadCoNLL2009Data(//ExperimentUtils.conll2009TrialFilename,
+									 ExperimentUtils.conll2009TrainFilename,
 									 null /* univ postag map */,
 									 true /* load gold */);
 			
@@ -152,11 +155,26 @@ public class SRLCorpus extends DepCorpus {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		for (DepSentence s : corpus.sentences) {
+		/* Check for duplicate arguments */
+		for (int i = 0; i < corpus.sentences.size(); i++) {
+		//for (DepSentence s : corpus.sentences) {
+			DepSentence s = corpus.sentences.get(i);
 			SRLSentence sentence = (SRLSentence) s;
-			System.out.println(sentence.toString());
+			//System.out.println(sentence.toString());
+			for (Proposition prop : sentence.propositions) {
+				HashMap<String, Integer> types = new HashMap<String, Integer>();
+				for (int j = 0; j < prop.argModTypes.size(); j++) {
+					String atype = corpus.argModDict.getString(
+							prop.argModTypes.get(j));
+					if (types.containsKey(atype) && !atype.startsWith("AM")) {
+						System.out.println(sentence.toString());
+						break;
+					}
+					types.put(atype, 1);
+				}
+			}
 		}
+
 	}
 
 }

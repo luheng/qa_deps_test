@@ -31,8 +31,8 @@ public class ExperimentUtils {
 	
 	public static final String srlAnnotationFilename =
 			//"manual_annotation/sr_pilot_annotation_mike.txt";
-			//"manual_annotation/sr_pilot_annotation_luheng.txt";
-			"manual_annotation/sr_pilot_annotation_luke.txt";
+			"manual_annotation/sr_pilot_annotation_luheng.txt";
+			//"manual_annotation/sr_pilot_annotation_luke.txt";
 	
 	public static final String conll2009TrainFilename =
 			"/Users/luheng/data/CoNLL2009-ST-English/CoNLL2009-ST-English-train.txt";
@@ -50,7 +50,7 @@ public class ExperimentUtils {
 	public static boolean useNumberedAnnotation = false;
 	public static boolean useDistanceSensitiveAlignment = true;
 	
-	public static int maxNumSentences = 10;
+	public static int maxNumSentences = 18;
 	
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");

@@ -49,6 +49,11 @@ public class DepSentence {
 		return StringUtils.join(" ", corpus.wordDict.getStringArray(tokens));
 	}
 	
+	public String getNumberedTokensString() {
+		return StringUtils.numberedJoin(" ",
+				corpus.wordDict.getStringArray(tokens));
+	}
+	
 	public String getPostagsString() {
 		return StringUtils.join(" ", corpus.posDict.getStringArray(postags));
 	}
