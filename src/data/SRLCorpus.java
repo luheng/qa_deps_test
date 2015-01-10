@@ -104,7 +104,7 @@ public class SRLCorpus extends DepCorpus {
 				// Add predicate.
 				int wordCount = tokens.size() - 1;
 				if (columns[12].equals("Y")) {
-					propositions.get(propCount).setPredicate(wordCount,
+					propositions.get(propCount).setProposition(wordCount,
 							propDict.addString(columns[13]));
 					propCount ++;
 				}

@@ -6,16 +6,22 @@ import java.util.Arrays;
 public class Proposition {
 	public SRLSentence sentence;
 	public int propID, propType;
+	// The span of the entire group of words. For example: "has considered",
+	// instead of "considered". Not sure we will need this eventually, but it
+	// might help with annotation.
+	public int[] span;
 	// In argIDs, -1 denotes this argument is not present
 	// (i.e. only has A2, A3).
 	//public int[] argIDs;
 	public ArrayList<Integer> argModIDs, argModTypes;
 	private int numArgs;
 	
-	private static final int maxNumArguments = 6; 
+	//private static final int maxNumArguments = 6; 
 	
 	public Proposition() {
 		this.propID = this.propType = -1;
+		this.span = new int[2];
+		this.span[0] = this.span[1];
 		//this.argIDs = new int[maxNumArguments];
 		//Arrays.fill(argIDs, -1);
 		this.argModIDs = new ArrayList<Integer>();
@@ -23,9 +29,16 @@ public class Proposition {
 		this.numArgs = 0;
 	}
 	
-	public void setPredicate(int propID, int propType) {
+	public void setPropositionSpan(int spanStart, int spanEnd) {
+		this.span[0] = spanStart;
+		this.span[1] = spanEnd;
+	}
+	
+	public void setProposition(int propID, int propType) {
 		this.propID = propID;
 		this.propType = propType;
+		this.span[0] = this.propID;
+		this.span[1] = this.propID + 1;
 	}
 	
 	/*
@@ -54,6 +67,8 @@ public class Proposition {
 		Proposition newProp = new Proposition();
 		newProp.propID = this.propID;
 		newProp.propType = this.propType;
+		newProp.span[0] = this.span[0];
+		newProp.span[1] = this.span[1];
 		//newProp.argIDs = Arrays.copyOf(this.argIDs, this.argIDs.length);
 		for (int i = 0; i < this.argModIDs.size(); i++) {
 			newProp.argModIDs.add(this.argModIDs.get(i));

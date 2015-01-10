@@ -20,7 +20,7 @@ public class CrowdflowerPropIdDataPreparation {
 	private static final int numUnits = 20;
 	private static final int randomPoolSize = 1000;
 	
-	private static final int randomSeed = 12345;
+	private static final int randomSeed = 123456;
 	
 	private static String outputFileName = "crowdflower/CF_PropID_trial.csv";
 	
@@ -38,7 +38,7 @@ public class CrowdflowerPropIdDataPreparation {
 	private static int[] getNonQuestionSentenceIds() {
 		TIntArrayList ids = new TIntArrayList();
 		for (DepSentence sentence : trainCorpus.sentences) {
-			if (!isQuestion(sentence)) {
+			if (!isQuestion(sentence) && sentence.length >= 10) {
 				ids.add(sentence.sentenceID);
 			}
 		}
@@ -56,7 +56,8 @@ public class CrowdflowerPropIdDataPreparation {
 			int sid = sentenceIds[i];
 			DepSentence sentence = trainCorpus.sentences.get(sid);
 			record.add(String.valueOf(sid));
-			record.add(sentence.getNumberedTokensString());
+			//record.add(sentence.getNumberedTokensString());
+			record.add(sentence.getTokensString());
 			csvWriter.printRecord(record);
 		}
 		csvWriter.close();
