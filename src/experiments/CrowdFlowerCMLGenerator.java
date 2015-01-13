@@ -13,6 +13,8 @@ public class CrowdFlowerCMLGenerator {
 
 	int maxNumQuestions = 10;
 	
+	private static String dataStrHidden = "<p class=\"data-hidden\" id=\"s0\">{{orig_sent}}</p>\n\n";
+	
 	private static String dataTableStr = "<table cellpadding=\"10\">" +
 			"<tr><th>Sentence:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
 			"<tr><th>Target:</th><td class=\"data-panel\">{{proposition}}</td></tr>" +
@@ -20,7 +22,7 @@ public class CrowdFlowerCMLGenerator {
 	
 	private static String dataStrCompact =  "<table cellpadding=\"10\">" +
 			"<tr><th>Sentence repeated:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
-			"</table><br><br>\n";
+			"</table><br><br>\n\n";
 	
 	private static String whSlotLabel = "WH",
 						  auxSlotLabel = "AUX",
@@ -114,9 +116,10 @@ public class CrowdFlowerCMLGenerator {
 				 				 "" /* no validator */);
 		
 		qstr += "<strong>?</strong><br>\n";
-		
+				
 		// Generate answer slot
-		qstr += String.format("<cml:text label=\"Answer:\" name=\"a%d\" class=\"cml-aslot\" validates=\"required\" multiple=\"true\"/>\n",
+		qstr += String.format("<cml:text label=\"Answer:\" name=\"a%d\" class=\"cml-aslot\" " +
+							  "validates=\"required yext_no_international_url\" multiple=\"true\"/>\n",
 							  questionId);
 	
 		// Use a seperator :)
@@ -136,15 +139,44 @@ public class CrowdFlowerCMLGenerator {
 		return qstr;
 	}
 	
+	private String generateFreeFormQAString(int questionId) {
+		String qstr = "";
+		
+		String qChecker = generateQuestionCheckerName(questionId);
+		qstr += String.format("<cml:checkbox label=\"Feedback (if you have QA-pair that cannot fit into the template)\" class=\"cml-chk\" name=\"%s\"/>",
+				  			  qChecker);
+		
+		qstr += String.format("<cml:group only-if=\"!%s:unchecked\">\n", qChecker);
+		qstr += dataStrCompact;
+		qstr += String.format("<!--  question %d -->\n", questionId);
+				
+		// Generate question slot
+		qstr += String.format("<cml:text label=\"%s\" name=\"q%dff\" class=\"cml-ffqslot\"/>",
+							  "Question", questionId); // "ff" stands for "free-form"
+		
+		// Generate answer slot
+		qstr += String.format("<cml:text label=\"Answer:\" name=\"a%d\" class=\"cml-aslot\" multiple=\"true\"/>\n",
+							  questionId);
+		
+		// Generate feedback slot
+		qstr += "<cml:text label=\"Other Feedback:\" name=\"fdbk\" class=\"cml-ffqslot\"/>\n";
+		
+		qstr += "<hr></cml:group>";
+		
+		return qstr;
+	}
+	
 	public void generateCML(String outputFileName) throws IOException {
 		FileWriter fileWriter = new FileWriter(outputFileName);
 		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 		
+		bufferedWriter.write(dataStrHidden);
 		bufferedWriter.write(dataTableStr);
 		
 		for (int i = 0; i < maxNumQuestions; i++) {
 			bufferedWriter.write(generateQAString(i) + "\n\n");
 		}
+		bufferedWriter.write(generateFreeFormQAString(maxNumQuestions) + "\n\n");
 		
 		bufferedWriter.close();
 		System.out.println("Successfully generated CML template to "

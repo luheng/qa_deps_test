@@ -16,13 +16,23 @@ br {
    font-size: 16px;
 }
 
+.data-hidden {
+  visibility: hidden;
+  font-size: 1px;
+}
+
 .cml-qslot {
   display:inline-block;
   margin: 0 2 2px;
 }
 
 .cml-aslot {
-	margin: 0 2 2px;
+  margin: 0 2 2px;
+}
+
+.cml-ffqslot {
+  margin: 0 2 2px;
+  width: 400px;
 }
 
 .cml-chk-inline {
@@ -42,5 +52,5 @@ br {
 }
 
 .cml .cml_field input[type="text"] {
-	padding: 4 0 2px;
+  padding: 4 0 2px;
 }

@@ -3,7 +3,7 @@ if(!_cf_cml.digging_gold) {
   CMLFormValidator.addAllThese([
     ['yext_no_international_url', {
       errorMessage: function(){
-        return ('One of your answers contains words that are not in the original sentence.');
+        return ('Answer is empty/One of your answers contains words that are not in the original sentence.');
       },
       validate: function(element, props){
         // METHOD_TO_VALIDATE must return true or false

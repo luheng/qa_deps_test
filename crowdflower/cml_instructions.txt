@@ -96,9 +96,9 @@ Example 6: &nbsp; <b> The robot moved from point A to point B because it <mark>w
 
 * Note that the answer is "moved from ..." instead of "move from ..." because these are the some words used in the original sentence. 
 
-#### About events that might not actually have happened.
-
 <br>
+
+#### About events that might not actually have happened.
 
 Example 7: &nbsp; <b> Newspaper reported that Pat <mark>built</mark> a robot. </b>
 
