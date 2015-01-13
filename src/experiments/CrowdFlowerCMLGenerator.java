@@ -14,9 +14,13 @@ public class CrowdFlowerCMLGenerator {
 	int maxNumQuestions = 10;
 	
 	private static String dataTableStr = "<table cellpadding=\"10\">" +
-			"<tr><th>Sentence:</th><td>{{sentence}}</td></tr>" +
-			"<tr><th>Target word:</th><td>{{proposition}}</td></tr>" +
+			"<tr><th>Sentence:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
+			"<tr><th>Target:</th><td class=\"data-panel\">{{proposition}}</td></tr>" +
 			"</table><br>\n\n";
+	
+	private static String dataStrCompact =  "<table cellpadding=\"10\">" +
+			"<tr><th>Sentence repeated:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
+			"</table><br><br>\n";
 	
 	private static String whSlotLabel = "WH",
 						  auxSlotLabel = "AUX",
@@ -60,6 +64,10 @@ public class CrowdFlowerCMLGenerator {
 		if (questionId > 0) {
 			qstr += String.format("<cml:group only-if=\"!%s:unchecked\">\n",
 					generateQuestionCheckerName(questionId));
+		}
+		
+		if (questionId > 0 && questionId % 2 == 0) {
+			qstr += dataStrCompact;
 		}
 		
 		qstr += String.format("<!--  question %d -->\n", questionId);
@@ -111,6 +119,9 @@ public class CrowdFlowerCMLGenerator {
 		qstr += String.format("<cml:text label=\"Answer:\" name=\"a%d\" class=\"cml-aslot\" validates=\"required\" multiple=\"true\"/>\n",
 							  questionId);
 	
+		// Use a seperator :)
+		qstr += "<hr>";
+		
 		if (questionId > 0) {
 			qstr += "</cml:group>";
 		}
