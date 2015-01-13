@@ -1,0 +1,46 @@
+table, th, td {
+   border: 1px solid grey;
+   border-collapse: collapse;
+   padding: 5px;
+   font-size: 14px;
+}
+
+br {
+  line-height: 5px;  
+}
+
+.data-panel {
+  border: 1px solid grey;
+   border-collapse: collapse;
+   padding: 5px;
+   font-size: 16px;
+}
+
+.cml-qslot {
+  display:inline-block;
+  margin: 0 2 2px;
+}
+
+.cml-aslot {
+	margin: 0 2 2px;
+}
+
+.cml-chk-inline {
+  display:inline-block;
+}
+
+.verb_text {
+  width: 100px;
+}
+
+.answer_text {
+  width: 200px;
+}
+
+.cml .legend {
+  font-size: 14px;
+}
+
+.cml .cml_field input[type="text"] {
+	padding: 4 0 2px;
+}

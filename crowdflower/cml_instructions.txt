@@ -1,0 +1,125 @@
+What does the sentence tell us?
+
+### Overview
+We want to teach the computer to understand human language. To do this, we need your help to collect information such as "who did what to whom" or "when/where did someone do something," given what was claimed in an example sentence. Naturally, this kind of information can be captured by asking questions and answering them.
+
+### Process
+You will be presented with a sentence and a target phrase (most likely a verb) that occurs in the sentence. For example: "Pat built a robot. [built]". Your job is to:
+
+* Step 1: Write a question using the template we provide. Your question should be answerable given only the information the sentence provides. For example: "Who built something?".
+* Step 2: Answer the question using only words from the original sentence.  For example: "Pat". When there is more than one correct answer, try to list them all.
+
+For best results, the questions and answers you provide must follow certain constraints. To collect questions that computers can easily understand, we provide a template with seven 
+slots, as shown below:
+<table>
+<tr><th>Slot</th> <th>Description</th> <th>Examples</th></tr>
+<tr><th>WH</th>  <td>Question words (wh-words)</td> <td>who, what, where ...</td></tr>
+<tr><th>AUX</th> <td>Auxiliary verbs</td>           <td>is, was, have, could, won't ...</td></tr>
+<tr><th>PH1</th> <td>Place-holding words</td>       <td>something, someone, do something ...</td></tr>
+<tr><th>TRG</th> <td>Some form of the target word</td> <td> (if original word is built) build, built, being built, have been built ... </td></tr> 
+<tr><th>PH2</th> <td>Same as PH1</td>  <td> </td> </tr>
+<tr><th>PP</th>  <td>Prepositions</td> <td>to, from, by, with, ... </td> </tr>
+<tr><th>PH3</th> <td>Same as PH1 and PH2</td>  <td> </td> </tr>
+</table>
+
+<br>
+
+Try to write as many questions and answers as possible. For example, we can also ask "What was built" and answer "A robot."
+
+### Examples
+
+#### Simple sentences.
+
+Example 1: &nbsp; <b> Pat <mark>built</mark> a robot. </b>
+<table>
+<tr><th>WH</th>   <th>AUX</th> <th>PH1</th> <th>TRG</th>   <th>PH2</th>       <th>PP</th> <th>PH3</th> <th>?</th> <th>ANSWER</th> </tr>
+<tr><td>Who</td>  <td> </td>   <td></td>    <td>built</td> <td>something</td> <td> </td>  <td> </td>   <td>?</td> <td>Pat</td> </tr>
+<tr><td>What</td> <td>was</td> <td></td>    <td>built</td> <td> </td>         <td> </td>  <td> </td>   <td>?</td> <td>A robot</td> </tr>
+</table>
+
+<br>
+
+Example 2: &nbsp; <b> Pat <mark>gave</mark> the robot some oil. </b>
+<table>
+<tr><th>WH</th>   <th>AUX</th> <th>PH1</th> <th>TRG</th>   <th>PH2</th>       <th>PP</th> <th>PH3</th>     <th>?</th> <th>ANSWER</th> </tr>
+<tr><td>Who</td>  <td> </td>   <td></td>    <td>gave</td>  <td>something</td> <td> </td>  <td> </td>       <td>?</td> <td>Pat</td> </tr>
+<tr><td>Who</td>  <td>was</td> <td></td>    <td>given</td> <td>something</td> <td> </td>  <td> </td>       <td>?</td> <td>The robot</td> </tr>
+<tr><td>What</td> <td>was</td> <td></td>    <td>given</td> <td></td>          <td> </td>  <td> </td>       <td>?</td> <td>Some oil</td> </tr>
+</table>
+
+<br>
+
+Example 3: &nbsp; <b> Pat <mark>expected</mark> Chris to fix the robot when it crashed. </b>
+
+<table>
+<tr><th>WH</th>   <th>AUX</th> <th>PH1</th> <th>TRG</th>          <th>PH2</th>       <th>PP</th> <th>PH3</th>           <th>?</th> <th>ANSWER</th> </tr>
+<tr><td>Who</td>  <td> </td>   <td> </td>       <td>expected</td> <td>something</td> <td> </td>  <td> </td>             <td>?</td> <td>Pat</td> </tr>
+<tr><td>Who</td>  <td>is</td>   <td> </td>      <td>expected</td> <td> </td>         <td>to</td>  <td>do something</td> <td>?</td> <td>Chris</td> </tr>
+<tr><td>What</td> <td>is</td>  <td>someone</td> <td>expected</td> <td> </td>         <td>to</td> <td>do</td>            <td>?</td> <td>To fix the robot</td> </tr>
+<tr><td>When</td> <td>is</td>  <td>someone</td> <td>expected</td> <td> </td>         <td>to</td> <td>do something</td>  <td>?</td> <td>When it crashed</td> </tr>
+</table>
+
+<br>
+
+#### Asking about Time, Location, and Reason
+
+Example 4: &nbsp; <b> The robot <mark>moved</mark> from point A to point B because it was programmed to do so. </b>
+
+<table>
+<tr><th>WH</th>    <th>AUX</th> <th>PH1</th>       <th>TRG</th>   <th>PH2</th> <th>PP</th>   <th>PH3</th> <th>?</th> <th>ANSWER</th>    </tr>
+<tr><td>What</td>  <td> </td>   <td> </td>         <td>moved</td> <td> </td>   <td> </td>    <td> </td>   <td>?</td> <td>The robot</td> </tr>
+<tr><td>Where</td> <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td>from</td> <td> </td>   <td>?</td> <td>Point A</td>   </tr>
+<tr><td>Where</td> <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td>to</td>   <td> </td>   <td>?</td> <td>Point B</td>   </tr>
+<tr><td>Why</td>   <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td> </td>    <td> </td>   <td>?</td> <td>Because it was programmed to do so</td> </tr>
+</table>
+
+<br>
+
+#### Providing multiple answers to the same question.
+
+Example 5: &nbsp; <b> Pat expected Chris to fix the robot when it <mark>crashed</mark>. </b>
+
+<table>
+<tr><th>WH</th>   <th>AUX</th> <th>PH1</th> <th>TRG</th>     <th>PH2</th> <th>PP</th> <th>PH3</th> <th>?</th> <th>ANSWER1</th> <th>ANSWER2</th> </tr>
+<tr><td>What</td> <td> </td>   <td> </td>   <td>crashed</td> <td> </td>   <td> </td>  <td> </td>   <td>?</td> <td>It</td>      <td>The robot</td> </tr>
+</table>
+
+<br>
+
+Example 6: &nbsp; <b> The robot moved from point A to point B because it <mark>was programmed</mark> to do so. </b>
+
+<table>
+<tr><th>WH</th>   <th>AUX</th> <th>PH1</th>       <th>TRG</th>            <th>PH2</th> <th>PP</th> <th>PH3</th>          <th>?</th> <th>ANSWER1</th>  <th>ANSWER2</th> </tr>
+<tr><td>What</td> <td> </td>   <td> </td>         <td>was programmed</td> <td> </td>   <td>to</td> <td>do something</td> <td>?</td> <td>It</td>       <td>The robot</td> </tr>
+<tr><td>What</td> <td>was</td> <td>something</td> <td>programmed</td>     <td> </td>   <td>to</td> <td>do</td>           <td>?</td> <td>So</td> <td>Moved from point A to point B</td> </tr>
+</table>
+
+* Note that the answer is "moved from ..." instead of "move from ..." because these are the some words used in the original sentence. 
+
+#### About events that might not actually have happened.
+
+<br>
+
+Example 7: &nbsp; <b> Newspaper reported that Pat <mark>built</mark> a robot. </b>
+
+<table>
+<tr><th>WH</th>   <th>AUX</th>   <th>PH1</th> <th>TRG</th>             <th>PH2</th>       <th>PP</th> <th>PH3</th> <th>?</th> <th>ANSWER</th> </tr>
+<tr><td>Who</td>  <td>might</td> <td></td>    <td>have built</td>      <td>something</td> <td> </td>  <td> </td>   <td>?</td> <td>Pat</td> </tr>
+<tr><td>What</td> <td>might</td> <td></td>    <td>have been built</td> <td> </td>         <td> </td>  <td> </td>   <td>?</td> <td>A robot</td> </tr>
+</table>
+
+<br>
+
+### Tips
+Do This:
+* There is often more than one way to ask the same question. For example, "Who was given something," vs. "Who was given something by someone," in example 2 above. Any equivalent question is acceptable but you should only provide one. When this happens, any of the questions are acceptable.
+* Trust your understanding of the language! :)
+
+Do Not:
+* Do not use words not in the original sentence for answer.
+* Do not change the tense/spelling of the words in the original sentence for answer.
+
+<br>
+
+### Thank You!
+Thank you for your help! Your good work will help us to have more intelligent machine-reading systems!
