@@ -14,7 +14,7 @@ import util.DataUtils;
  * @author luheng
  *
  */
-public class CrowdflowerPropIdDataRetriever {
+public class CrowdFlowerPropIdDataRetriever {
 
 	private static final String annotationFilePath =
 			"crowdflower/CF_trial_propid_luheng.tsv";

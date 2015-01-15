@@ -18,13 +18,13 @@ public class CrowdFlowerQAResult {
 	public String proposition;
 	
 	// Actually annotation result.
-	public ArrayList<String[]> questions;
-	public ArrayList<String> answers;
+	public ArrayList<String[]> questions; // multiple slots of each question
+	public ArrayList<String[]> answers;   // multiple versions of each answer
 	public String ffQuestion, ffAnswer, feedback;
 	
 	private CrowdFlowerQAResult() {
 		questions = new ArrayList<String[]>();
-		answers = new ArrayList<String>();
+		answers = new ArrayList<String[]>();
 	}
 	
 	private static final int maxNumQA = 10;
@@ -65,9 +65,9 @@ public class CrowdFlowerQAResult {
 			for (int j = 0; j < numQuestionSlots; j++) {
 				qWords[j] = csvRecord.get(getSlotName(i, j));
 			}
-			String answer = csvRecord.get("a" + i);
+			String[] answerStrs = csvRecord.get("a" + i).split("\n");
 			result.questions.add(qWords);
-			result.answers.add(answer);
+			result.answers.add(answerStrs);
 		}
 		
 		// Get free-form QA, and feedback.

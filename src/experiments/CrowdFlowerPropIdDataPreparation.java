@@ -14,7 +14,7 @@ import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
 
-public class CrowdflowerPropIdDataPreparation {
+public class CrowdFlowerPropIdDataPreparation {
 
 	private static SRLCorpus trainCorpus = null; 
 	private static final int numUnits = 20;

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import data.Proposition;
 import data.SRLSentence;
 
-public class CrowdflowerQADataPreparation {
+public class CrowdFlowerQADataPreparation {
 	
 	private static ArrayList<SRLSentence> sentences = null;
 	private static ArrayList<ArrayList<Proposition>> propositions = null;
@@ -73,7 +73,7 @@ public class CrowdflowerQADataPreparation {
 		// Step 1: get proposition data..
 		sentences = new ArrayList<SRLSentence>();
 		propositions = new ArrayList<ArrayList<Proposition>>();
-		CrowdflowerPropIdDataRetriever.readIdentifiedPropositions(sentences,
+		CrowdFlowerPropIdDataRetriever.readIdentifiedPropositions(sentences,
 				propositions);
 		
 		// Step 2: write to CSV data. Each row contains a sentence and an

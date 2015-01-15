@@ -62,6 +62,17 @@ public class QAPair {
 		return qa;
 	}
 	
+	public void setAlignedProposition(Proposition prop) {
+		int start = prop.span[0], end = prop.span[1];
+		int len = end - start;
+		propositionTokens = new String[len];
+		propositionAlignment = new int[len];
+		for (int i = 0; i < len; i++) {
+			propositionTokens[i] = prop.sentence.getTokenString(i + start);
+			propositionAlignment[i] = i + start; 
+		}
+	}
+	
 	public int getPropositionHead() {
 		if (this.propositionTokens == null) {
 			return -1;
