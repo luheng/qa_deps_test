@@ -8,9 +8,15 @@ public class QAPair {
 	public String[] questionTokens, answerTokens, propositionTokens;
 	// Contains indices of words in the original sentence. -1 means unaligned.
 	public int[] questionAlignment, answerAlignment, propositionAlignment;
-	// Index of the proposition in the original sentence.
-	// i.e. sentence is "John(0) admires(1) Mary(2)", and the question is
-	// "Who admires someone ?", and we have propositionHead = 1. 
+	
+	// FIXME: try to come up with a better name.
+	// If the answer is an "alternative answer" of another, then it has this
+	// "mainQA" field set.
+	// i.e. in the sentence "The robot moved because it is programmed to do so".
+	// and the question "What is programmed to do something?", 
+	// the main answer would be "it", and an alternative one is "the robot".
+	// Usually we can figure this out by distance in the original sentence.
+	public QAPair mainQA;
 	
 	public QAPair(String question, String answer) {
 		questionTokens = question.split("\\s+");
@@ -27,6 +33,8 @@ public class QAPair {
 		answerAlignment = new int[answerTokens.length];
 		Arrays.fill(questionAlignment, -1);
 		Arrays.fill(answerAlignment, -1);
+		
+		mainQA = null;
 	}
 	
 	public QAPair(String question, String answer, String proposition) {

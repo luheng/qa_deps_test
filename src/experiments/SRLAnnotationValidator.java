@@ -1,24 +1,12 @@
 package experiments;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 
-import util.DebugUtils;
-import util.LatticeUtils;
-import annotation.AuxiliaryVerbIdentifier;
-import annotation.BasicQuestionTemplates;
-import annotation.QuestionTemplate;
-import annotation.CandidateProposition;
 import data.AnnotatedSentence;
-import data.DepCorpus;
-import data.DepSentence;
 import data.Proposition;
 import data.QAPair;
 import data.SRLCorpus;
 import data.SRLSentence;
-import evaluation.DependencySRLEvaluation;
 import evaluation.F1Metric;
 
 /**
@@ -26,16 +14,14 @@ import evaluation.F1Metric;
  * @author luheng
  *
  */
-public class SRLAnnotationValidationExperiment {
+public class SRLAnnotationValidator {
 
-	private static SRLCorpus trainCorpus = null;
-	private static ArrayList<AnnotatedSentence> annotatedSentences = null;
-	
 	// Evaluation settings.
 	private static boolean ignoreRootPropArcs = false;
 	private static boolean ignoreNominalArcs = true;
 	private static boolean ignoreAmModArcs = true;
 	private static boolean ignoreAmAdvArcs = true;
+	private static boolean ignoreAmNegArcs = true;
 	
 	private static boolean containedInAnswer(int idx, int[] answerAlignment) {
 		for (int answerIdx : answerAlignment) {
@@ -48,8 +34,10 @@ public class SRLAnnotationValidationExperiment {
 	
 	// Accuracy: +1 if answer span contains real answer head
 	// Only count verb propositions ...
-	private static void computeSRLAccuracy() {
-		 
+	public void computeSRLAccuracy(
+			ArrayList<AnnotatedSentence> annotatedSentences,
+			SRLCorpus corpus) {
+		
 		F1Metric avgF1 = new F1Metric();
 		
 		for (AnnotatedSentence sentence : annotatedSentences) {
@@ -60,7 +48,7 @@ public class SRLAnnotationValidationExperiment {
 			int numUncoveredGoldArcs = 0, // Recall loss.
 				numUnmatchedPredSpans = 0, // Precision loss.
 				numGoldArcs = 0;
-			
+	
 			for (int i = 0; i < length; i++) {
 				for (int j = 1; j < length; j++) {
 					if (ignoreRootPropArcs && i == 0) {
@@ -82,6 +70,11 @@ public class SRLAnnotationValidationExperiment {
 							goldArcs[i][j].equals("AM-ADV")) {
 						goldArcs[i][j] = "";
 					}
+					if (ignoreAmNegArcs &&
+							goldArcs[i][j].equals("AM-NEG")) {
+						goldArcs[i][j] = "";
+					}
+					
 					if (!goldArcs[i][j].isEmpty()) {
 						numGoldArcs ++;
 						numUncoveredGoldArcs ++;
@@ -90,8 +83,7 @@ public class SRLAnnotationValidationExperiment {
 				}
 			}
 		
-			System.out.print(sentence.toString());
-							 //srlSentence.getTokensString());
+			System.out.print(srlSentence.getTokensString());
 			/*
 			for (int i = 1; i < length; i++) {
 				for (int j = 1; j < length; j++) {
@@ -110,11 +102,12 @@ public class SRLAnnotationValidationExperiment {
 				System.out.println(prop.toString());
 			}
 			
-			
-			
 			System.out.println("[Precision loss]:");
 			
 			for (QAPair qa : sentence.qaList) {
+				if (qa.mainQA != null) {
+					continue;
+				}
 				int propHead = qa.getPropositionHead() + 1;
 				assert (propHead > 0);
 				
@@ -200,12 +193,13 @@ public class SRLAnnotationValidationExperiment {
 	}
 	
 	public static void main(String[] args) {
-		trainCorpus = ExperimentUtils.loadSRLCorpus(
+		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrialFilename, "en-srl-trial");
-		annotatedSentences =
+		ArrayList<AnnotatedSentence> annotatedSentences =
 				ExperimentUtils.loadSRLAnnotationSentences(trainCorpus);
 	
 		// TODO: validate SRL (unlabeled) accuracy.
-		computeSRLAccuracy();
+		SRLAnnotationValidator tester = new SRLAnnotationValidator();
+		tester.computeSRLAccuracy(annotatedSentences, trainCorpus);
 	}
 }
