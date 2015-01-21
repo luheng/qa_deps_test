@@ -3,7 +3,6 @@ package experiments;
 import java.util.ArrayList;
 
 import data.AnnotatedSentence;
-import data.Proposition;
 import data.QAPair;
 import data.SRLCorpus;
 import data.SRLSentence;
@@ -20,8 +19,10 @@ public class SRLAnnotationValidator {
 	private static boolean ignoreRootPropArcs = false;
 	private static boolean ignoreNominalArcs = true;
 	private static boolean ignoreAmModArcs = true;
-	private static boolean ignoreAmAdvArcs = true;
+	private static boolean ignoreAmAdvArcs = false;
 	private static boolean ignoreAmNegArcs = true;
+	
+	private static boolean coreArgsOnly = true;
 	
 	private static boolean containedInAnswer(int idx, int[] answerAlignment) {
 		for (int answerIdx : answerAlignment) {
@@ -30,6 +31,12 @@ public class SRLAnnotationValidator {
 			}
 		}
 		return false;
+	}
+	
+	private static boolean isWhoWhatQuestion(QAPair qa) {
+		String qword = qa.questionTokens[0];
+		return qword.equalsIgnoreCase("who") || qword.equals("whom") ||
+			   qword.equalsIgnoreCase("what");
 	}
 	
 	// Accuracy: +1 if answer span contains real answer head
@@ -62,6 +69,11 @@ public class SRLAnnotationValidator {
 							goldArcs[i][j] = "";
 						}
 					}
+					
+					if (coreArgsOnly && goldArcs[i][j].startsWith("AM")) {
+						goldArcs[i][j] = "";
+					}
+					
 					if (ignoreAmModArcs &&
 							goldArcs[i][j].equals("AM-MOD")) {
 						goldArcs[i][j] = "";
@@ -83,8 +95,8 @@ public class SRLAnnotationValidator {
 				}
 			}
 		
-			System.out.print(srlSentence.getTokensString());
-			/*
+			System.out.println(srlSentence.sentenceID + "\t" +
+							   srlSentence.getTokensString());
 			for (int i = 1; i < length; i++) {
 				for (int j = 1; j < length; j++) {
 					if (!goldArcs[i][j].isEmpty()) {
@@ -96,18 +108,18 @@ public class SRLAnnotationValidator {
 				}
 			}
 			System.out.println();
-			*/
-			
-			for (Proposition prop : srlSentence.propositions) {
-				System.out.println(prop.toString());
-			}
 			
 			System.out.println("[Precision loss]:");
 			
 			for (QAPair qa : sentence.qaList) {
+				// If the answer is the "secondary answer" provided by annotator
 				if (qa.mainQA != null) {
 					continue;
 				}
+				if (coreArgsOnly && !isWhoWhatQuestion(qa)) {
+					continue;
+				}
+				
 				int propHead = qa.getPropositionHead() + 1;
 				assert (propHead > 0);
 				
