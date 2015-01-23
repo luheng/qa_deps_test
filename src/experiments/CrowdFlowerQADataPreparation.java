@@ -5,14 +5,20 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import util.StringUtils;
 import data.Proposition;
 import data.SRLSentence;
+import data.VerbInflectionDictionary;
 
 public class CrowdFlowerQADataPreparation {
 	
 	private static ArrayList<SRLSentence> sentences = null;
 	private static ArrayList<ArrayList<Proposition>> propositions = null;
-	private static String outputFileName = "crowdflower/CF_QA_trial_s20.tsv";
+	
+	private static VerbInflectionDictionary inflDict = null;
+	
+	private static String outputFileName = "crowdflower/CF_QA_trial_s20.test.tsv";
+	
 	
 	private static String kHeaderRow =
 			"sent_id\tsentence\torig_sent\tprop_id\tproposition\n";
@@ -34,6 +40,45 @@ public class CrowdFlowerQADataPreparation {
 			}
 		}
 		return sentStr;
+	}
+	
+	private static ArrayList<String> getPropositionChoices(Proposition prop) {
+		int propStart = prop.span[0], propEnd = prop.span[1];
+		String propHead = prop.sentence.getTokenString(propEnd - 1);
+		ArrayList<Integer> inflIds;
+		try {
+			inflIds = inflDict.inflMap.get(propHead);
+		} catch (NullPointerException e) {
+			System.out.println("!!! Error:\t" + propHead + " not found");
+			return null;
+		}
+		String propStr = prop.sentence.getTokenString(prop.span);
+		
+		int bestId = -1, bestCount = -1;
+		for (int i = 0; i < inflIds.size(); i++) {
+			int count = inflDict.inflCount[inflIds.get(i)];
+			if (count > bestCount) {
+				bestId = inflIds.get(i);
+				bestCount = count;
+			}
+		}
+		
+		//System.out.println(StringUtils.join(" ", inflDict.inflections.get(bestId)));
+		// Generate list for dropdown.
+		ArrayList<String> choices = new ArrayList<String>();
+		String[] inflections = inflDict.inflections.get(bestId);
+		for (String infl : inflections) {
+			choices.add(infl);
+		}
+		choices.add("be " + inflections[4]);
+		choices.add("been " + inflections[4]);
+		choices.add("being " + inflections[4]);
+		choices.add("have " + inflections[4]);
+		choices.add("have been " + inflections[4]);
+		choices.add("be " + inflections[2]);
+		choices.add("been " + inflections[2]);
+		choices.add("have been " + inflections[2]);
+		return choices;
 	}
 	
 	private static void outputUnits() throws IOException {
@@ -58,12 +103,20 @@ public class CrowdFlowerQADataPreparation {
 			}
 			for (int j = 0; j < props.size(); j++) {
 				Proposition prop = props.get(j);
+				ArrayList<String> choices = getPropositionChoices(prop);
+				
 				String row = sent.sentenceID + "\t";
 				row += getPartiallyHighlightedSentence(sent, prop) + "\t";
 				row += sent.getTokensString() + "\t";
 				row += j + "\t";
 				row += sent.getTokenString(prop.span) + "\n";
 				bufferedWriter.write(row);
+				
+				System.out.println(row);
+				for (String ch : choices) {
+					System.out.println(ch);
+				}
+				System.out.println();
 			}
 		}
 		bufferedWriter.close();
@@ -76,7 +129,15 @@ public class CrowdFlowerQADataPreparation {
 		CrowdFlowerPropIdDataRetriever.readIdentifiedPropositions(sentences,
 				propositions);
 		
-		// Step 2: write to CSV data. Each row contains a sentence and an
+		// Step 2: Read inflection dictionary
+		inflDict = new VerbInflectionDictionary(sentences.get(0).corpus);
+		try {
+			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		// Step 3: write to CSV data. Each row contains a sentence and an
 		// identified proposition.
 		try {
 			outputUnits();

@@ -87,10 +87,12 @@ public class CrowdFlowerQADataRetriever {
 				
 				String questionPP = result.questions.get(i)[5].trim();
 				boolean extendAnswer = false;
+				/*
 				if (!questionPP.isEmpty() &&
 					sentence.getTokensString().contains(questionPP)) {
 					extendAnswer = true;
 				}
+				*/
 				for (String answer : answers) {
 					QAPair qa = new QAPair(
 							question,

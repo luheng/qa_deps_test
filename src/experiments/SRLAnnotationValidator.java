@@ -3,6 +3,7 @@ package experiments;
 import java.util.ArrayList;
 
 import data.AnnotatedSentence;
+import data.DepSentence;
 import data.QAPair;
 import data.SRLCorpus;
 import data.SRLSentence;
@@ -24,9 +25,23 @@ public class SRLAnnotationValidator {
 	
 	private static boolean coreArgsOnly = true;
 	
+	// So if the gold argument head has a child that is contained in the answer
+	// span, we say there is a match.
+	private static boolean allowTwoHopValidation = true;
+	
 	private static boolean containedInAnswer(int idx, int[] answerAlignment) {
 		for (int answerIdx : answerAlignment) {
 			if (answerIdx == idx) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private static boolean hasChildInAnswer(int idx, int[] answerAlignment,
+										    DepSentence sentence) {
+		for (int answerIdx : answerAlignment) {
+			if (answerIdx >= 0 && sentence.parents[answerIdx] == idx) {
 				return true;
 			}
 		}
@@ -47,8 +62,9 @@ public class SRLAnnotationValidator {
 		
 		F1Metric avgF1 = new F1Metric();
 		
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedSentence sentence : annotatedSentences) {		
 			SRLSentence srlSentence = (SRLSentence) sentence.depSentence;
+			
 			int length = srlSentence.length + 1;
 			String[][] goldArcs = srlSentence.getSemanticArcs();
 			boolean[][] covered = new boolean[length][length];
@@ -74,16 +90,13 @@ public class SRLAnnotationValidator {
 						goldArcs[i][j] = "";
 					}
 					
-					if (ignoreAmModArcs &&
-							goldArcs[i][j].equals("AM-MOD")) {
+					if (ignoreAmModArcs && goldArcs[i][j].equals("AM-MOD")) {
 						goldArcs[i][j] = "";
 					}
-					if (ignoreAmAdvArcs &&
-							goldArcs[i][j].equals("AM-ADV")) {
+					if (ignoreAmAdvArcs && goldArcs[i][j].equals("AM-ADV")) {
 						goldArcs[i][j] = "";
 					}
-					if (ignoreAmNegArcs &&
-							goldArcs[i][j].equals("AM-NEG")) {
+					if (ignoreAmNegArcs && goldArcs[i][j].equals("AM-NEG")) {
 						goldArcs[i][j] = "";
 					}
 					
@@ -134,7 +147,16 @@ public class SRLAnnotationValidator {
 				boolean matchedGold = false;
 				for (int argHead = 1; argHead < length; argHead++) {
 					if (goldArcs[propHead][argHead] != "") {
-						if (containedInAnswer(argHead - 1, qa.answerAlignment)) {
+						boolean headInAnswer = containedInAnswer(argHead - 1,
+								qa.answerAlignment);
+						boolean childInAnswer = hasChildInAnswer(argHead - 1,
+								qa.answerAlignment, sentence.depSentence);
+						String argHeadPos = sentence.depSentence
+								.getPostagString(argHead - 1);
+						boolean headIsPP = argHeadPos.equals("ADP") ||
+								argHeadPos.equals("PRT");
+						if (headInAnswer || (allowTwoHopValidation &&
+								childInAnswer && headIsPP)) {
 							if (!covered[propHead][argHead]) {
 								numUncoveredGoldArcs --;
 								covered[propHead][argHead] = true;
