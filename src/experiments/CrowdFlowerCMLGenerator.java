@@ -6,12 +6,11 @@ import java.io.IOException;
 
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlotPlaceHolders;
-import annotation.QASlotPrepositions;
 import annotation.QASlotQuestionWords;
 
 public class CrowdFlowerCMLGenerator {
 
-	int maxNumQuestions = 10;
+	int maxNumQuestions = 5;
 	
 	private static String dataStrHidden = "<p class=\"data-hidden\" id=\"s0\">{{orig_sent}}</p>\n\n";
 	
@@ -23,6 +22,9 @@ public class CrowdFlowerCMLGenerator {
 	private static String dataStrCompact =  "<table cellpadding=\"10\">" +
 			"<tr><th>Sentence repeated:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
 			"</table><br><br>\n\n";
+	
+	private static String liquidDeclareStr = "{% assign trg_ops = trg_options | split: \"#\" %}\n" +
+			"{% assign pp_ops = pp_options | split: \"#\" %}\n";
 	
 	private static String whSlotLabel = "WH",
 						  auxSlotLabel = "AUX",
@@ -61,6 +63,21 @@ public class CrowdFlowerCMLGenerator {
 		return str;
 	}
 	
+	private String generateDynamicDropdown(String label, int questionId,
+			String optionVar, String validator) {
+		String str = "";
+		if (validator.isEmpty()) {
+			str += String.format("<cml:select label=\"%s\" name=\"%s\" class=\"cml-qslot\">",
+				label, generateSlotName(label, questionId));
+		} else {
+			str += String.format("<cml:select label=\"%s\" name=\"%s\" class=\"cml-qslot\" validates=\"%s\">",
+					label, generateSlotName(label, questionId), validator);
+		}
+		str += " {% for op in " + optionVar + " %}<cml:option label=\"{{op}}\"/>{% endfor %} ";
+		str += "</cml:select>\n";
+		return str;
+	}
+	
 	private String generateQAString(int questionId) {
 		String qstr = "";
 		if (questionId > 0) {
@@ -93,9 +110,15 @@ public class CrowdFlowerCMLGenerator {
 								 "" /* no validator */);
 
 		// Generate trg slot
+		/*
 		qstr += String.format("<cml:text label=\"%s\" name=\"%s\" class=\"cml-qslot\" validates=\"required\"/>",
 							  trgSlotLabel,
 							  generateSlotName(trgSlotLabel, questionId));
+		*/
+		qstr += generateDynamicDropdown(trgSlotLabel,
+				 						questionId,
+				 						"trg_ops",
+				 						"" /* no validator */);
 		
 		// Generate ph2 slot
 		qstr += generateDropdown(ph2SlotLabel,
@@ -104,10 +127,10 @@ public class CrowdFlowerCMLGenerator {
 								 "" /* no validator */);
 		
 		// Generate pp slot
-		qstr += generateDropdown(ppSlotLabel,
-								 questionId,
-								 QASlotPrepositions.values,
-								 "" /* no validator */);
+		qstr += generateDynamicDropdown(ppSlotLabel,
+									    questionId,
+									    "pp_ops",
+								 		"" /* no validator */);
 		
 		// Generate ph3 slot
 		qstr += generateDropdown(ph3SlotLabel,
@@ -172,6 +195,7 @@ public class CrowdFlowerCMLGenerator {
 		
 		bufferedWriter.write(dataStrHidden);
 		bufferedWriter.write(dataTableStr);
+		bufferedWriter.write(liquidDeclareStr);
 		
 		for (int i = 0; i < maxNumQuestions; i++) {
 			bufferedWriter.write(generateQAString(i) + "\n\n");
@@ -190,7 +214,7 @@ public class CrowdFlowerCMLGenerator {
 	public static void main(String[] args) {
 		CrowdFlowerCMLGenerator cmlGen = new CrowdFlowerCMLGenerator(10);
 		try {
-			cmlGen.generateCML("crowdflower/cml_10q.html");			
+			cmlGen.generateCML("crowdflower/cml_5q.html");			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

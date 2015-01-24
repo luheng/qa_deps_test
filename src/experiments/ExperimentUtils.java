@@ -11,7 +11,7 @@ import util.StringUtils;
 import annotation.DistanceSensitiveQuestionAnswerAligner;
 import annotation.GreedyQuestionAnswerAligner;
 import annotation.AbstractQuestionAnswerAligner;
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.QAPair;
 import data.SRLCorpus;
@@ -77,11 +77,11 @@ public class ExperimentUtils {
 		return corpus;
 	}
 		
-	public static ArrayList<AnnotatedSentence> loadAnnotatedSentences(
+	public static ArrayList<AnnotatedDepSentence> loadAnnotatedSentences(
 			DepCorpus corpus) {
 		BufferedReader reader;
-		ArrayList<AnnotatedSentence> annotatedSentences =
-				new ArrayList<AnnotatedSentence>();
+		ArrayList<AnnotatedDepSentence> annotatedSentences =
+				new ArrayList<AnnotatedDepSentence>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
 					new FileInputStream(annotationFilename)));
@@ -99,7 +99,7 @@ public class ExperimentUtils {
 				} else if (annotatedSentences.size() <= sentPtr) {
 					String[] info = line.split("\t");
 					int sentID = Integer.parseInt(info[0]);
-					AnnotatedSentence sentence = new AnnotatedSentence(
+					AnnotatedDepSentence sentence = new AnnotatedDepSentence(
 							corpus.sentences.get(sentID));
 					annotatedSentences.add(sentence);
 				} else {
@@ -124,11 +124,11 @@ public class ExperimentUtils {
 	/* Read annotation in CSV format.
 	 *
 	 */
-	public static ArrayList<AnnotatedSentence> loadNumberedAnnotation(
+	public static ArrayList<AnnotatedDepSentence> loadNumberedAnnotation(
 			DepCorpus corpus) {
 		BufferedReader reader;
-		ArrayList<AnnotatedSentence> annotatedSentences =
-				new ArrayList<AnnotatedSentence>();
+		ArrayList<AnnotatedDepSentence> annotatedSentences =
+				new ArrayList<AnnotatedDepSentence>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
 					new FileInputStream(annotationFilename)));
@@ -145,7 +145,7 @@ public class ExperimentUtils {
 				} else if (annotatedSentences.size() <= sentPtr) {
 					// Getting sentence info.
 					int sentID = Integer.parseInt(columns.get(0));
-					AnnotatedSentence sentence = new AnnotatedSentence(
+					AnnotatedDepSentence sentence = new AnnotatedDepSentence(
 							corpus.sentences.get(sentID));
 					annotatedSentences.add(sentence);
 				} else {
@@ -177,12 +177,12 @@ public class ExperimentUtils {
 	 * @param corpus
 	 * @return
 	 */
-	public static ArrayList<AnnotatedSentence> loadSRLAnnotationSentences(
+	public static ArrayList<AnnotatedDepSentence> loadSRLAnnotationSentences(
 			SRLCorpus corpus) {
 		
 		BufferedReader reader;
-		ArrayList<AnnotatedSentence> annotatedSentences =
-				new ArrayList<AnnotatedSentence>();
+		ArrayList<AnnotatedDepSentence> annotatedSentences =
+				new ArrayList<AnnotatedDepSentence>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
 					new FileInputStream(srlAnnotationFilename)));
@@ -198,7 +198,7 @@ public class ExperimentUtils {
 						if (sentID >= maxNumSentences) {
 							break;
 						}
-						AnnotatedSentence sentence = new AnnotatedSentence(
+						AnnotatedDepSentence sentence = new AnnotatedDepSentence(
 							corpus.sentences.get(sentID));
 						annotatedSentences.add(sentence);
 					} catch (NumberFormatException e) {
@@ -220,7 +220,7 @@ public class ExperimentUtils {
 					// Special case: if the question contains a preposition, and
 					// that same preposition immediately precedes the answer
 					// span, we attach it to the beginning of the answer.
-					AnnotatedSentence sentence =
+					AnnotatedDepSentence sentence =
 							annotatedSentences.get(annotatedSentences.size() - 1);
 					
 					if (!info[6].isEmpty()) {
@@ -250,7 +250,7 @@ public class ExperimentUtils {
 		// Align SRL QAs and Propositions.
 		AbstractQuestionAnswerAligner aligner;
 		aligner = new DistanceSensitiveQuestionAnswerAligner();
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			for (QAPair qa : sentence.qaList) {
 				aligner.align(sentence.depSentence, qa);
 			}
@@ -266,14 +266,14 @@ public class ExperimentUtils {
 	}
 	
 	public static void doGreedyAlignment
-			(ArrayList<AnnotatedSentence> annotatedSentences) {
+			(ArrayList<AnnotatedDepSentence> annotatedSentences) {
 		AbstractQuestionAnswerAligner aligner;
 		if (useDistanceSensitiveAlignment) {
 			aligner = new DistanceSensitiveQuestionAnswerAligner();
 		} else {
 			aligner = new GreedyQuestionAnswerAligner();
 		}
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			for (QAPair qa : sentence.qaList) {
 				aligner.align(sentence.depSentence, qa);
 			}

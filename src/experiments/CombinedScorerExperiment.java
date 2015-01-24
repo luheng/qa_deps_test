@@ -10,7 +10,7 @@ import scorer.DistanceScorer;
 import scorer.QuestionAnswerScorer;
 import scorer.UniversalGrammarScorer;
 import util.LatticeUtils;
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;
 import data.QAPair;
@@ -27,10 +27,10 @@ import evaluation.Evaluation;
 public class CombinedScorerExperiment {
 
 	private static DepCorpus trainCorpus = null;
-	private static ArrayList<AnnotatedSentence> annotatedSentences = null;
+	private static ArrayList<AnnotatedDepSentence> annotatedSentences = null;
 	private static Decoder decoder = null;
 	
-	public static int[] testSentence(AnnotatedSentence sentence,
+	public static int[] testSentence(AnnotatedDepSentence sentence,
 						   			 double distWeight,
 									 double qaWeight,
 									 double ugWeight,
@@ -108,7 +108,7 @@ public class CombinedScorerExperiment {
 		
 		int numConstraintViolation = 0, numGoldViolation = 0, totalNumQA = 0;
 		
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			DepSentence depSentence = sentence.depSentence;
 			int length = depSentence.length + 1;
 			double[][] scores = new double[length][length],
@@ -197,12 +197,12 @@ public class CombinedScorerExperiment {
 		decoder = new ViterbiDecoder();
 		
 		// For debugging: print out loaded QA pairs.
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			System.out.println(sentence.toString());
 		}
 		
 		double avgSentenceLength = 0.0, avgNumQAs = 0.0;
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			System.out.println(sentence.depSentence.sentenceID);
 			avgSentenceLength += sentence.depSentence.length;
 			avgNumQAs += sentence.qaList.size();

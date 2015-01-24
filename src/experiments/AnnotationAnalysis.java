@@ -15,7 +15,7 @@ import constraints.NonEmptyQuestionConstraint;
 import constraints.ReversedEdgeQAConstraint;
 import constraints.SingleEdgeQAConstraint;
 import annotation.GreedyQuestionAnswerAligner;
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;
 import data.QAPair;
@@ -43,8 +43,8 @@ public class AnnotationAnalysis {
 		
 		// Read annotation
 		BufferedReader reader;
-		ArrayList<AnnotatedSentence> annotatedSentences =
-				new ArrayList<AnnotatedSentence>();
+		ArrayList<AnnotatedDepSentence> annotatedSentences =
+				new ArrayList<AnnotatedDepSentence>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
 					new FileInputStream(annotationFilename)));
@@ -59,7 +59,7 @@ public class AnnotationAnalysis {
 				} else if (annotatedSentences.size() <= sentPtr) {
 					String[] info = line.split("\t");
 					int sentID = Integer.parseInt(info[0]);
-					AnnotatedSentence sentence = new AnnotatedSentence(
+					AnnotatedDepSentence sentence = new AnnotatedDepSentence(
 							trainCorpus.sentences.get(sentID));
 					annotatedSentences.add(sentence);
 				} else {
@@ -97,7 +97,7 @@ public class AnnotationAnalysis {
 		int qaCounter = 0, totalQAPairs = 0;
 		double avgQuestionWords = 0.0, avgAnswerWords = 0.0;
 		
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			DepSentence depSentence = sentence.depSentence;
 			String[] tokens = trainCorpus.wordDict.getStringArray(depSentence.tokens);
 			

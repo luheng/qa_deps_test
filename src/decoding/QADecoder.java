@@ -6,7 +6,7 @@ import java.util.Arrays;
 import scorer.QuestionAnswerScorer;
 import util.LatticeUtils;
 import util.StringUtils;
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepSentence;
 import data.QAPair;
 
@@ -77,7 +77,7 @@ public class QADecoder {
 		return decoder.decode(scores, bestDecoded);
 	}
 	
-	public double decodeEntireSentence(AnnotatedSentence sentence, double[][] u,
+	public double decodeEntireSentence(AnnotatedDepSentence sentence, double[][] u,
 									   int[] bestDecoded) {
 		QuestionAnswerScorer scorer = new QuestionAnswerScorer();
 		ViterbiDecoder decoder = new ViterbiDecoder();

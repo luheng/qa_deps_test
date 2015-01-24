@@ -10,7 +10,7 @@ import java.util.Arrays;
 import util.LatticeUtils;
 import util.StringUtils;
 import annotation.GreedyQuestionAnswerAligner;
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;
 import data.QAPair;
@@ -44,11 +44,11 @@ public class ConstrainedParsingExperiment {
 		return corpus;
 	}
 	
-	private static ArrayList<AnnotatedSentence> loadAnnotatedSentences(
+	private static ArrayList<AnnotatedDepSentence> loadAnnotatedSentences(
 			DepCorpus corpus) {
 		BufferedReader reader;
-		ArrayList<AnnotatedSentence> annotatedSentences =
-				new ArrayList<AnnotatedSentence>();
+		ArrayList<AnnotatedDepSentence> annotatedSentences =
+				new ArrayList<AnnotatedDepSentence>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
 					new FileInputStream(annotationFilename)));
@@ -63,7 +63,7 @@ public class ConstrainedParsingExperiment {
 				} else if (annotatedSentences.size() <= sentPtr) {
 					String[] info = line.split("\t");
 					int sentID = Integer.parseInt(info[0]);
-					AnnotatedSentence sentence = new AnnotatedSentence(
+					AnnotatedDepSentence sentence = new AnnotatedDepSentence(
 							corpus.sentences.get(sentID));
 					annotatedSentences.add(sentence);
 				} else {
@@ -87,12 +87,12 @@ public class ConstrainedParsingExperiment {
 	
 	public static void main(String[] args) {
 		DepCorpus trainCorpus = loadDepCorpus();
-		ArrayList<AnnotatedSentence> annotatedSentences =
+		ArrayList<AnnotatedDepSentence> annotatedSentences =
 				loadAnnotatedSentences(trainCorpus);
 		
 		// Do alignment.
 		GreedyQuestionAnswerAligner aligner = new GreedyQuestionAnswerAligner();
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			for (QAPair qa : sentence.qaList) {
 				aligner.align(sentence.depSentence, qa);
 			}
@@ -109,7 +109,7 @@ public class ConstrainedParsingExperiment {
 		//double lambda = 0.5;
 		double distWeight = 1.0; 
 		
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			DepSentence depSentence = sentence.depSentence;
 			int length = depSentence.length;
 			int[] prediction = new int[length];

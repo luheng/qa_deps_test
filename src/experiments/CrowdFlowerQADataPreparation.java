@@ -1,11 +1,16 @@
 package experiments;
 
-import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 
-import util.StringUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+
+import annotation.QASlotPrepositions;
+import data.DepSentence;
 import data.Proposition;
 import data.SRLSentence;
 import data.VerbInflectionDictionary;
@@ -17,11 +22,13 @@ public class CrowdFlowerQADataPreparation {
 	
 	private static VerbInflectionDictionary inflDict = null;
 	
-	private static String outputFileName = "crowdflower/CF_QA_trial_s20.test.tsv";
+	private static String outputFileName = "crowdflower/CF_QA_trial_s20.csv";
 	
 	
-	private static String kHeaderRow =
-			"sent_id\tsentence\torig_sent\tprop_id\tproposition\n";
+	//private static String kHeaderRow =
+	//		"sent_id\tsentence\torig_sent\tprop_id\tproposition\ttrg_options";
+	private static String[] kHeader = {"sent_id", "sentence", "orig_sent",
+		"prop_id", "proposition", "trg_options", "pp_options"};
 	
 	private static String getPartiallyHighlightedSentence(SRLSentence sentence,
 			Proposition prop) {
@@ -42,9 +49,9 @@ public class CrowdFlowerQADataPreparation {
 		return sentStr;
 	}
 	
-	private static ArrayList<String> getPropositionChoices(Proposition prop) {
-		int propStart = prop.span[0], propEnd = prop.span[1];
-		String propHead = prop.sentence.getTokenString(propEnd - 1);
+	private static ArrayList<String> getTrgOptions(DepSentence sent,
+			Proposition prop) {
+		String propHead = prop.sentence.getTokenString(prop.span[1] - 1);
 		ArrayList<Integer> inflIds;
 		try {
 			inflIds = inflDict.inflMap.get(propHead);
@@ -52,7 +59,6 @@ public class CrowdFlowerQADataPreparation {
 			System.out.println("!!! Error:\t" + propHead + " not found");
 			return null;
 		}
-		String propStr = prop.sentence.getTokenString(prop.span);
 		
 		int bestId = -1, bestCount = -1;
 		for (int i = 0; i < inflIds.size(); i++) {
@@ -62,64 +68,88 @@ public class CrowdFlowerQADataPreparation {
 				bestCount = count;
 			}
 		}
-		
-		//System.out.println(StringUtils.join(" ", inflDict.inflections.get(bestId)));
 		// Generate list for dropdown.
-		ArrayList<String> choices = new ArrayList<String>();
+		HashSet<String> opSet= new HashSet<String>();
+		ArrayList<String> options = new ArrayList<String>();
 		String[] inflections = inflDict.inflections.get(bestId);
 		for (String infl : inflections) {
-			choices.add(infl);
+			opSet.add(infl);
 		}
-		choices.add("be " + inflections[4]);
-		choices.add("been " + inflections[4]);
-		choices.add("being " + inflections[4]);
-		choices.add("have " + inflections[4]);
-		choices.add("have been " + inflections[4]);
-		choices.add("be " + inflections[2]);
-		choices.add("been " + inflections[2]);
-		choices.add("have been " + inflections[2]);
-		return choices;
+		opSet.add("be " + inflections[4]);
+		opSet.add("been " + inflections[4]);
+		opSet.add("being " + inflections[4]);
+		opSet.add("have " + inflections[4]);
+		opSet.add("have been " + inflections[4]);
+		opSet.add("be " + inflections[2]);
+		opSet.add("been " + inflections[2]);
+		opSet.add("have been " + inflections[2]);
+		for (String op : opSet) {
+			options.add(op);
+		}
+		Collections.sort(options);
+		options.add(0, " ");
+		return options;
 	}
 	
+	private static ArrayList<String> getPPOptions(DepSentence sent) {
+		HashSet<String> opSet = new HashSet<String>();
+		ArrayList<String> options = new ArrayList<String>();
+		for (String pp : QASlotPrepositions.values) {
+			if (sent.containsToken(pp)) {
+				opSet.add(pp);
+			}
+		}
+		for (String pp : QASlotPrepositions.mostFrequentPPs) {
+			opSet.add(pp);
+		}
+		for (String op : opSet) {
+			options.add(op);
+		}
+		Collections.sort(options);
+		options.add(0, " ");
+		return options;
+	}
+	
+	private static String getCMLOptions(ArrayList<String> options) {
+		String result = "";
+		for (String option : options) {
+			if (!result.isEmpty()) {
+				result += "#";
+			}
+			result += option;
+		}
+		return result;
+	}
+	
+	// Output the following fields:
+	// "sent_id", "sentence", "orig_sent", "prop_id", "proposition", "trg_options"
 	private static void outputUnits() throws IOException {
 		FileWriter fileWriter = new FileWriter(outputFileName);
-		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-		
-		// Write file header:
-		//	sent_id: sentence id
-		//  sentence: sentence with highlight mark
-		//  orig_sent: original sentence
-		//  prop_id: proposition id, starting from 0 for each sentence
-		//  proposition: the identified proposition.
-		
-		bufferedWriter.write(kHeaderRow);
-		
-		int numSentences = sentences.size();
-		for (int i = 0; i < numSentences; i++) {
+		CSVPrinter csvWriter = new CSVPrinter(fileWriter, CSVFormat.EXCEL
+				.withRecordSeparator("\n"));
+		csvWriter.printRecord((Object[]) kHeader);
+		for (int i = 0; i < sentences.size(); i++) {
 			SRLSentence sent = sentences.get(i);
 			ArrayList<Proposition> props = propositions.get(i);
 			if (props.size() == 0) {
 				continue;
 			}
+			ArrayList<String> ppOptions = getPPOptions(sent);
 			for (int j = 0; j < props.size(); j++) {
 				Proposition prop = props.get(j);
-				ArrayList<String> choices = getPropositionChoices(prop);
-				
-				String row = sent.sentenceID + "\t";
-				row += getPartiallyHighlightedSentence(sent, prop) + "\t";
-				row += sent.getTokensString() + "\t";
-				row += j + "\t";
-				row += sent.getTokenString(prop.span) + "\n";
-				bufferedWriter.write(row);
-				
-				System.out.println(row);
-				for (String ch : choices) {
-					System.out.println(ch);
-				}
-				System.out.println();
+				ArrayList<String> trgOptions = getTrgOptions(sent, prop);
+				ArrayList<String> row = new ArrayList<String>();
+				row.add(String.valueOf(sent.sentenceID));
+				row.add(getPartiallyHighlightedSentence(sent, prop));
+				row.add(sent.getTokensString());
+				row.add(String.valueOf(j));
+				row.add(sent.getTokenString(prop.span));
+				row.add(getCMLOptions(trgOptions));
+				row.add(getCMLOptions(ppOptions));
+				csvWriter.printRecord(row);
 			}
 		}
-		bufferedWriter.close();
+		csvWriter.close();
 	}
 	
 	public static void main(String[] args) {

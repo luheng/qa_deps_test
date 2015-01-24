@@ -44,4 +44,12 @@ public class QASlotPrepositions {
 		"up",
 		"with"
 	};
+	
+	public static final String[] mostFrequentPPs = {
+		"by",
+		"to",
+		"for",
+		"with",
+		"of"
+	};
 }

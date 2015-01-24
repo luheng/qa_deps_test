@@ -3,7 +3,7 @@ package experiments;
 import java.util.ArrayList;
 
 import optimization.DualDecompositionOptimizer;
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import decoding.Decoder;
 import decoding.QADecoder;
@@ -12,7 +12,7 @@ import decoding.ViterbiDecoder;
 public class DualDecompositionExperiment {
 	
 	private static DepCorpus trainCorpus;
-	private static ArrayList<AnnotatedSentence> annotatedSentences;
+	private static ArrayList<AnnotatedDepSentence> annotatedSentences;
 	
 	private static void runDualDecomposition(int numIterations,
 											 double initialStepSize) {

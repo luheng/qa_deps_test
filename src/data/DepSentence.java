@@ -62,6 +62,15 @@ public class DepSentence {
 		return StringUtils.join(" ", corpus.depDict.getStringArray(deptags));
 	}
 	
+	public boolean containsToken(String token) {
+		for (int i = 0; i < length; i++) {
+			if (getTokenString(i).equalsIgnoreCase(token)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		return "ID:\t" + this.sentenceID + "\n" +

@@ -11,7 +11,7 @@ import annotation.AuxiliaryVerbIdentifier;
 import annotation.BasicQuestionTemplates;
 import annotation.QuestionTemplate;
 import annotation.CandidateProposition;
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;
 import data.QAPair;
@@ -156,7 +156,7 @@ public class InteractiveAnnotationExperiment {
 	}
 	
 	private static void updateSemanticArcs(String[][] semPred, int[] synPred,
-			AnnotatedSentence annotatedSentence) {
+			AnnotatedDepSentence annotatedSentence) {
 		LatticeUtils.fill(semPred, "");
 		SRLSentence sentence = (SRLSentence) annotatedSentence.depSentence;
 		for (QAPair qa : annotatedSentence.qaList) {
@@ -179,7 +179,7 @@ public class InteractiveAnnotationExperiment {
 		DebugUtils.printSemanticArcs(sentence, semGold);
 		
 		// Initialize annotation data structure.
-		AnnotatedSentence annotatedSentence = new AnnotatedSentence(sentence);
+		AnnotatedDepSentence annotatedSentence = new AnnotatedDepSentence(sentence);
 		
 		// Extract candidate propositions.
 		ArrayList<CandidateProposition> candidates =

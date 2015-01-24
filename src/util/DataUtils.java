@@ -9,14 +9,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepSentence;
 import data.QAPair;
 
 public class DataUtils {
 
 	public static void saveAnnotatedSentences(
-			ArrayList<AnnotatedSentence> annotatedSentences,
+			ArrayList<AnnotatedDepSentence> annotatedSentences,
 			String outputFileName) throws IOException {
 		File file =  new File(outputFileName);
 		if (!file.exists()) {
@@ -26,7 +26,7 @@ public class DataUtils {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(
 				file.getAbsoluteFile())); 
 		
-		for (AnnotatedSentence sentence : annotatedSentences) {
+		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			DepSentence sent = sentence.depSentence;
 			writer.write(sent.sentenceID + "\t" + sent.getTokensString()+ "\n");
 			for (QAPair qa : sentence.qaList) {

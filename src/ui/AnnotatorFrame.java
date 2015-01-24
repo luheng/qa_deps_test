@@ -12,7 +12,7 @@ import javax.swing.JTextArea;
 import util.DataUtils;
 import util.DebugUtils;
 import annotation.CandidateProposition;
-import data.AnnotatedSentence;
+import data.AnnotatedDepSentence;
 import data.DepSentence;
 import data.QAPair;
 import data.SRLCorpus;
@@ -34,7 +34,7 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	Button saveQAButton, prevPropButton, nextPropButton, prevSentButton,
 		   nextSentButton;
 	
-	ArrayList<AnnotatedSentence> annotatedSentences; 
+	ArrayList<AnnotatedDepSentence> annotatedSentences; 
 	ArrayList<CandidateProposition> currentPropositions;
 	int currentPropositionId, currentSentenceId;
 	
@@ -167,7 +167,7 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	}
 	
 	private void refreshPanel() {
-		AnnotatedSentence annotatedSentence =
+		AnnotatedDepSentence annotatedSentence =
 				annotatedSentences.get(currentSentenceId);
 		SRLSentence sentence = (SRLSentence) annotatedSentence.depSentence;
 		
@@ -218,9 +218,9 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	}
 	
 	private void initializeData(ArrayList<DepSentence> sentences) {
-		annotatedSentences = new ArrayList<AnnotatedSentence>();
+		annotatedSentences = new ArrayList<AnnotatedDepSentence>();
 		for (DepSentence sentence : sentences) {
-			annotatedSentences.add(new AnnotatedSentence(sentence));
+			annotatedSentences.add(new AnnotatedDepSentence(sentence));
 		}
 		currentPropositions = getPropositions();
 		currentSentenceId = 0;
