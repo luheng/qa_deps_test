@@ -1,3 +1,48 @@
+require(['jquery-noconflict','bootstrap-modal','bootstrap-tooltip','bootstrap-popover','jquery-cookie'], function($) {
+  Window.implement('$', function(el, nc){
+    return document.id(el, nc, this.document);
+  }); 
+
+  var $ = window.jQuery;
+
+  /*
+  $('option').popover({
+    html:true,
+    placement:'left',
+    trigger:'hover',
+    title:'Popover title',
+    content:'<p>Popover content.</p>'
+  });
+  */
+  
+  $('.cml-qslot').on('change', function (event) {
+    var slot_name = parseSlotName(event.srcElement.name);
+    var row_name  = slot_name.match(/q[0-9]+/);
+    var qstr = getQuestion(row_name);
+    $("#show_" + row_name).html(qstr);
+  });
+
+  function getQuestion(pfx) {
+    var qslots = ["wh", "aux", "ph1", "trg", "ph2", "pp", "ph3"];
+    var qstr = "";
+    for (var i = 0; i < qslots.length; i++) {
+      var opt = $("." + pfx + qslots[i] + " option:selected").val();
+      if (opt.length > 0) {
+        qstr += opt + " ";
+      }
+    }
+    qstr += "?";
+    return qstr;
+  }
+
+});
+
+function parseSlotName(long_name) {
+  var p1 = long_name.indexOf("[") + 1;
+  var p2 = long_name.indexOf("]");
+  return long_name.substring(p1, p2);
+}
+
 // This block if/else block is used to hijack the functionality of an existing validator (specifically: yext_no_international_url)
 if(!_cf_cml.digging_gold) {
   CMLFormValidator.addAllThese([
@@ -41,3 +86,4 @@ function allWordsExistInSentence(element) {
   }
   return [true, ""];
 }
+

@@ -10,7 +10,7 @@ import annotation.QASlotQuestionWords;
 
 public class CrowdFlowerCMLGenerator {
 
-	int maxNumQuestions = 5;
+	int maxNumQuestions;
 	
 	private static String dataStrHidden = "<p class=\"data-hidden\" id=\"s0\">{{orig_sent}}</p>\n\n";
 	
@@ -139,7 +139,11 @@ public class CrowdFlowerCMLGenerator {
 				 				 "" /* no validator */);
 		
 		qstr += "<strong>?</strong><br>\n";
-				
+		
+		// Generate show-question box
+		qstr += String.format("<label class=\"show_q_label\" for=\"show_q%d\">Question:</label><div id=\"show_q%d\"></div>\n",
+							  questionId, questionId);
+		
 		// Generate answer slot
 		qstr += String.format("<cml:text label=\"Answer:\" name=\"a%d\" class=\"cml-aslot\" " +
 							  "validates=\"required yext_no_international_url\" multiple=\"true\"/>\n",
@@ -197,9 +201,12 @@ public class CrowdFlowerCMLGenerator {
 		bufferedWriter.write(dataTableStr);
 		bufferedWriter.write(liquidDeclareStr);
 		
+		bufferedWriter.write("<cml:checkbox label=\"No question can be asked about given word and sentence.\" class=\"cml-chk\" name=\"check_noq\"/>\n");
+		bufferedWriter.write("<cml:group only-if=\"check_noq:unchecked\">\n");
 		for (int i = 0; i < maxNumQuestions; i++) {
 			bufferedWriter.write(generateQAString(i) + "\n\n");
 		}
+		bufferedWriter.write("<hr></cml:group>\n");
 		bufferedWriter.write(generateFreeFormQAString(maxNumQuestions) + "\n\n");
 		
 		bufferedWriter.close();
@@ -212,7 +219,7 @@ public class CrowdFlowerCMLGenerator {
 	}
 	
 	public static void main(String[] args) {
-		CrowdFlowerCMLGenerator cmlGen = new CrowdFlowerCMLGenerator(10);
+		CrowdFlowerCMLGenerator cmlGen = new CrowdFlowerCMLGenerator(5);
 		try {
 			cmlGen.generateCML("crowdflower/cml_5q.html");			
 		} catch (IOException e) {
