@@ -38,7 +38,7 @@ public class VerbInflectionDictionary {
 				String[] infl = new String[5];
 				boolean inCorpus = false;
 				for (int i = 0; i < 5; i++) {
-					infl[i] = strs[i].toLowerCase();
+					infl[i] = strs[i];
 					if (!inCorpus && corpus.wordDict.contains(infl[i])) {
 						inCorpus = true;
 					}
@@ -47,7 +47,7 @@ public class VerbInflectionDictionary {
 				inflections.add(infl);
 				for (int i = 0; i < infl.length; i++) {
 					String v = infl[i];
-					if (v.equals("_")) {
+					if (v.equals("_") || v.equals("-")) {
 						continue;
 					}
 					if (!inflMap.containsKey(v)) {

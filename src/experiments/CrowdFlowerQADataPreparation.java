@@ -1,5 +1,7 @@
 package experiments;
 
+import gnu.trove.list.array.TIntArrayList;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,13 +11,21 @@ import java.util.HashSet;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
+import util.RandomSampler;
 import annotation.QASlotPrepositions;
 import data.DepSentence;
 import data.Proposition;
+import data.SRLCorpus;
 import data.SRLSentence;
 import data.VerbInflectionDictionary;
 
 public class CrowdFlowerQADataPreparation {
+	
+	private static SRLCorpus trainCorpus = null;
+	private static final int numUnits = 100;
+	private static final int randomPoolSize = 5000;
+	
+	private static final int randomSeed = 123456;
 	
 	private static ArrayList<SRLSentence> sentences = null;
 	private static ArrayList<ArrayList<Proposition>> propositions = null;
@@ -152,20 +162,57 @@ public class CrowdFlowerQADataPreparation {
 		csvWriter.close();
 	}
 	
+	private static boolean isQuestion(DepSentence sentence) {
+		for (int i = 0; i < sentence.length; i++) {
+			String word = sentence.getTokenString(i);
+			if (word.equals("?")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private static int[] getNonQuestionSentenceIds() {
+		TIntArrayList ids = new TIntArrayList();
+		for (DepSentence sentence : trainCorpus.sentences) {
+			if (!isQuestion(sentence) && sentence.length >= 10) {
+				ids.add(sentence.sentenceID);
+			}
+		}
+		return ids.toArray();
+	}
+	
 	public static void main(String[] args) {
-		// Step 1: get proposition data..
+		// Step 1: get raw data
+		trainCorpus = ExperimentUtils.loadSRLCorpus(
+				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+	
+		int[] nonQuestionIds = getNonQuestionSentenceIds();
+		int[] sentenceIds = RandomSampler.sampleIDs(nonQuestionIds,
+				randomPoolSize, numUnits, randomSeed);
+		
+		for (int id : sentenceIds) {
+			System.out.print(id + ", ");
+		}
+		System.out.println();
+		
+		/*
 		sentences = new ArrayList<SRLSentence>();
 		propositions = new ArrayList<ArrayList<Proposition>>();
 		CrowdFlowerPropIdDataRetriever.readIdentifiedPropositions(sentences,
 				propositions);
+		*/
 		
 		// Step 2: Read inflection dictionary
-		inflDict = new VerbInflectionDictionary(sentences.get(0).corpus);
+		inflDict = new VerbInflectionDictionary(trainCorpus);
 		try {
 			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		// Step 3: Identify propositions using the Wiktionary.
+		
 		
 		// Step 3: write to CSV data. Each row contains a sentence and an
 		// identified proposition.

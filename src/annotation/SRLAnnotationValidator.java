@@ -16,7 +16,7 @@ public class SRLAnnotationValidator {
 	private static boolean ignoreAmAdvArcs = false;
 	private static boolean ignoreAmNegArcs = true;
 	
-	private static boolean coreArgsOnly = false;
+	private static boolean coreArgsOnly = true;
 	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.

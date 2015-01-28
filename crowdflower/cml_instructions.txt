@@ -86,26 +86,55 @@ Example 5: &nbsp; <b> Pat expected Chris to fix the robot when it <mark>crashed<
 
 <br>
 
-Example 6: &nbsp; <b> The robot moved from point A to point B because it <mark>was programmed</mark> to do so. </b>
+Example 6: &nbsp; <b> The robot moved from point A to point B because it was <mark>programmed</mark> to do so. </b>
 
 <table>
 <tr><th>WH</th>   <th>AUX</th> <th>PH1</th>       <th>TRG</th>            <th>PH2</th> <th>PP</th> <th>PH3</th>          <th>?</th> <th>ANSWER1</th>  <th>ANSWER2</th> </tr>
-<tr><td>What</td> <td> </td>   <td> </td>         <td>was programmed</td> <td> </td>   <td>to</td> <td>do something</td> <td>?</td> <td>It</td>       <td>The robot</td> </tr>
+<tr><td>What</td> <td>was</td>   <td> </td>       <td>programmed</td> <td> </td>   <td>to</td> <td>do something</td> <td>?</td> <td>It</td>       <td>The robot</td> </tr>
 <tr><td>What</td> <td>was</td> <td>something</td> <td>programmed</td>     <td> </td>   <td>to</td> <td>do</td>           <td>?</td> <td>So</td> <td>Moved from point A to point B</td> </tr>
 </table>
 
-* Note that the answer is "moved from ..." instead of "move from ..." because these are the some words used in the original sentence. 
+* Note that the answer is "moved from ..." instead of "move from ..." because these are the same words used in the original sentence. 
+
+<br>
+
+#### About sentences that contain negation.
+
+Example 7: &nbsp; <b> The robot did n't <mark>move</mark> at all. </b>
+
+<table>
+<tr><th>WH</th>   <th>AUX</th>     <th>PH1</th> <th>TRG</th>  <th>PH2</th> <th>PP</th> <th>PH3</th> <th>?</th> <th>ANSWER1</th>   </tr>  
+<tr><td>What</td> <td>did n't</td> <td> </td>   <td>move</td> <td> </td>   <td> </td>  <td> </td>   <td>?</td> <td>The robot</td> </tr>
+</table>
+
+Example 8: &nbsp; <b> Actually, no one had <mark>built</mark> a robot. </b>
+
+<table>
+<tr><th>WH</th>   <th>AUX</th>     <th>PH1</th>     <th>TRG</th>   <th>PH2</th> <th>PP</th> <th>PH3</th>       <th>?</th> <th>ANSWER1</th> </tr>
+<tr><td>Who</td>  <td>had</td>     <td> </td>       <td>built</td> <td> </td>   <td> </td>  <td>something</td> <td>?</td> <td>No one</td>  </tr>
+<tr><td>What</td> <td>had n't</td> <td>someone</td> <td>built</td> <td> </td>   <td> </td>  <td> </td>         <td>?</td> <td>A robot</td> </tr>
+</table>
 
 <br>
 
 #### About events that might not actually have happened.
 
-Example 7: &nbsp; <b> Newspaper reported that Pat <mark>built</mark> a robot. </b>
+Example 9: &nbsp; <b> Newspaper reported that Pat <mark>built</mark> a robot. </b>
 
 <table>
 <tr><th>WH</th>   <th>AUX</th>   <th>PH1</th> <th>TRG</th>             <th>PH2</th>       <th>PP</th> <th>PH3</th> <th>?</th> <th>ANSWER</th> </tr>
 <tr><td>Who</td>  <td>might</td> <td></td>    <td>have built</td>      <td>something</td> <td> </td>  <td> </td>   <td>?</td> <td>Pat</td> </tr>
 <tr><td>What</td> <td>might</td> <td></td>    <td>have been built</td> <td> </td>         <td> </td>  <td> </td>   <td>?</td> <td>A robot</td> </tr>
+</table>
+
+<br>
+
+Example 10: &nbsp; <b> Newspaper reported that Pat have n't actually <mark>built</mark> a robot. </b>
+
+<table>
+<tr><th>WH</th>   <th>AUX</th>   <th>PH1</th> <th>TRG</th>             <th>PH2</th>       <th>PP</th> <th>PH3</th> <th>?</th> <th>ANSWER</th> </tr>
+<tr><td>Who</td>  <td>might not</td> <td></td>    <td>have built</td>      <td>something</td> <td> </td>  <td> </td>   <td>?</td> <td>Pat</td> </tr>
+<tr><td>What</td> <td>might not</td> <td></td>    <td>have been built</td> <td> </td>         <td> </td>  <td> </td>   <td>?</td> <td>A robot</td> </tr>
 </table>
 
 <br>

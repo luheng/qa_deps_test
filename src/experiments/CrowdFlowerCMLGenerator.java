@@ -13,14 +13,21 @@ public class CrowdFlowerCMLGenerator {
 	int maxNumQuestions;
 	
 	private static String dataStrHidden = "<p class=\"data-hidden\" id=\"s0\">{{orig_sent}}</p>\n\n";
-	
+	/*
 	private static String dataTableStr = "<table cellpadding=\"10\">" +
 			"<tr><th>Sentence:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
 			"<tr><th>Target:</th><td class=\"data-panel\">{{proposition}}</td></tr>" +
 			"</table><br>\n\n";
-	
-	private static String dataStrCompact =  "<table cellpadding=\"10\">" +
-			"<tr><th>Sentence repeated:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
+	*/
+	private static String dataTableStr = "<table>" +
+			"<tr><th>Sentence:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
+			"</table><br>\n\n";
+
+	private static String dataQuestionTableStr =  "<table>" +
+			"<tr><th>Sentence:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
+			"<tr><th>QA-%d:</th><td class=\"data-panel\">" +
+			"<div id=\"show_q%d\" class=\"written-question\"></div>" +
+			"<div id=\"show_a%d\" class=\"written-answer\"></div></td></tr>" +
 			"</table><br><br>\n\n";
 	
 	private static String liquidDeclareStr = "{% assign trg_ops = trg_options | split: \"#\" %}\n" +
@@ -83,10 +90,8 @@ public class CrowdFlowerCMLGenerator {
 		if (questionId > 0) {
 			qstr += String.format("<cml:group only-if=\"!%s:unchecked\">\n",
 					generateQuestionCheckerName(questionId));
-		}
-		
-		if (questionId > 0 && questionId % 2 == 0) {
-			qstr += dataStrCompact;
+			qstr += String.format(dataQuestionTableStr, questionId + 1,
+					questionId, questionId);
 		}
 		
 		qstr += String.format("<!--  question %d -->\n", questionId);
@@ -141,8 +146,10 @@ public class CrowdFlowerCMLGenerator {
 		qstr += "<strong>?</strong><br>\n";
 		
 		// Generate show-question box
+		/*
 		qstr += String.format("<label class=\"show_q_label\" for=\"show_q%d\">Question:</label><div id=\"show_q%d\"></div>\n",
 							  questionId, questionId);
+		*/
 		
 		// Generate answer slot
 		qstr += String.format("<cml:text label=\"Answer:\" name=\"a%d\" class=\"cml-aslot\" " +
@@ -174,7 +181,7 @@ public class CrowdFlowerCMLGenerator {
 				  			  qChecker);
 		
 		qstr += String.format("<cml:group only-if=\"!%s:unchecked\">\n", qChecker);
-		qstr += dataStrCompact;
+		qstr += dataTableStr;
 		qstr += String.format("<!--  question %d -->\n", questionId);
 				
 		// Generate question slot
@@ -198,10 +205,11 @@ public class CrowdFlowerCMLGenerator {
 		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 		
 		bufferedWriter.write(dataStrHidden);
-		bufferedWriter.write(dataTableStr);
+		bufferedWriter.write(String.format(dataQuestionTableStr, 1, 0, 0));
 		bufferedWriter.write(liquidDeclareStr);
 		
-		bufferedWriter.write("<cml:checkbox label=\"No question can be asked about given word and sentence.\" class=\"cml-chk\" name=\"check_noq\"/>\n");
+		bufferedWriter.write("<cml:checkbox label=\"No question can be asked about given word and sentence.\" " +
+							 "class=\"cml-chk cml-chk-noq\" name=\"check_noq\"/>\n");
 		bufferedWriter.write("<cml:group only-if=\"check_noq:unchecked\">\n");
 		for (int i = 0; i < maxNumQuestions; i++) {
 			bufferedWriter.write(generateQAString(i) + "\n\n");

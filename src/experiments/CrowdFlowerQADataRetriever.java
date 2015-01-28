@@ -116,7 +116,6 @@ public class CrowdFlowerQADataRetriever {
 			System.out.println();
 		}
 		
-		
 		SRLAnnotationValidator tester = new SRLAnnotationValidator();
 		tester.computeSRLAccuracy(annotatedSentences, trainCorpus);
 	}

@@ -10,19 +10,26 @@ public class AuxiliaryVerbIdentifier {
 	private final String[] enAuxiliaryVerbs = {
 			"be",
 			"being",
+			"am",
+			"\'m",
 			"is",
+			"\'s",
 			"are",
+			"\'re",
 			"was",
 			"were",
 			"been",
 			"will",
+			"\'ll",
 			"would",
+			"\'d",
 			"wo", /* this is part of wo n't ... */
 			"do",
 			"does",
 			"did",
 			"done",
 			"have",
+			"\'ve",
 			"has",
 			"had",
 			"ca", /* in ca n't */
@@ -93,15 +100,16 @@ public class AuxiliaryVerbIdentifier {
 		//return auxVerbs;
 	}
 	
-	private boolean isVerb(DepSentence sentence, int id) {
+	public boolean isVerb(DepSentence sentence, int id) {
 		return id < sentence.length && sentence.postags[id] == verbPosID;
 	}
-	private boolean isAuxiliaryVerb(DepSentence sentence, int id) {
+	
+	public boolean isAuxiliaryVerb(DepSentence sentence, int id) {
 		return id < sentence.length &&
 			   enAuxiliaryVerbSet.contains(sentence.tokens[id]);
 	}
 	
-	private boolean isModifierWord(DepSentence sentence, int id) {
+	public boolean isModifierWord(DepSentence sentence, int id) {
 		return id < sentence.length && sentence.postags[id] == advPosID; 
 	}
 }
