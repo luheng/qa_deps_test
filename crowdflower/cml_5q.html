@@ -1,0 +1,89 @@
+<p class="data-hidden" id="s0">{{orig_sent}}</p>
+
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-1:</th><td class="data-panel"><div id="show_q0" class="written-question"></div><div id="show_a0" class="written-answer"></div></td></tr></table><br><br>
+
+{% assign trg_ops = trg_options | split: "#" %}
+{% assign pp_ops = pp_options | split: "#" %}
+<cml:checkbox label="No question can be asked about given word and sentence." class="cml-chk cml-chk-noq" name="check_noq"/>
+<cml:group only-if="check_noq:unchecked">
+<!--  question 0 -->
+<cml:select label="WH" name="q0wh" class="cml-qslot" validates="required"><cml:option label="Who"/> <cml:option label="What"/> <cml:option label="When"/> <cml:option label="Where"/> <cml:option label="How"/> <cml:option label="How much"/> <cml:option label="How many"/> <cml:option label="Why"/> <cml:option label="Whom"/> </cml:select>
+<cml:select label="AUX" name="q0aux" class="cml-qslot"><cml:option label=""/> <cml:option label="is"/> <cml:option label="are"/> <cml:option label="was"/> <cml:option label="were"/> <cml:option label="does"/> <cml:option label="do"/> <cml:option label="did"/> <cml:option label="has"/> <cml:option label="have"/> <cml:option label="had"/> <cml:option label="can"/> <cml:option label="could"/> <cml:option label="may"/> <cml:option label="might"/> <cml:option label="will"/> <cml:option label="would"/> <cml:option label="should"/> <cml:option label="must"/> <cml:option label="is n't"/> <cml:option label="are n't"/> <cml:option label="was n't"/> <cml:option label="were n't"/> <cml:option label="does n't"/> <cml:option label="do n't"/> <cml:option label="did n't"/> <cml:option label="has n't"/> <cml:option label="have n't"/> <cml:option label="had n't"/> <cml:option label="ca n't"/> <cml:option label="could n't"/> <cml:option label="may not"/> <cml:option label="might not"/> <cml:option label="wo n't"/> <cml:option label="would n't"/> <cml:option label="should n't"/> <cml:option label="must n't"/> </cml:select>
+<cml:select label="PH1" name="q0ph1" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="TRG" name="q0trg" class="cml-qslot"> {% for op in trg_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH2" name="q0ph2" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="PP" name="q0pp" class="cml-qslot"> {% for op in pp_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH3" name="q0ph3" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<strong>?</strong><br>
+<cml:text label="Answer:" name="a0" class="cml-aslot" validates="required yext_no_international_url" multiple="true"/>
+<hr><cml:checkbox label="Input Question No. 2" class="cml-chk" name="check_q1"/>
+
+<cml:group only-if="!check_q1:unchecked">
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-2:</th><td class="data-panel"><div id="show_q1" class="written-question"></div><div id="show_a1" class="written-answer"></div></td></tr></table><br><br>
+
+<!--  question 1 -->
+<cml:select label="WH" name="q1wh" class="cml-qslot" validates="required"><cml:option label="Who"/> <cml:option label="What"/> <cml:option label="When"/> <cml:option label="Where"/> <cml:option label="How"/> <cml:option label="How much"/> <cml:option label="How many"/> <cml:option label="Why"/> <cml:option label="Whom"/> </cml:select>
+<cml:select label="AUX" name="q1aux" class="cml-qslot"><cml:option label=""/> <cml:option label="is"/> <cml:option label="are"/> <cml:option label="was"/> <cml:option label="were"/> <cml:option label="does"/> <cml:option label="do"/> <cml:option label="did"/> <cml:option label="has"/> <cml:option label="have"/> <cml:option label="had"/> <cml:option label="can"/> <cml:option label="could"/> <cml:option label="may"/> <cml:option label="might"/> <cml:option label="will"/> <cml:option label="would"/> <cml:option label="should"/> <cml:option label="must"/> <cml:option label="is n't"/> <cml:option label="are n't"/> <cml:option label="was n't"/> <cml:option label="were n't"/> <cml:option label="does n't"/> <cml:option label="do n't"/> <cml:option label="did n't"/> <cml:option label="has n't"/> <cml:option label="have n't"/> <cml:option label="had n't"/> <cml:option label="ca n't"/> <cml:option label="could n't"/> <cml:option label="may not"/> <cml:option label="might not"/> <cml:option label="wo n't"/> <cml:option label="would n't"/> <cml:option label="should n't"/> <cml:option label="must n't"/> </cml:select>
+<cml:select label="PH1" name="q1ph1" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="TRG" name="q1trg" class="cml-qslot"> {% for op in trg_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH2" name="q1ph2" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="PP" name="q1pp" class="cml-qslot"> {% for op in pp_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH3" name="q1ph3" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<strong>?</strong><br>
+<cml:text label="Answer:" name="a1" class="cml-aslot" validates="required yext_no_international_url" multiple="true"/>
+<hr></cml:group><cml:checkbox label="Input Question No. 3" class="cml-chk" name="check_q2"/>
+
+<cml:group only-if="!check_q2:unchecked">
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-3:</th><td class="data-panel"><div id="show_q2" class="written-question"></div><div id="show_a2" class="written-answer"></div></td></tr></table><br><br>
+
+<!--  question 2 -->
+<cml:select label="WH" name="q2wh" class="cml-qslot" validates="required"><cml:option label="Who"/> <cml:option label="What"/> <cml:option label="When"/> <cml:option label="Where"/> <cml:option label="How"/> <cml:option label="How much"/> <cml:option label="How many"/> <cml:option label="Why"/> <cml:option label="Whom"/> </cml:select>
+<cml:select label="AUX" name="q2aux" class="cml-qslot"><cml:option label=""/> <cml:option label="is"/> <cml:option label="are"/> <cml:option label="was"/> <cml:option label="were"/> <cml:option label="does"/> <cml:option label="do"/> <cml:option label="did"/> <cml:option label="has"/> <cml:option label="have"/> <cml:option label="had"/> <cml:option label="can"/> <cml:option label="could"/> <cml:option label="may"/> <cml:option label="might"/> <cml:option label="will"/> <cml:option label="would"/> <cml:option label="should"/> <cml:option label="must"/> <cml:option label="is n't"/> <cml:option label="are n't"/> <cml:option label="was n't"/> <cml:option label="were n't"/> <cml:option label="does n't"/> <cml:option label="do n't"/> <cml:option label="did n't"/> <cml:option label="has n't"/> <cml:option label="have n't"/> <cml:option label="had n't"/> <cml:option label="ca n't"/> <cml:option label="could n't"/> <cml:option label="may not"/> <cml:option label="might not"/> <cml:option label="wo n't"/> <cml:option label="would n't"/> <cml:option label="should n't"/> <cml:option label="must n't"/> </cml:select>
+<cml:select label="PH1" name="q2ph1" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="TRG" name="q2trg" class="cml-qslot"> {% for op in trg_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH2" name="q2ph2" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="PP" name="q2pp" class="cml-qslot"> {% for op in pp_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH3" name="q2ph3" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<strong>?</strong><br>
+<cml:text label="Answer:" name="a2" class="cml-aslot" validates="required yext_no_international_url" multiple="true"/>
+<hr></cml:group><cml:checkbox label="Input Question No. 4" class="cml-chk" name="check_q3"/>
+
+<cml:group only-if="!check_q3:unchecked">
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-4:</th><td class="data-panel"><div id="show_q3" class="written-question"></div><div id="show_a3" class="written-answer"></div></td></tr></table><br><br>
+
+<!--  question 3 -->
+<cml:select label="WH" name="q3wh" class="cml-qslot" validates="required"><cml:option label="Who"/> <cml:option label="What"/> <cml:option label="When"/> <cml:option label="Where"/> <cml:option label="How"/> <cml:option label="How much"/> <cml:option label="How many"/> <cml:option label="Why"/> <cml:option label="Whom"/> </cml:select>
+<cml:select label="AUX" name="q3aux" class="cml-qslot"><cml:option label=""/> <cml:option label="is"/> <cml:option label="are"/> <cml:option label="was"/> <cml:option label="were"/> <cml:option label="does"/> <cml:option label="do"/> <cml:option label="did"/> <cml:option label="has"/> <cml:option label="have"/> <cml:option label="had"/> <cml:option label="can"/> <cml:option label="could"/> <cml:option label="may"/> <cml:option label="might"/> <cml:option label="will"/> <cml:option label="would"/> <cml:option label="should"/> <cml:option label="must"/> <cml:option label="is n't"/> <cml:option label="are n't"/> <cml:option label="was n't"/> <cml:option label="were n't"/> <cml:option label="does n't"/> <cml:option label="do n't"/> <cml:option label="did n't"/> <cml:option label="has n't"/> <cml:option label="have n't"/> <cml:option label="had n't"/> <cml:option label="ca n't"/> <cml:option label="could n't"/> <cml:option label="may not"/> <cml:option label="might not"/> <cml:option label="wo n't"/> <cml:option label="would n't"/> <cml:option label="should n't"/> <cml:option label="must n't"/> </cml:select>
+<cml:select label="PH1" name="q3ph1" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="TRG" name="q3trg" class="cml-qslot"> {% for op in trg_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH2" name="q3ph2" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="PP" name="q3pp" class="cml-qslot"> {% for op in pp_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH3" name="q3ph3" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<strong>?</strong><br>
+<cml:text label="Answer:" name="a3" class="cml-aslot" validates="required yext_no_international_url" multiple="true"/>
+<hr></cml:group><cml:checkbox label="Input Question No. 5" class="cml-chk" name="check_q4"/>
+
+<cml:group only-if="!check_q4:unchecked">
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-5:</th><td class="data-panel"><div id="show_q4" class="written-question"></div><div id="show_a4" class="written-answer"></div></td></tr></table><br><br>
+
+<!--  question 4 -->
+<cml:select label="WH" name="q4wh" class="cml-qslot" validates="required"><cml:option label="Who"/> <cml:option label="What"/> <cml:option label="When"/> <cml:option label="Where"/> <cml:option label="How"/> <cml:option label="How much"/> <cml:option label="How many"/> <cml:option label="Why"/> <cml:option label="Whom"/> </cml:select>
+<cml:select label="AUX" name="q4aux" class="cml-qslot"><cml:option label=""/> <cml:option label="is"/> <cml:option label="are"/> <cml:option label="was"/> <cml:option label="were"/> <cml:option label="does"/> <cml:option label="do"/> <cml:option label="did"/> <cml:option label="has"/> <cml:option label="have"/> <cml:option label="had"/> <cml:option label="can"/> <cml:option label="could"/> <cml:option label="may"/> <cml:option label="might"/> <cml:option label="will"/> <cml:option label="would"/> <cml:option label="should"/> <cml:option label="must"/> <cml:option label="is n't"/> <cml:option label="are n't"/> <cml:option label="was n't"/> <cml:option label="were n't"/> <cml:option label="does n't"/> <cml:option label="do n't"/> <cml:option label="did n't"/> <cml:option label="has n't"/> <cml:option label="have n't"/> <cml:option label="had n't"/> <cml:option label="ca n't"/> <cml:option label="could n't"/> <cml:option label="may not"/> <cml:option label="might not"/> <cml:option label="wo n't"/> <cml:option label="would n't"/> <cml:option label="should n't"/> <cml:option label="must n't"/> </cml:select>
+<cml:select label="PH1" name="q4ph1" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="TRG" name="q4trg" class="cml-qslot"> {% for op in trg_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH2" name="q4ph2" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<cml:select label="PP" name="q4pp" class="cml-qslot"> {% for op in pp_ops %}<cml:option label="{{op}}"/>{% endfor %} </cml:select>
+<cml:select label="PH3" name="q4ph3" class="cml-qslot"><cml:option label=""/> <cml:option label="someone"/> <cml:option label="something"/> <cml:option label="do something"/> <cml:option label="do"/> <cml:option label="somewhere"/> </cml:select>
+<strong>?</strong><br>
+<cml:text label="Answer:" name="a4" class="cml-aslot" validates="required yext_no_international_url" multiple="true"/>
+<hr></cml:group>
+
+<hr></cml:group>
+<cml:checkbox label="Feedback (if you have QA-pair that cannot fit into the template)" class="cml-chk" name="check_q5"/><cml:group only-if="!check_q5:unchecked">
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr></table><br>
+
+<!--  question 5 -->
+<cml:text label="Question" name="q5ff" class="cml-ffqslot"/><cml:text label="Answer:" name="a5" class="cml-aslot" multiple="true"/>
+<cml:text label="Other Feedback:" name="fdbk" class="cml-ffqslot"/>
+<hr></cml:group>
+

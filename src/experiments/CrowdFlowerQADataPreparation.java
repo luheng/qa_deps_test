@@ -7,11 +7,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Random;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
-import util.RandomSampler;
+import annotation.AuxiliaryVerbIdentifier;
 import annotation.QASlotPrepositions;
 import data.DepSentence;
 import data.Proposition;
@@ -22,23 +23,22 @@ import data.VerbInflectionDictionary;
 public class CrowdFlowerQADataPreparation {
 	
 	private static SRLCorpus trainCorpus = null;
-	private static final int numUnits = 100;
-	private static final int randomPoolSize = 5000;
+	private static final int maxNumSentences = 100;
+	private static final int maxSentenceID = 5000;
 	
-	private static final int randomSeed = 123456;
+	private static final int randomSeed = 12345;
 	
 	private static ArrayList<SRLSentence> sentences = null;
 	private static ArrayList<ArrayList<Proposition>> propositions = null;
 	
 	private static VerbInflectionDictionary inflDict = null;
+	private static AuxiliaryVerbIdentifier auxVerbID = null;
 	
-	private static String outputFileName = "crowdflower/CF_QA_trial_s20.csv";
-	
-	
-	//private static String kHeaderRow =
-	//		"sent_id\tsentence\torig_sent\tprop_id\tproposition\ttrg_options";
+	private static String outputFileName = "crowdflower/CF_QA_firstround_s100.csv";
+
 	private static String[] kHeader = {"sent_id", "sentence", "orig_sent",
-		"prop_id", "proposition", "trg_options", "pp_options"};
+		"prop_id", "prop_start", "prop_end", "proposition", "trg_options",
+		"pp_options"};
 	
 	private static String getPartiallyHighlightedSentence(SRLSentence sentence,
 			Proposition prop) {
@@ -60,13 +60,15 @@ public class CrowdFlowerQADataPreparation {
 	}
 	
 	private static ArrayList<String> getTrgOptions(DepSentence sent,
-			Proposition prop) {
-		String propHead = prop.sentence.getTokenString(prop.span[1] - 1);
-		ArrayList<Integer> inflIds;
-		try {
-			inflIds = inflDict.inflMap.get(propHead);
-		} catch (NullPointerException e) {
-			System.out.println("!!! Error:\t" + propHead + " not found");
+			int propHeadId) {
+		String propHead = sent.getTokenString(propHeadId);
+		ArrayList<Integer> inflIds =
+				inflDict.inflMap.get(propHead.toLowerCase());
+		
+		if (inflIds == null) {
+			//System.out.println("!!! Error:\t" + sent.getTokensString() + "\n" + propHead + " not found");
+			System.out.println(propHead);
+			//System.out.println(sent.getPostagsString());
 			return null;
 		}
 		
@@ -97,7 +99,7 @@ public class CrowdFlowerQADataPreparation {
 			options.add(op);
 		}
 		Collections.sort(options);
-		options.add(0, " ");
+		//options.add(0, " ");
 		return options;
 	}
 	
@@ -132,13 +134,13 @@ public class CrowdFlowerQADataPreparation {
 	}
 	
 	// Output the following fields:
-	// "sent_id", "sentence", "orig_sent", "prop_id", "proposition", "trg_options"
+	// "sent_id", "sentence", "orig_sent", "prop_id", "prop_start", "prop_end", "proposition", "trg_options"
 	private static void outputUnits() throws IOException {
 		FileWriter fileWriter = new FileWriter(outputFileName);
 		CSVPrinter csvWriter = new CSVPrinter(fileWriter, CSVFormat.EXCEL
 				.withRecordSeparator("\n"));
 		csvWriter.printRecord((Object[]) kHeader);
-		for (int i = 0; i < sentences.size(); i++) {
+		for (int i = 0; i < maxNumSentences; i++) {
 			SRLSentence sent = sentences.get(i);
 			ArrayList<Proposition> props = propositions.get(i);
 			if (props.size() == 0) {
@@ -147,12 +149,18 @@ public class CrowdFlowerQADataPreparation {
 			ArrayList<String> ppOptions = getPPOptions(sent);
 			for (int j = 0; j < props.size(); j++) {
 				Proposition prop = props.get(j);
-				ArrayList<String> trgOptions = getTrgOptions(sent, prop);
+				ArrayList<String> trgOptions = getTrgOptions(sent,
+						prop.span[1] - 1);
+				if (trgOptions == null) {
+					continue;
+				}
 				ArrayList<String> row = new ArrayList<String>();
 				row.add(String.valueOf(sent.sentenceID));
 				row.add(getPartiallyHighlightedSentence(sent, prop));
 				row.add(sent.getTokensString());
 				row.add(String.valueOf(j));
+				row.add(String.valueOf(prop.span[0]));
+				row.add(String.valueOf(prop.span[1]));
 				row.add(sent.getTokenString(prop.span));
 				row.add(getCMLOptions(trgOptions));
 				row.add(getCMLOptions(ppOptions));
@@ -175,6 +183,9 @@ public class CrowdFlowerQADataPreparation {
 	private static int[] getNonQuestionSentenceIds() {
 		TIntArrayList ids = new TIntArrayList();
 		for (DepSentence sentence : trainCorpus.sentences) {
+			if (sentence.sentenceID > maxSentenceID) {
+				break;
+			}
 			if (!isQuestion(sentence) && sentence.length >= 10) {
 				ids.add(sentence.sentenceID);
 			}
@@ -183,39 +194,62 @@ public class CrowdFlowerQADataPreparation {
 	}
 	
 	public static void main(String[] args) {
-		// Step 1: get raw data
 		trainCorpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
-	
-		int[] nonQuestionIds = getNonQuestionSentenceIds();
-		int[] sentenceIds = RandomSampler.sampleIDs(nonQuestionIds,
-				randomPoolSize, numUnits, randomSeed);
 		
-		for (int id : sentenceIds) {
-			System.out.print(id + ", ");
-		}
-		System.out.println();
-		
-		/*
-		sentences = new ArrayList<SRLSentence>();
-		propositions = new ArrayList<ArrayList<Proposition>>();
-		CrowdFlowerPropIdDataRetriever.readIdentifiedPropositions(sentences,
-				propositions);
-		*/
-		
-		// Step 2: Read inflection dictionary
 		inflDict = new VerbInflectionDictionary(trainCorpus);
 		try {
 			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		auxVerbID = new AuxiliaryVerbIdentifier(trainCorpus);
 		
-		// Step 3: Identify propositions using the Wiktionary.
+		sentences = new ArrayList<SRLSentence>();
+		propositions = new ArrayList<ArrayList<Proposition>>();
 		
+		int[] nonQuestionIds = getNonQuestionSentenceIds();
+		//int[] sentenceIds = RandomSampler.sampleIDs(nonQuestionIds,
+		//		nonQuestionIds.length, numUnits, randomSeed);
 		
-		// Step 3: write to CSV data. Each row contains a sentence and an
-		// identified proposition.
+		System.out.println("Number of non-question sentences:\t" +
+						   nonQuestionIds.length);
+		
+		for (int id : nonQuestionIds) {
+			SRLSentence sentence = (SRLSentence) trainCorpus.sentences.get(id);
+			// Pre-examine
+			boolean throwAwaySentence = false;
+			for (int j = 0; j < sentence.length; j++) {
+				if (sentence.getPostagString(j).equals("VERB") &&
+					!auxVerbID.ignoreVerbForSRL(sentence, j) &&
+					getTrgOptions(sentence, j) == null) {
+					throwAwaySentence = true;
+					break;
+				}
+			}
+			if (!throwAwaySentence) {
+				sentences.add(sentence);
+			}
+		}
+		System.out.println("Sentences left:\t" + sentences.size());
+		
+		Collections.shuffle(sentences, new Random(randomSeed));
+		
+		for (int i = 0; i < sentences.size(); i++) {
+			SRLSentence sentence = sentences.get(i);
+			ArrayList<Proposition> props = new ArrayList<Proposition>();
+			for (int j = 0; j < sentence.length; j++) {
+				if (sentence.getPostagString(j).equals("VERB") &&
+					!auxVerbID.ignoreVerbForSRL(sentence, j)) {
+					Proposition prop = new Proposition();
+					prop.sentence = sentence;
+					prop.setPropositionSpan(j, j + 1);
+					props.add(prop);
+				}
+			}
+			propositions.add(props);
+		}
+		
 		try {
 			outputUnits();
 		} catch (IOException e) {

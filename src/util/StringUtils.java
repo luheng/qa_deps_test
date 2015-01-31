@@ -1,6 +1,8 @@
 package util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 
 public class StringUtils {
 	public static String join(String delimiter, String[] stringArr) {
@@ -11,6 +13,19 @@ public class StringUtils {
 					joined += delimiter;
 				}
 				joined += stringArr[i];
+			}
+		}
+		return joined;
+	}
+	
+	public static String join(String delimiter, ArrayList<String> stringArr) {
+		String joined = "";
+		for (String str : stringArr) {
+			if (!str.trim().isEmpty()) {
+				if (!joined.isEmpty()) {
+					joined += delimiter;
+				}
+				joined += str;
 			}
 		}
 		return joined;
@@ -73,5 +88,9 @@ public class StringUtils {
 			}
 		}
 		return true;
+	}
+	
+	public static HashSet<String> asSet(String... vals) {
+		return new HashSet<String>(Arrays.asList(vals));
 	}
 }

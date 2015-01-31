@@ -1,0 +1,146 @@
+
+<br>
+
+<table cellpadding="10">
+  <tr>
+    <th>Sentence:</th>
+    <td>{{sentence}}</td>
+  </tr>
+  <tr>
+    <th>Target word:</th>
+    <td>{{proposition}}</td>
+  </tr>
+</table>
+
+<br>
+				<!--  question one -->
+				  <cml:select label="WH" name="q1wh" class="cml-qslot"   validates="required"> 
+				    <cml:option label="Who" /><cml:option label="What"/><cml:option label="When"/><cml:option label="Where"/>
+				    <cml:option label="How"/><cml:option label="How much"/><cml:option label="How many"/><cml:option label="Why"/><cml:option label="Whom"/>
+				  </cml:select>
+				  <cml:select label="AUX" name="q1aux" class="cml-qslot"   >
+				    <cml:option label=""/><cml:option label="is"/><cml:option label="are"/><cml:option label="was"/><cml:option label="were"/>
+				    <cml:option label="will"/><cml:option label="would"/><cml:option label="does"/> <cml:option label="do"/><cml:option label="did"  />
+				    <cml:option label="has"/><cml:option label="have"/> <cml:option label="had"/><cml:option label="can"/><cml:option label="could"/>
+				    <cml:option label="isn't"/> <cml:option label="aren't"/><cml:option label="wasn't"/> <cml:option label="weren't"/><cml:option label="won't"/>
+				    <cml:option label="doesn't"/><cml:option label="don't"/> <cml:option label="didn't"/><cml:option label="hasn't"/><cml:option label="haven't"/>
+				    <cml:option label="hadn't"/> <cml:option label="couldn't"/><cml:option label="wouldn't"/>
+				  </cml:select>
+				  <cml:select label="PH1" name="q1ph1" class="cml-qslot" >
+				    <cml:option label=""/><cml:option label="someone"/><cml:option label="something" /><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+				  </cml:select>
+				  <cml:text label="TRG" name="q1trg" class="cml-qslot" validates="required"/>
+				  <cml:select label="PH2" name="q1ph2" class="cml-qslot" >
+				    <cml:option label=""  /><cml:option label="someone"/><cml:option label="something"/><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+				  </cml:select>
+				  <cml:select label="PP" name="q1pp" class="cml-qslot" >
+				    <cml:option label=""  /><cml:option label="to"/><cml:option label="with"/><cml:option label="by"/><cml:option label="up"/>
+				    <cml:option label="on"/><cml:option label="in"/><cml:option label="at"/><cml:option label="for"/><cml:option label="since"/><cml:option label="before"/>
+				  </cml:select>
+				  <cml:select label="PH3" name="q1ph3" class="cml-qslot"   >
+				    <cml:option label=""  /><cml:option label="someone"/><cml:option label="something"/><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+				  </cml:select>
+				  <strong>?</strong>
+				  <br><cml:text label="Answer:" name="a1ans" class="cml-aslot" validates="required" multiple="true"/>
+				 
+<cml:checkbox label="Input a 2nd Question" class="cml-chk" name="check_q2"/>
+  
+ <cml:group only-if="!check_q2:unchecked">
+  <!--  question two -->
+				  <cml:select label="WH" name="q2wh" class="cml-qslot"   validates="required"> 
+				    <cml:option label="Who" /><cml:option label="What"/><cml:option label="When"/><cml:option label="Where"/>
+				    <cml:option label="How"/><cml:option label="How much"/><cml:option label="How many"/><cml:option label="Why"/><cml:option label="Whom"/>
+				  </cml:select>
+				  <cml:select label="AUX" name="q2aux" class="cml-qslot"   >
+				    <cml:option label=""/><cml:option label="is"/><cml:option label="are"/><cml:option label="was"/><cml:option label="were"/>
+				    <cml:option label="will"/><cml:option label="would"/><cml:option label="does"/> <cml:option label="do"/><cml:option label="did"  />
+				    <cml:option label="has"/><cml:option label="have"/> <cml:option label="had"/><cml:option label="can"/><cml:option label="could"/>
+				    <cml:option label="isn't"/> <cml:option label="aren't"/><cml:option label="wasn't"/> <cml:option label="weren't"/><cml:option label="won't"/>
+				    <cml:option label="doesn't"/><cml:option label="don't"/> <cml:option label="didn't"/><cml:option label="hasn't"/><cml:option label="haven't"/>
+				    <cml:option label="hadn't"/> <cml:option label="couldn't"/><cml:option label="wouldn't"/>
+				  </cml:select>
+				  <cml:select label="PH1" name="q2ph1" class="cml-qslot" >
+				    <cml:option label=""/><cml:option label="someone"/><cml:option label="something" /><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+				  </cml:select>
+				  <cml:text label="TRG" name="q2trg" class="cml-qslot" validates="required"/>
+				  <cml:select label="PH2" name="q2ph2" class="cml-qslot" >
+				    <cml:option label=""  /><cml:option label="someone"/><cml:option label="something"/><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+				  </cml:select>
+				  <cml:select label="PP" name="q2pp" class="cml-qslot" >
+				    <cml:option label=""  /><cml:option label="to"/><cml:option label="with"/><cml:option label="by"/><cml:option label="up"/>
+				    <cml:option label="on"/><cml:option label="in"/><cml:option label="at"/><cml:option label="for"/><cml:option label="since"/><cml:option label="before"/>
+				  </cml:select>
+				  <cml:select label="PH3" name="q2ph3" class="cml-qslot"   >
+				    <cml:option label=""  /><cml:option label="someone"/><cml:option label="something"/><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+				  </cml:select>
+				  <strong>?</strong>
+				  <br><cml:text label="Answer:" name="a2ans" class="cml-aslot" validates="required" multiple="true"/> 
+</cml:group>
+
+<cml:checkbox label="Input a 3rd Question" class="cml-chk" name="check_q3"/>
+
+ <cml:group only-if="!check_q3:unchecked">
+  <!--  question three -->
+          <cml:select label="WH" name="q3wh" class="cml-qslot"   validates="required"> 
+            <cml:option label="Who" /><cml:option label="What"/><cml:option label="When"/><cml:option label="Where"/>
+            <cml:option label="How"/><cml:option label="How much"/><cml:option label="How many"/><cml:option label="Why"/><cml:option label="Whom"/>
+          </cml:select>
+          <cml:select label="AUX" name="q3aux" class="cml-qslot"   >
+            <cml:option label=""/><cml:option label="is"/><cml:option label="are"/><cml:option label="was"/><cml:option label="were"/>
+            <cml:option label="will"/><cml:option label="would"/><cml:option label="does"/> <cml:option label="do"/><cml:option label="did"  />
+            <cml:option label="has"/><cml:option label="have"/> <cml:option label="had"/><cml:option label="can"/><cml:option label="could"/>
+            <cml:option label="isn't"/> <cml:option label="aren't"/><cml:option label="wasn't"/> <cml:option label="weren't"/><cml:option label="won't"/>
+            <cml:option label="doesn't"/><cml:option label="don't"/> <cml:option label="didn't"/><cml:option label="hasn't"/><cml:option label="haven't"/>
+            <cml:option label="hadn't"/> <cml:option label="couldn't"/><cml:option label="wouldn't"/>
+          </cml:select>
+          <cml:select label="PH1" name="q3ph1" class="cml-qslot" >
+            <cml:option label=""/><cml:option label="someone"/><cml:option label="something" /><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+          </cml:select>
+          <cml:text label="TRG" name="q3trg" class="cml-qslot" validates="required"/>
+          <cml:select label="PH2" name="q3ph2" class="cml-qslot" >
+            <cml:option label=""  /><cml:option label="someone"/><cml:option label="something"/><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+          </cml:select>
+          <cml:select label="PP" name="q3pp" class="cml-qslot" >
+            <cml:option label=""  /><cml:option label="to"/><cml:option label="with"/><cml:option label="by"/><cml:option label="up"/>
+            <cml:option label="on"/><cml:option label="in"/><cml:option label="at"/><cml:option label="for"/><cml:option label="since"/><cml:option label="before"/>
+          </cml:select>
+          <cml:select label="PH3" name="q3ph3" class="cml-qslot"   >
+            <cml:option label=""  /><cml:option label="someone"/><cml:option label="something"/><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+          </cml:select>
+          <strong>?</strong>
+          <br><cml:text label="Answer:" name="a3ans" class="cml-aslot" validates="required" multiple="true"/>
+</cml:group>
+
+<cml:checkbox label="Input a 4th Question" class="cml-chk" name="check_q4"/>
+
+ <cml:group only-if="!check_q4:unchecked">
+  <!--  question three -->
+          <cml:select label="WH" name="q4wh" class="cml-qslot"   validates="required"> 
+            <cml:option label="Who" /><cml:option label="What"/><cml:option label="When"/><cml:option label="Where"/>
+            <cml:option label="How"/><cml:option label="How much"/><cml:option label="How many"/><cml:option label="Why"/><cml:option label="Whom"/>
+          </cml:select>
+          <cml:select label="AUX" name="q4aux" class="cml-qslot"   >
+            <cml:option label=""/><cml:option label="is"/><cml:option label="are"/><cml:option label="was"/><cml:option label="were"/>
+            <cml:option label="will"/><cml:option label="would"/><cml:option label="does"/> <cml:option label="do"/><cml:option label="did"  />
+            <cml:option label="has"/><cml:option label="have"/> <cml:option label="had"/><cml:option label="can"/><cml:option label="could"/>
+            <cml:option label="isn't"/> <cml:option label="aren't"/><cml:option label="wasn't"/> <cml:option label="weren't"/><cml:option label="won't"/>
+            <cml:option label="doesn't"/><cml:option label="don't"/> <cml:option label="didn't"/><cml:option label="hasn't"/><cml:option label="haven't"/>
+            <cml:option label="hadn't"/> <cml:option label="couldn't"/><cml:option label="wouldn't"/>
+          </cml:select>
+          <cml:select label="PH1" name="q4ph1" class="cml-qslot" >
+            <cml:option label=""/><cml:option label="someone"/><cml:option label="something" /><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+          </cml:select>
+          <cml:text label="TRG" name="q4trg" class="cml-qslot" validates="required"/>
+          <cml:select label="PH2" name="q4ph2" class="cml-qslot" >
+            <cml:option label=""  /><cml:option label="someone"/><cml:option label="something"/><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+          </cml:select>
+          <cml:select label="PP" name="q4pp" class="cml-qslot" >
+            <cml:option label=""  /><cml:option label="to"/><cml:option label="with"/><cml:option label="by"/><cml:option label="up"/>
+            <cml:option label="on"/><cml:option label="in"/><cml:option label="at"/><cml:option label="for"/><cml:option label="since"/><cml:option label="before"/>
+          </cml:select>
+          <cml:select label="PH3" name="q4ph3" class="cml-qslot"   >
+            <cml:option label=""  /><cml:option label="someone"/><cml:option label="something"/><cml:option label="do"/><cml:option label="do something"/><cml:option label="somewhere"/>
+          </cml:select>
+          <strong>?</strong>
+          <br><cml:text label="Answer:" name="a4ans" class="cml-aslot" validates="required" multiple="true"/>
+</cml:group>

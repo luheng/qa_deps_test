@@ -15,6 +15,7 @@ import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
 import data.StructuredQAPair;
+import edu.stanford.nlp.util.StringUtils;
 import annotation.CrowdFlowerQAResult;
 import annotation.PropositionAligner;
 import annotation.SRLAnnotationValidator;
@@ -73,6 +74,7 @@ public class CrowdFlowerQADataRetriever {
 					.get(sentId);
 			AnnotatedSentence currSent = annotatedSentences.get(
 					sentIdMap.get(result.sentenceId));
+			
 			// Assume the propositions are unique, for now.
 			Proposition prop = propAligner.align(sentence, result.proposition);
 			int propHead = prop.span[1] - 1;
@@ -85,6 +87,17 @@ public class CrowdFlowerQADataRetriever {
 							propHead, question, answer, result);
 					currSent.addQAPair(propHead, qa);
 				}
+			}
+			
+			if (!result.feedback.isEmpty()) {
+				System.out.println(sentence.getTokensString());
+				System.out.println("Prop:\t" + sentence.getTokenString(propHead));
+				System.out.println("Feedback:\t" + result.feedback);
+				for (int i = 0; i < result.questions.size(); i++) {
+					System.out.println("\t" + StringUtils.join(result.questions.get(i), " "));
+					System.out.println("\t" + StringUtils.join(result.answers.get(i), " / "));
+				}
+				System.out.println();
 			}
 		}
 	}

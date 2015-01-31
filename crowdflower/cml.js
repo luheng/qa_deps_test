@@ -4,16 +4,33 @@ require(['jquery-noconflict','bootstrap-modal','bootstrap-tooltip','bootstrap-po
   }); 
 
   var $ = window.jQuery;
-
-  /*
-  $('option').popover({
+  
+  $('.qa-panel').popover({
     html:true,
     placement:'left',
     trigger:'hover',
-    title:'Popover title',
-    content:'<p>Popover content.</p>'
+    title:'Hint',
+    content:'<p>Please make sure the questions you asked are grammatical and understandable by others.</p>'
+  });
+  
+  $('.q-panel-label').popover({
+    html:true,
+    placement:'left',
+    trigger:'hover',
+    title:'Hint',
+    content:'<p>Build a question with the dropdown boxes. Please look at the examples in the instruction if you are not sure.</p>'
+  });
+  
+  /*
+  $('.cml-qslot > label').popover({
+    html:true,
+    placement:'right',
+    trigger:'hover',
+    title:'Hint',
+    content:'<p>Build a question with the dropdown boxes. Please look at the examples in the instruction if you are not sure.</p>'
   });
   */
+    
   
   $('.cml-qslot').on('change', function (event) {
     var slot_name = parseSlotName(event.srcElement.name);
@@ -22,15 +39,27 @@ require(['jquery-noconflict','bootstrap-modal','bootstrap-tooltip','bootstrap-po
     $("#show_" + row_name).html("<span>" + qstr + "</span>");
   });
   
+  /*
   $('.cml-chk-noq').on('change', function (event) {
     if (event.srcElement.value == "true") {
       $("#show_q0").html("");
+      $("#show_a0").html("");
     }
   });
+  */
   
   $('.cml-aslot').on('change', function (event) {
    var slot_name = parseSlotName(event.srcElement.name);
-   var astr = " - " + $("." + slot_name).val();
+   var astr = "";
+   $("." + slot_name).each(function() {
+     if (astr.length == 0) {
+       astr += " - ";
+     } else {
+       astr += " / ";
+     }
+      astr += $(this).val();
+    });
+   //var astr = " - " + $("." + slot_name).val();
    $("#show_" + slot_name).html("<span>" + astr + "</span>");
   });
 
@@ -62,7 +91,7 @@ if(!_cf_cml.digging_gold) {
       errorMessage: function(){
         return ('Answer is empty/One of your answers contains words that are not in the original sentence.');
       },
-      validate: function(element, props){
+      validate: function(element, props) {
         // METHOD_TO_VALIDATE must return true or false
         result = allWordsExistInSentence(element);
         return result[0];
@@ -72,7 +101,7 @@ if(!_cf_cml.digging_gold) {
 } else {
   CMLFormValidator.addAllThese([
    ['yext_no_international_url', {
-      validate: function(element, props){
+      validate: function(element, props) {
          return true;
       }
    }]          
@@ -83,7 +112,7 @@ if(!_cf_cml.digging_gold) {
 // value is the user submitted content of the form element you are validating
 function allWordsExistInSentence(element) {
   var answerWords = element.value.trim().split(" ");
-  var sentWords = document.getElementById("s0").innerHTML.firstChild.nodeValue.split(" ");
+  var sentWords = document.getElementById("s0").firstChild.nodeValue.split(" ");
   for (var i = 0; i < answerWords.length; i++) {
     var found = false;
     for (var j = 0; j < sentWords.length; j++) {

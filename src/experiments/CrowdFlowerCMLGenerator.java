@@ -96,6 +96,8 @@ public class CrowdFlowerCMLGenerator {
 		
 		qstr += String.format("<!--  question %d -->\n", questionId);
 		
+		qstr += "<label class=\"q-panel-label\">Question:</label>\n";
+		
 		// Generate wh slot
 		qstr += generateDropdown(whSlotLabel,
 								 questionId,
@@ -123,7 +125,7 @@ public class CrowdFlowerCMLGenerator {
 		qstr += generateDynamicDropdown(trgSlotLabel,
 				 						questionId,
 				 						"trg_ops",
-				 						"" /* no validator */);
+				 						"required");
 		
 		// Generate ph2 slot
 		qstr += generateDropdown(ph2SlotLabel,
@@ -208,13 +210,16 @@ public class CrowdFlowerCMLGenerator {
 		bufferedWriter.write(String.format(dataQuestionTableStr, 1, 0, 0));
 		bufferedWriter.write(liquidDeclareStr);
 		
-		bufferedWriter.write("<cml:checkbox label=\"No question can be asked about given word and sentence.\" " +
-							 "class=\"cml-chk cml-chk-noq\" name=\"check_noq\"/>\n");
-		bufferedWriter.write("<cml:group only-if=\"check_noq:unchecked\">\n");
+		
+		//bufferedWriter.write("<cml:group only-if=\"check_noq:unchecked\">\n");
 		for (int i = 0; i < maxNumQuestions; i++) {
 			bufferedWriter.write(generateQAString(i) + "\n\n");
 		}
-		bufferedWriter.write("<hr></cml:group>\n");
+		//bufferedWriter.write("<hr></cml:group>\n");
+		
+		bufferedWriter.write("<hr>\n");
+		bufferedWriter.write("<cml:checkbox label=\"Difficult to come up with questions/Not confident with the questions asked.\" " +
+				 "class=\"cml-chk cml-chk-noq\" name=\"check_noq\"/>\n");
 		bufferedWriter.write(generateFreeFormQAString(maxNumQuestions) + "\n\n");
 		
 		bufferedWriter.close();
@@ -227,9 +232,9 @@ public class CrowdFlowerCMLGenerator {
 	}
 	
 	public static void main(String[] args) {
-		CrowdFlowerCMLGenerator cmlGen = new CrowdFlowerCMLGenerator(5);
+		CrowdFlowerCMLGenerator cmlGen = new CrowdFlowerCMLGenerator(10);
 		try {
-			cmlGen.generateCML("crowdflower/cml_5q.html");			
+			cmlGen.generateCML("crowdflower/cml_10q.html");			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

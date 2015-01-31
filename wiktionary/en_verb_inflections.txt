@@ -10860,7 +10860,7 @@ learn	learns	learning	learned	learned
 lease	leases	leasing	leased	leased
 leash	leashes	leashing	leashed	leashed
 leather	leathers	leathering	leathered	leathered
-leave	leaves	leaving	leaved	leaved
+leave	leaves	leaving	left	left
 leaven	leavens	leavening	leavened	leavened
 leaze	leazes	leazing	leazed	leazed
 lech	leches	leching	leched	leched

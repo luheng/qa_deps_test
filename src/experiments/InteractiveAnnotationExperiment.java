@@ -40,7 +40,7 @@ public class InteractiveAnnotationExperiment {
 		AuxiliaryVerbIdentifier auxVerbIdentifier =
 				new AuxiliaryVerbIdentifier(sentence.corpus);
 		int[] verbHeads = new int[sentence.length];
-		auxVerbIdentifier.process(sentence, verbHeads);
+		auxVerbIdentifier.postprocess(sentence, verbHeads);
 		
 		ArrayList<CandidateProposition> propositions =
 				new ArrayList<CandidateProposition>();

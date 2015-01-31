@@ -37,6 +37,10 @@ label {
   margin: 0 2 2px;
 }
 
+.cml-aslot > label.legend {
+  display:inline-block;
+}
+
 .cml-ffqslot {
   margin: 0 2 2px;
   width: 400px;
