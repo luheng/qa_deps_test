@@ -34,7 +34,7 @@ public class CrowdFlowerQADataPreparation {
 	private static VerbInflectionDictionary inflDict = null;
 	private static AuxiliaryVerbIdentifier auxVerbID = null;
 	
-	private static String outputFileName = "crowdflower/CF_QA_firstround_s100.csv";
+	private static String outputFileName = "crowdflower/CF_QA_firstround_s100_test.csv";
 
 	private static String[] kHeader = {"sent_id", "sentence", "orig_sent",
 		"prop_id", "prop_start", "prop_end", "proposition", "trg_options",
@@ -106,9 +106,18 @@ public class CrowdFlowerQADataPreparation {
 	private static ArrayList<String> getPPOptions(DepSentence sent) {
 		HashSet<String> opSet = new HashSet<String>();
 		ArrayList<String> options = new ArrayList<String>();
-		for (String pp : QASlotPrepositions.values) {
-			if (sent.containsToken(pp)) {
-				opSet.add(pp);
+		for (int i = 0; i < sent.length; i++) {
+			String tok = sent.getTokenString(i).toLowerCase();
+			if (QASlotPrepositions.ppSet.contains(tok)) {
+				opSet.add(tok);
+				if (i < sent.length - 1) {
+					String tok2 = sent.getTokenString(i + 1).toLowerCase();
+					if (QASlotPrepositions.ppSet.contains(tok2)) {
+						opSet.add(tok + " " + tok2);
+						System.out.println(sent.getTokensString());
+						System.out.println(tok + " " + tok2);
+					}
+				}
 			}
 		}
 		for (String pp : QASlotPrepositions.mostFrequentPPs) {
@@ -241,6 +250,16 @@ public class CrowdFlowerQADataPreparation {
 			for (int j = 0; j < sentence.length; j++) {
 				if (sentence.getPostagString(j).equals("VERB") &&
 					!auxVerbID.ignoreVerbForSRL(sentence, j)) {
+					/*
+					if (j < sentence.length  - 2) {
+						String pos1 = sentence.getPostagString(j+1);
+						String pos2 = sentence.getPostagString(j+2);
+						if ((pos1.equals("ADP") || pos1.equals("PRT")) &&
+							(pos2.equals("ADP") || pos2.equals("PRT"))) {
+							System.out.println(sentence.getTokensString());
+							System.out.println(sentence.getTokenString(new int[] {j, j + 3}));
+						}
+					}*/
 					Proposition prop = new Proposition();
 					prop.sentence = sentence;
 					prop.setPropositionSpan(j, j + 1);

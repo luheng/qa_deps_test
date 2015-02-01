@@ -33,11 +33,22 @@ public class CrowdFlowerQADataRetriever {
 		Iterable<CSVRecord> records = CSVFormat.DEFAULT.withHeader()
 				.parse(fileReader);
 		
+		double avgTime = 0;
+		int numRecords = 0;
 		for (CSVRecord record : records) {
 			CrowdFlowerQAResult qa = CrowdFlowerQAResult.parseCSV(record);
 			results.add(qa);
+			avgTime += qa.secondsToComplete;
+			++ numRecords;
 		}
 		fileReader.close();
+		
+		avgTime /= numRecords;
+		System.out.println(String.format("Read %d CrowdFlower Records.", numRecords));
+		System.out.println(String.format("Averaged completion time: %.3f seconds.",
+				avgTime));
+		System.out.println(String.format("Averaged number of units per hour: %.3f",
+				3600 / avgTime));
 	}
 	
 	/*

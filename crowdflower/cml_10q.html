@@ -1,6 +1,6 @@
 <p class="data-hidden" id="s0">{{orig_sent}}</p>
 
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-1:</th><td class="data-panel"><div id="show_q0" class="written-question"></div><div id="show_a0" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-1:</th><td class="data-panel qa-panel"><div id="show_q0" class="written-question"></div><div id="show_a0" class="written-answer"></div></td></tr></table><br><br>
 
 {% assign trg_ops = trg_options | split: "#" %}
 {% assign pp_ops = pp_options | split: "#" %}
@@ -18,7 +18,7 @@
 <hr><cml:checkbox label="Input Question No. 2" class="cml-chk" name="check_q1"/>
 
 <cml:group only-if="!check_q1:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-2:</th><td class="data-panel"><div id="show_q1" class="written-question"></div><div id="show_a1" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-2:</th><td class="data-panel qa-panel"><div id="show_q1" class="written-question"></div><div id="show_a1" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 1 -->
 <label class="q-panel-label">Question:</label>
@@ -34,7 +34,7 @@
 <hr></cml:group><cml:checkbox label="Input Question No. 3" class="cml-chk" name="check_q2"/>
 
 <cml:group only-if="!check_q2:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-3:</th><td class="data-panel"><div id="show_q2" class="written-question"></div><div id="show_a2" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-3:</th><td class="data-panel qa-panel"><div id="show_q2" class="written-question"></div><div id="show_a2" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 2 -->
 <label class="q-panel-label">Question:</label>
@@ -50,7 +50,7 @@
 <hr></cml:group><cml:checkbox label="Input Question No. 4" class="cml-chk" name="check_q3"/>
 
 <cml:group only-if="!check_q3:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-4:</th><td class="data-panel"><div id="show_q3" class="written-question"></div><div id="show_a3" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-4:</th><td class="data-panel qa-panel"><div id="show_q3" class="written-question"></div><div id="show_a3" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 3 -->
 <label class="q-panel-label">Question:</label>
@@ -66,7 +66,7 @@
 <hr></cml:group><cml:checkbox label="Input Question No. 5" class="cml-chk" name="check_q4"/>
 
 <cml:group only-if="!check_q4:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-5:</th><td class="data-panel"><div id="show_q4" class="written-question"></div><div id="show_a4" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-5:</th><td class="data-panel qa-panel"><div id="show_q4" class="written-question"></div><div id="show_a4" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 4 -->
 <label class="q-panel-label">Question:</label>
@@ -82,7 +82,7 @@
 <hr></cml:group><cml:checkbox label="Input Question No. 6" class="cml-chk" name="check_q5"/>
 
 <cml:group only-if="!check_q5:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-6:</th><td class="data-panel"><div id="show_q5" class="written-question"></div><div id="show_a5" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-6:</th><td class="data-panel qa-panel"><div id="show_q5" class="written-question"></div><div id="show_a5" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 5 -->
 <label class="q-panel-label">Question:</label>
@@ -98,7 +98,7 @@
 <hr></cml:group><cml:checkbox label="Input Question No. 7" class="cml-chk" name="check_q6"/>
 
 <cml:group only-if="!check_q6:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-7:</th><td class="data-panel"><div id="show_q6" class="written-question"></div><div id="show_a6" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-7:</th><td class="data-panel qa-panel"><div id="show_q6" class="written-question"></div><div id="show_a6" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 6 -->
 <label class="q-panel-label">Question:</label>
@@ -114,7 +114,7 @@
 <hr></cml:group><cml:checkbox label="Input Question No. 8" class="cml-chk" name="check_q7"/>
 
 <cml:group only-if="!check_q7:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-8:</th><td class="data-panel"><div id="show_q7" class="written-question"></div><div id="show_a7" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-8:</th><td class="data-panel qa-panel"><div id="show_q7" class="written-question"></div><div id="show_a7" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 7 -->
 <label class="q-panel-label">Question:</label>
@@ -130,7 +130,7 @@
 <hr></cml:group><cml:checkbox label="Input Question No. 9" class="cml-chk" name="check_q8"/>
 
 <cml:group only-if="!check_q8:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-9:</th><td class="data-panel"><div id="show_q8" class="written-question"></div><div id="show_a8" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-9:</th><td class="data-panel qa-panel"><div id="show_q8" class="written-question"></div><div id="show_a8" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 8 -->
 <label class="q-panel-label">Question:</label>
@@ -146,7 +146,7 @@
 <hr></cml:group><cml:checkbox label="Input Question No. 10" class="cml-chk" name="check_q9"/>
 
 <cml:group only-if="!check_q9:unchecked">
-<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-10:</th><td class="data-panel"><div id="show_q9" class="written-question"></div><div id="show_a9" class="written-answer"></div></td></tr></table><br><br>
+<table><tr><th>Sentence:</th><td class="data-panel">{{sentence}}</td></tr><tr><th>QA-10:</th><td class="data-panel qa-panel"><div id="show_q9" class="written-question"></div><div id="show_a9" class="written-answer"></div></td></tr></table><br><br>
 
 <!--  question 9 -->
 <label class="q-panel-label">Question:</label>

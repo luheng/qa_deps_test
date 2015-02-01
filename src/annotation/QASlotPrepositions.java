@@ -1,5 +1,9 @@
 package annotation;
 
+import java.util.HashSet;
+
+import util.StringUtils;
+
 public class QASlotPrepositions {
 
 	/**
@@ -10,40 +14,17 @@ public class QASlotPrepositions {
 	 */
 	
 	public static final String[] values = {
-		"",
-		"about",
-		"above",
-		"after",
-		"against",
-		"among",
-		"as",
-		"at",
-		"before",
-		"behind",
-		"below",
-		"beside",
-		"between",
-		"by",
-		"down",
-		"during",
-		"for",
-		"from",
-		"in",
-		"into",
-		"near",
-		"of",
-		"off",
-		"on",
-		"over",
-		"since",
-		"than",
-		"through",
-		"to",
-		"towards",
-		"under",
-		"up",
-		"with"
+		"aboard", "about", "above", "across", "afore", "after", "against", "along", "alongside", "amid",
+		"amidst", "among", "amongst", "around", "as", "aside", "astride", "at", "atop", "before",
+		"behind", "below", "beneath", "beside", "besides", "between", "beyond", "by", "despite", "down",
+		"during", "except", "for", "from", "given", "in", "inside", "into", "near", "next",
+		"of", "off", "on", "onto", "opposite", "out", "outside", "over", "pace", "per",
+		"round", "since", "than", "through", "throughout", "till", "times", "to", "toward", "towards",
+		"under", "underneath", "until", "unto", "up", "upon", "versus", "via", "with ", "within",
+		"without"
 	};
+	
+	public static final HashSet<String> ppSet = StringUtils.asSet(values);
 	
 	public static final String[] mostFrequentPPs = {
 		"by",

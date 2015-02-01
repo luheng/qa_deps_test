@@ -24,7 +24,8 @@ slots, as shown below:
 
 <br>
 
-Try to write as many questions and answers as possible. For example, we can also ask "What was built" and answer "A robot." 
+Try to write as many questions and answers as possible. For example, we can also ask "What was built" and answer "A robot."
+We have prepared 10 slots to enter different question-answer pairs, but you don't have to complete all of them.
 There are usually 2 to 5 different questions that can be asked depending on how much information the original sentence provides.
 
 ### Examples
@@ -143,12 +144,13 @@ Example 10: &nbsp; <b> Newspaper reported that Pat have n't actually <mark>built
 <br>
 
 ### Tips
-Do This:
+<h4 style="color:#8cc63e;"><strong>Do This</strong></h4>
 * There is often more than one way to ask the same question. For example, "Who was given something," vs. "Who was given something by someone," in example 2 above. Any equivalent question is acceptable but you should only provide one. When this happens, any of the questions are acceptable.
-* Please make sure the questions you asked are grammatical and understandable by others.
+* Please make sure the questions you asked are grammatical and understandable.
 * Trust your understanding of the language! :)
+* Feedback is highly appreciated!
 
-Do Not:
+<h4 style="color:#f05921;"><strong>Do Not</strong></h4>
 * Do not use words not in the original sentence for answer.
 * Do not change the tense/spelling of the words in the original sentence for answer.
 

@@ -25,7 +25,7 @@ public class CrowdFlowerCMLGenerator {
 
 	private static String dataQuestionTableStr =  "<table>" +
 			"<tr><th>Sentence:</th><td class=\"data-panel\">{{sentence}}</td></tr>" +
-			"<tr><th>QA-%d:</th><td class=\"data-panel\">" +
+			"<tr><th>QA-%d:</th><td class=\"data-panel qa-panel\">" +
 			"<div id=\"show_q%d\" class=\"written-question\"></div>" +
 			"<div id=\"show_a%d\" class=\"written-answer\"></div></td></tr>" +
 			"</table><br><br>\n\n";
