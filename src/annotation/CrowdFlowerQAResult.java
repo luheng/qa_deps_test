@@ -21,7 +21,7 @@ public class CrowdFlowerQAResult {
 	public int secondsToComplete; // in seconds
 	
 	// Used to align with original data.
-	public int sentenceId, propositionId;
+	public int sentenceId, propositionId, propStart, propEnd, propHead;
 	public String proposition;
 	
 	// Actual annotation result.
@@ -67,6 +67,17 @@ public class CrowdFlowerQAResult {
 		result.sentenceId = Integer.parseInt(csvRecord.get("sent_id"));
 		result.propositionId = Integer.parseInt(csvRecord.get("prop_id"));
 		result.proposition = csvRecord.get("proposition");
+		if (csvRecord.get("prop_start") != null) {
+			result.propStart = Integer.parseInt(csvRecord.get("prop_start"));
+			result.propEnd = Integer.parseInt(csvRecord.get("prop_end"));
+		} else {
+			result.propStart = result.propEnd = -1;
+		}
+		if (csvRecord.get("prop_head") != null) {
+			result.propHead = Integer.parseInt(csvRecord.get("prop_head"));
+		} else {
+			result.propHead = -1;
+		}
 		
 		// Parse annotation result.
 		for (int i = 0; i < maxNumQA; i++) {

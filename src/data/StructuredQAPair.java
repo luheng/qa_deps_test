@@ -25,7 +25,6 @@ public class StructuredQAPair {
 	public boolean isPassive;
 	public ArrayList<CrowdFlowerQAResult> cfAnnotationSources;
 	
-	
 	public StructuredQAPair(SRLSentence sent, int prop, String[] question,
 							String answer, CrowdFlowerQAResult cf) { 
 		this.sentence = sent;
@@ -64,6 +63,22 @@ public class StructuredQAPair {
 		return true;
 	}
 	
+	public String getNaiveQuestionEncoding() {
+		String encoding = "";
+		for (int i = 0; i < questionWords.length; i++) {
+			if (i > 0) {
+				encoding += " ";
+			}
+			if (questionWords[i].isEmpty()) {
+				encoding += "[/]";
+			} else {
+				encoding += questionWords[i];
+			}
+		}
+		return encoding;
+	}
+	
+	/*
 	public boolean questionEquals(SRLSentence sent, int prop, String wh,
 								  String pp, boolean passive) {
 		return this.sentence.sentenceID == sent.sentenceID &&
@@ -71,24 +86,31 @@ public class StructuredQAPair {
 			   (!comparePPforEquality || this.ppWord.equals(pp)) &&
 			   (!comparePassiveforEquality || this.isPassive == passive);
 	}
+	*/
 	
+	/*
 	public boolean equals(SRLSentence sent, int prop, String wh,
 						  String pp, boolean passive, int[][] spans) {
 		return this.questionEquals(sent, prop, wh, pp, passive) &&
 			   spansEquals(this.answerSpans, spans);
 	}
+	*/
 	
+	/*
 	@Override
 	public boolean equals(Object obj) {
 		StructuredQAPair qa = (StructuredQAPair) obj;
 		return this.equals(qa.sentence, qa.propositionId, qa.whWord, qa.ppWord,
 				qa.isPassive, qa.answerSpans);
 	}
+	*/
 	
+	/*
 	public boolean questionEquals(StructuredQAPair qa) {
 		return this.questionEquals(qa.sentence, qa.propositionId, qa.whWord,
 				qa.ppWord, qa.isPassive);
 	}
+	*/
 	
 	public void addAnnotationSource(CrowdFlowerQAResult cfSource) {
 		this.cfAnnotationSources.add(cfSource);

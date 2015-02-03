@@ -3,6 +3,7 @@ package experiments;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,7 +24,8 @@ import annotation.SRLAnnotationValidator;
 public class CrowdFlowerQADataRetriever {
 
 	private static final String annotationFilePath =
-			"crowdflower/CF_QA_trial_s20_result.csv";
+			//"crowdflower/CF_QA_trial_s20_result.csv";
+			"crowdflower/cf_round1_100sents_259units/f680088_CF_QA_s100_0202_results.csv";
 	
 	public static void readAnnotationResult(
 			ArrayList<CrowdFlowerQAResult> results) throws IOException {
@@ -51,7 +53,6 @@ public class CrowdFlowerQADataRetriever {
 				3600 / avgTime));
 	}
 	
-	/*
 	private static int getAlignmentDistance(int[] align1, int[] align2) {
 		int a1 = align1[0], b1 = align1[align1.length - 1],
 			a2 = align2[0], b2 = align2[align2.length - 1]; 
@@ -59,7 +60,33 @@ public class CrowdFlowerQADataRetriever {
 				Math.min(Math.abs(a1 - a2), Math.abs(a1 - b2)),
 			    Math.min(Math.abs(b1 - a2), Math.abs(b1 - b2)));
 	}
+	
+	/*
+	private static boolean isBetterAnswer(int[][] answer1, int[][] answer2,
+										  int propHead) {
+		// Compare minimum distance to the proposition and span coverage;
+		int minDist1 = Integer.MAX_VALUE, minDist2 = Integer.MAX_VALUE;
+		for (int[] s1 : answer1) {
+			minDist1 = Math.min(minDist1, Math.min(Math.abs(propHead - s1[0]),
+										  		   Math.abs(propHead - s1[1])));
+		}
+		for (int[] s2 : answer2) {
+			minDist2 = Math.min(minDist1, Math.min(Math.abs(propHead - s2[0]),
+			  		   							   Math.abs(propHead - s2[1])));
+		}
+		if (minDist1 != minDist2) {
+			return minDist1 < minDist2;
+		}
+	}
 	*/
+	
+	private static void spanSweep(int[] flags, int[][] spans) {
+		for (int[] span : spans) {
+			for (int i = span[0]; i < span[1]; i++) {
+				flags[i] += 1;
+			}
+		}
+	}
 	
 	public static void alignAnnotations(
 			ArrayList<AnnotatedSentence> annotatedSentences,
@@ -86,9 +113,13 @@ public class CrowdFlowerQADataRetriever {
 			AnnotatedSentence currSent = annotatedSentences.get(
 					sentIdMap.get(result.sentenceId));
 			
-			// Assume the propositions are unique, for now.
-			Proposition prop = propAligner.align(sentence, result.proposition);
-			int propHead = prop.span[1] - 1;
+			int propHead = -1;
+			if (result.propStart == -1) {
+				Proposition prop = propAligner.align(sentence, result.proposition);
+				propHead = prop.span[1] - 1;
+			} else {
+				propHead = result.propEnd - 1;
+			}
 			currSent.addProposition(propHead);
 			for (int i = 0; i < result.questions.size(); i++) {
 				String[] question = result.questions.get(i);
@@ -99,7 +130,7 @@ public class CrowdFlowerQADataRetriever {
 					currSent.addQAPair(propHead, qa);
 				}
 			}
-			
+			/*
 			if (!result.feedback.isEmpty()) {
 				System.out.println(sentence.getTokensString());
 				System.out.println("Prop:\t" + sentence.getTokenString(propHead));
@@ -109,6 +140,27 @@ public class CrowdFlowerQADataRetriever {
 					System.out.println("\t" + StringUtils.join(result.answers.get(i), " / "));
 				}
 				System.out.println();
+			}
+			*/
+		}
+		
+		for (AnnotatedSentence annotSent : annotatedSentences) {			
+			for (int propHead : annotSent.qaLists.keySet()) {
+				HashMap<String, int[]> aggregatedQAMap =
+						new HashMap<String, int[]>();
+				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
+					String encodedQuestion =
+							qa.getNaiveQuestionEncoding();
+					if (!aggregatedQAMap.containsKey(encodedQuestion)) {
+						int[] answer = new int[annotSent.sentence.length];
+						Arrays.fill(answer, 0);
+						spanSweep(answer, qa.answerSpans);
+						aggregatedQAMap.put(encodedQuestion, answer);
+					} else {
+						spanSweep(aggregatedQAMap.get(encodedQuestion),
+								qa.answerSpans);
+					}
+				}
 			}
 		}
 	}
@@ -128,6 +180,7 @@ public class CrowdFlowerQADataRetriever {
 			return;
 		}
 		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
+		/*
 		for (AnnotatedSentence sent : annotatedSentences) {
 			//System.out.println(sent.toString());
 			for (int propId : sent.qaLists.keySet()) {
@@ -139,7 +192,7 @@ public class CrowdFlowerQADataRetriever {
 			}
 			System.out.println();
 		}
-		
+		*/
 		SRLAnnotationValidator tester = new SRLAnnotationValidator();
 		tester.computeSRLAccuracy(annotatedSentences, trainCorpus);
 	}

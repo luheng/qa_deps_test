@@ -7,16 +7,17 @@ import data.DepSentence;
 import data.SRLCorpus;
 import data.SRLSentence;
 import data.StructuredQAPair;
+import edu.stanford.nlp.util.StringUtils;
 import evaluation.F1Metric;
 
 public class SRLAnnotationValidator {
-	private static boolean ignoreRootPropArcs = false;
+	private static boolean ignoreRootPropArcs = true;
 	private static boolean ignoreNominalArcs = true;
 	private static boolean ignoreAmModArcs = true;
 	private static boolean ignoreAmAdvArcs = false;
 	private static boolean ignoreAmNegArcs = true;
 	
-	private static boolean coreArgsOnly = true;
+	private static boolean coreArgsOnly = false;
 	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.
@@ -153,7 +154,14 @@ public class SRLAnnotationValidator {
 					}
 					if (!matchedGold) {
 						++ numUnmatchedPredSpans;
+						
 						// TODO: Output precision loss.
+						for (int[] ansSpan : qa.answerSpans) {
+						System.out.println(
+								StringUtils.join(qa.questionWords, " ") +
+								" - " +
+								sent.sentence.getTokenString(ansSpan));
+						}
 					}
 				}
 			}
