@@ -1,7 +1,6 @@
 package data;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Proposition {
 	public SRLSentence sentence;
@@ -13,7 +12,7 @@ public class Proposition {
 	// In argIDs, -1 denotes this argument is not present
 	// (i.e. only has A2, A3).
 	//public int[] argIDs;
-	public ArrayList<Integer> argModIDs, argModTypes;
+	public ArrayList<Integer> argIDs, argTypes;
 	private int numArgs;
 	
 	//private static final int maxNumArguments = 6; 
@@ -24,8 +23,8 @@ public class Proposition {
 		this.span[0] = this.span[1];
 		//this.argIDs = new int[maxNumArguments];
 		//Arrays.fill(argIDs, -1);
-		this.argModIDs = new ArrayList<Integer>();
-		this.argModTypes = new ArrayList<Integer>();
+		this.argIDs = new ArrayList<Integer>();
+		this.argTypes = new ArrayList<Integer>();
 		this.numArgs = 0;
 	}
 	
@@ -54,8 +53,8 @@ public class Proposition {
 	
 	public void addArgumentModifier(int argModID, int argModType) {
 		++ numArgs;
-		this.argModIDs.add(argModID);
-		this.argModTypes.add(argModType);
+		this.argIDs.add(argModID);
+		this.argTypes.add(argModType);
 	}
 	
 	public int getNumArguments() {
@@ -70,9 +69,9 @@ public class Proposition {
 		newProp.span[0] = this.span[0];
 		newProp.span[1] = this.span[1];
 		//newProp.argIDs = Arrays.copyOf(this.argIDs, this.argIDs.length);
-		for (int i = 0; i < this.argModIDs.size(); i++) {
-			newProp.argModIDs.add(this.argModIDs.get(i));
-			newProp.argModTypes.add(this.argModTypes.get(i));
+		for (int i = 0; i < this.argIDs.size(); i++) {
+			newProp.argIDs.add(this.argIDs.get(i));
+			newProp.argTypes.add(this.argTypes.get(i));
 		}
 		newProp.numArgs = this.numArgs;
 		return newProp;
@@ -96,9 +95,9 @@ public class Proposition {
 			}
 		}
 		*/
-		for (int i = 0; i < argModIDs.size(); i++) {
-			str += corpus.argModDict.index2str.get(argModTypes.get(i)) + "\t" +
-				   sentence.getTokenString(argModIDs.get(i)) + "\n";
+		for (int i = 0; i < argIDs.size(); i++) {
+			str += corpus.argModDict.index2str.get(argTypes.get(i)) + "\t" +
+				   sentence.getTokenString(argIDs.get(i)) + "\n";
 		}
 		return str;
 	}

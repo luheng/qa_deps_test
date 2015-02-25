@@ -51,9 +51,9 @@ public class SRLSentence extends DepSentence {
 				}
 			}
 			*/
-			for (int i = 0; i < prop.argModIDs.size(); i++) {
-				arcs[pid][prop.argModIDs.get(i) + 1] =
-						argModDict.index2str.get(prop.argModTypes.get(i));
+			for (int i = 0; i < prop.argIDs.size(); i++) {
+				arcs[pid][prop.argIDs.get(i) + 1] =
+						argModDict.index2str.get(prop.argTypes.get(i));
 			}
 		}
 		return arcs;

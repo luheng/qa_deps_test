@@ -84,6 +84,21 @@ public class CountDictionary {
 		return -1;
 	}
 	
+
+	public int addString(String str, int count) {
+		if (str2index.contains(str)) {
+			int sid = str2index.get(str);
+			index2count.set(sid, index2count.get(sid) + count);
+			return sid;
+		} else {
+			int sid = index2str.size();
+			index2str.add(str);
+			index2count.add(count);
+			str2index.put(str, sid);
+			return sid;
+		}
+	}
+	
 	public int addString(String str, String unseenMarker) {
 		return str2index.contains(str) ? addString(str) :
 				addString(unseenMarker);
@@ -142,4 +157,5 @@ public class CountDictionary {
 											index2count.get(i)));
 		}
 	}
+
 }

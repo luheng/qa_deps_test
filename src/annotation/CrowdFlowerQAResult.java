@@ -73,7 +73,7 @@ public class CrowdFlowerQAResult {
 		} else {
 			result.propStart = result.propEnd = -1;
 		}
-		if (csvRecord.get("prop_head") != null) {
+		if (csvRecord.isMapped("prop_head")) {
 			result.propHead = Integer.parseInt(csvRecord.get("prop_head"));
 		} else {
 			result.propHead = -1;

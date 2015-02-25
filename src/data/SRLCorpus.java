@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 public class SRLCorpus extends DepCorpus {
 
-	CountDictionary lemmaDict, argModDict, propDict;
+	public CountDictionary lemmaDict, argModDict, propDict;
 	
 	public SRLCorpus(String corpusName) {
 		super(corpusName);
@@ -163,9 +163,9 @@ public class SRLCorpus extends DepCorpus {
 			//System.out.println(sentence.toString());
 			for (Proposition prop : sentence.propositions) {
 				HashMap<String, Integer> types = new HashMap<String, Integer>();
-				for (int j = 0; j < prop.argModTypes.size(); j++) {
+				for (int j = 0; j < prop.argTypes.size(); j++) {
 					String atype = corpus.argModDict.getString(
-							prop.argModTypes.get(j));
+							prop.argTypes.get(j));
 					if (types.containsKey(atype) && !atype.startsWith("AM")) {
 						System.out.println(sentence.toString());
 						break;

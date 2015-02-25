@@ -40,7 +40,27 @@ public class StructuredQAPair {
 		this.isPassive = false;
 		this.answerSpans = AnswerSpanAligner.align(sent, answer);
 		this.cfAnnotationSources = new ArrayList<CrowdFlowerQAResult>();
-		this.cfAnnotationSources.add(cf);
+		if (cf != null) {
+			this.cfAnnotationSources.add(cf);
+		}
+	}
+	
+	public StructuredQAPair(SRLSentence sent, int prop, String[] question,
+			int[][] answerSpans, CrowdFlowerQAResult cf) { 
+		this.sentence = sent;
+		this.propositionId = prop;
+		this.questionWords = new String[question.length];
+		for (int i = 0; i < question.length; i++) {
+			this.questionWords[i] = question[i].toLowerCase();
+		}
+		this.whWord = question[0].toLowerCase();
+		this.ppWord = question[5].toLowerCase();
+		this.isPassive = false;
+		this.answerSpans = answerSpans;
+		this.cfAnnotationSources = new ArrayList<CrowdFlowerQAResult>();
+		if (cf != null) {
+			this.cfAnnotationSources.add(cf);
+		}
 	}
 	
 	private static boolean whWordEquals(String wh1, String wh2) {
@@ -76,6 +96,19 @@ public class StructuredQAPair {
 			}
 		}
 		return encoding;
+	}
+	
+	public static String[] decodeQuestion(String qstr) {
+		String[] qs = qstr.split(" ");
+		String[] qwords = new String[qs.length];
+		for (int i = 0; i < qs.length; i++) {
+			if (qs[i].equals("[/]")) {
+				qwords[i] = "";
+			} else {
+				qwords[i] = qs[i];
+			}
+		}
+		return qwords;
 	}
 	
 	/*

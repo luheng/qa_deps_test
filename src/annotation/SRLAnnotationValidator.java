@@ -1,22 +1,25 @@
 package annotation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import data.AnnotatedSentence;
 import data.DepSentence;
 import data.SRLCorpus;
 import data.SRLSentence;
 import data.StructuredQAPair;
-import edu.stanford.nlp.util.StringUtils;
+import util.StringUtils;
 import evaluation.F1Metric;
 
 public class SRLAnnotationValidator {
+	
 	private static boolean ignoreRootPropArcs = true;
 	private static boolean ignoreNominalArcs = true;
 	private static boolean ignoreAmModArcs = true;
 	private static boolean ignoreAmAdvArcs = false;
 	private static boolean ignoreAmNegArcs = true;
 	
+	private static boolean goldPropositionOnly = true; 
 	private static boolean coreArgsOnly = false;
 	
 	// So if the gold argument head has a child that is contained in the answer
@@ -60,11 +63,20 @@ public class SRLAnnotationValidator {
 			
 			int length = srlSentence.length + 1;
 			String[][] goldArcs = srlSentence.getSemanticArcs();
+			int[] goldProps = new int[srlSentence.length];
+			
 			boolean[][] covered = new boolean[length][length];
 			int numUncoveredGoldArcs = 0, // Recall loss.
 				numUnmatchedPredSpans = 0, // Precision loss.
 				numGoldArcs = 0;
 	
+			Arrays.fill(goldProps, 0);
+			for (int i = 0; i < length; i++) {
+				if (!goldArcs[0][i].isEmpty() &&
+					srlSentence.getPostagString(i - 1).equals("VERB")) {
+					goldProps[i - 1] = 1;
+				}
+			}
 			for (int i = 0; i < length; i++) {
 				for (int j = 1; j < length; j++) {
 					if (ignoreRootPropArcs && i == 0) {
@@ -113,8 +125,6 @@ public class SRLAnnotationValidator {
 			}
 			System.out.println();
 			
-			System.out.println("[Precision loss]:");
-			
 			// Go over all propositions
 			for (int propId : sent.qaLists.keySet()) {
 				int propHead = propId + 1;
@@ -125,6 +135,12 @@ public class SRLAnnotationValidator {
 						covered[0][propHead] = true;
 					}
 				}
+				if (goldPropositionOnly && goldProps[propHead - 1] == 0) {
+					continue;
+				}
+				
+				System.out.println("#:\t" + srlSentence.getTokenString(propId));
+				
 				ArrayList<StructuredQAPair> qaList = sent.qaLists.get(propId);
 				for (StructuredQAPair qa : qaList) {
 					if (coreArgsOnly && !isWhoWhatQuestion(qa)) {
@@ -154,7 +170,7 @@ public class SRLAnnotationValidator {
 					}
 					if (!matchedGold) {
 						++ numUnmatchedPredSpans;
-						
+						/*
 						// TODO: Output precision loss.
 						for (int[] ansSpan : qa.answerSpans) {
 						System.out.println(
@@ -162,8 +178,17 @@ public class SRLAnnotationValidator {
 								" - " +
 								sent.sentence.getTokenString(ansSpan));
 						}
+						*/
 					}
-				}
+					
+
+					// Output QA-pairs, side-by-side from different annotators
+					System.out.println(String.format("%08d\t%s\t%-40s- %s",
+							qa.cfAnnotationSources.get(0).cfWorkerId,
+							(matchedGold ? "  " : "[*]"), 
+							StringUtils.join(" ", qa.questionWords) + "?",
+							qa.getAnswerString()));
+				}				
 			}
 			
 			// Output recall loss

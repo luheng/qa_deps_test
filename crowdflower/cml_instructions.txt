@@ -1,34 +1,33 @@
 What does the sentence tell us?
 
 ### Overview
-We want to teach the computer to understand human language. To do this, we need your help to collect information such as "who did what to whom" or "when/where did someone do something," given what was claimed in an example sentence. Naturally, this kind of information can be captured by asking questions and answering them.
+We want to teach the computer to understand human language. To do this, we need your help to collect information such as "who did what to whom" or "when/where did someone do something", given what is claimed in an example sentence. Naturally, this kind of information can be captured by asking questions and answering them.
 
 ### Process
-You will be presented with a sentence and a target phrase (most likely a verb) that occurs in the sentence. For example: "Pat built a robot. [built]". Your job is to:
+You will be presented with a sentence and a target phrase (most likely a verb) that occurs in the sentence. For example, given the sentence "Pat built a robot." and the target phrase "built", your job is to:
 
-* Step 1: Write a question using the template we provide. Your question should be answerable given only the information the sentence provides. For example: "Who built something?".
-* Step 2: Answer the question using only words from the original sentence.  For example: "Pat". When there is more than one correct answer, try to list them all.
+* <b>Step 1:</b>&nbsp; Write a question using the template we provide. Your question should be answerable given only the information the sentence provides. For example, "Who built something?" is answerable, while "When is something built" is not.
+* <b>Step 2:</b>&nbsp; Answer that question using only words from the original sentence.  For example, "Pat". When there is more than one correct answer, try to list them all.
 
-For best results, the questions and answers you provide must follow certain constraints. To collect questions that computers can easily understand, we provide a template with seven 
-slots, as shown below:
+To collect questions that computers can easily understand, we provide a template with seven 
+drop-down boxes, as shown below:
 <table>
-<tr><th>Slot</th> <th>Description</th> <th>Examples</th></tr>
-<tr><th>WH</th>   <td>Question words (wh-words)</td> <td>who, what, where ...</td></tr>
+<tr><th>Drop-down Box</th> <th>Description</th> <th>Example options</th></tr>
+<tr><th>WH *</th>   <td>Question words (wh-words).</td> <td>who, what, where ...</td></tr>
 <tr><th>AUX</th>  <td>Auxiliary verbs</td>           <td>is, was, have, had, could, won't ...</td></tr>
 <tr><th>PH1</th>  <td>Place-holding words</td>       <td>something, someone, do something ...</td></tr>
-<tr><th>TRG</th>  <td>Some form of the target word</td> <td> (if original word is built) builds, build, built, being built</td></tr> 
+<tr><th>TRG *</th>  <td>Some form of the target word. </td> <td> (if original word is built) builds, build, built, being built</td></tr> 
 <tr><th>PH2</th>  <td>Same as PH1</td>  <td> </td> </tr>
 <tr><th>PP</th>   <td>Prepositions</td> <td>to, from, by, with, ... </td> </tr>
 <tr><th>PH3</th>  <td>Same as PH1 and PH2</td>  <td> </td> </tr>
 </table>
+\*: WH and TRG are required drop-down boxes. The rest can be left empty when appropriate.
 
-<br>
-
-Try to write as many questions and answers as possible. For example, we can also ask "What was built" and answer "A robot."
-We have prepared 10 slots to enter different question-answer pairs, but you don't have to complete all of them.
-There are usually 2 to 5 different questions that can be asked depending on how much information the original sentence provides.
+Very importantly, we want you to write down as many questions and answers as possible. For example, for the same sentence "Pat built a robot." and the same target phrase "built", we can also ask "What was built" and answer "A robot".
+You can write up to 10 questions. There are usually 2 to 5 different questions that can be asked depending on how much information the original sentence provides. 
 
 ### Examples
+Here are some examples that can help you better understand the task. In each example, the target phrase is the highlighted word(s) in the sentence.
 
 #### Simple sentences.
 
@@ -41,37 +40,37 @@ Example 1: &nbsp; <b> Pat <mark>built</mark> a robot. </b>
 
 <br>
 
-Example 2: &nbsp; <b> Pat <mark>gave</mark> the robot some oil. </b>
+Example 2: &nbsp; <b> Pat <mark>gave</mark> the robot a cookbook. </b>
 <table>
 <tr><th>WH</th>   <th>AUX</th> <th>PH1</th> <th>TRG</th>   <th>PH2</th>       <th>PP</th> <th>PH3</th>     <th>?</th> <th>ANSWER</th> </tr>
 <tr><td>Who</td>  <td> </td>   <td></td>    <td>gave</td>  <td>something</td> <td> </td>  <td> </td>       <td>?</td> <td>Pat</td> </tr>
-<tr><td>Who</td>  <td>was</td> <td></td>    <td>given</td> <td>something</td> <td> </td>  <td> </td>       <td>?</td> <td>The robot</td> </tr>
-<tr><td>What</td> <td>was</td> <td></td>    <td>given</td> <td></td>          <td> </td>  <td> </td>       <td>?</td> <td>Some oil</td> </tr>
+<tr><td>What</td>  <td>was</td> <td></td>    <td>given</td> <td>something</td> <td> </td>  <td> </td>       <td>?</td> <td>The robot</td> </tr>
+<tr><td>What</td> <td>was</td> <td></td>    <td>given</td> <td></td>          <td> </td>  <td> </td>       <td>?</td> <td>A cookbook</td> </tr>
 </table>
 
 <br>
 
-Example 3: &nbsp; <b> Pat <mark>expected</mark> Chris to fix the robot when it crashed. </b>
+Example 3: &nbsp; <b> Pat <mark>expected</mark> Chris to fix the robot when it broke down. </b>
 
 <table>
 <tr><th>WH</th>   <th>AUX</th> <th>PH1</th> <th>TRG</th>          <th>PH2</th>       <th>PP</th> <th>PH3</th>           <th>?</th> <th>ANSWER</th> </tr>
 <tr><td>Who</td>  <td> </td>   <td> </td>       <td>expected</td> <td>something</td> <td> </td>  <td> </td>             <td>?</td> <td>Pat</td> </tr>
 <tr><td>Who</td>  <td>is</td>   <td> </td>      <td>expected</td> <td> </td>         <td>to</td>  <td>do something</td> <td>?</td> <td>Chris</td> </tr>
 <tr><td>What</td> <td>is</td>  <td>someone</td> <td>expected</td> <td> </td>         <td>to</td> <td>do</td>            <td>?</td> <td>To fix the robot</td> </tr>
-<tr><td>When</td> <td>is</td>  <td>someone</td> <td>expected</td> <td> </td>         <td>to</td> <td>do something</td>  <td>?</td> <td>When it crashed</td> </tr>
+<tr><td>When</td> <td>is</td>  <td>someone</td> <td>expected</td> <td> </td>         <td>to</td> <td>do something</td>  <td>?</td> <td>When it broke down</td> </tr>
 </table>
 
 <br>
 
-#### Asking about Time, Location, and Reason
+#### Asking about Time, Location, and Reason.
 
-Example 4: &nbsp; <b> The robot <mark>moved</mark> from point A to point B because it was programmed to do so. </b>
+Example 4: &nbsp; <b> The robot <mark>moved</mark> from the garage to the kitchen because it was programmed to do so. </b>
 
 <table>
 <tr><th>WH</th>    <th>AUX</th> <th>PH1</th>       <th>TRG</th>   <th>PH2</th> <th>PP</th>   <th>PH3</th> <th>?</th> <th>ANSWER</th>    </tr>
 <tr><td>What</td>  <td> </td>   <td> </td>         <td>moved</td> <td> </td>   <td> </td>    <td> </td>   <td>?</td> <td>The robot</td> </tr>
-<tr><td>Where</td> <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td>from</td> <td> </td>   <td>?</td> <td>Point A</td>   </tr>
-<tr><td>Where</td> <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td>to</td>   <td> </td>   <td>?</td> <td>Point B</td>   </tr>
+<tr><td>Where</td> <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td>from</td> <td> </td>   <td>?</td> <td>The garage</td>   </tr>
+<tr><td>Where</td> <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td>to</td>   <td> </td>   <td>?</td> <td>The kitchen</td>   </tr>
 <tr><td>Why</td>   <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td> </td>    <td> </td>   <td>?</td> <td>Because it was programmed to do so</td> </tr>
 </table>
 
@@ -79,21 +78,21 @@ Example 4: &nbsp; <b> The robot <mark>moved</mark> from point A to point B becau
 
 #### Providing multiple answers to the same question.
 
-Example 5: &nbsp; <b> Pat expected Chris to fix the robot when it <mark>crashed</mark>. </b>
+Example 5: &nbsp; <b> Pat expected Chris to fix the robot when it <mark>broke</mark> down. </b>
 
 <table>
 <tr><th>WH</th>   <th>AUX</th> <th>PH1</th> <th>TRG</th>     <th>PH2</th> <th>PP</th> <th>PH3</th> <th>?</th> <th>ANSWER1</th> <th>ANSWER2</th> </tr>
-<tr><td>What</td> <td> </td>   <td> </td>   <td>crashed</td> <td> </td>   <td> </td>  <td> </td>   <td>?</td> <td>It</td>      <td>The robot</td> </tr>
+<tr><td>What</td> <td> </td>   <td> </td>   <td>broke</td> <td> </td>   <td>down</td>  <td> </td>   <td>?</td> <td>It</td>      <td>The robot</td> </tr>
 </table>
 
 <br>
 
-Example 6: &nbsp; <b> The robot moved from point A to point B because it was <mark>programmed</mark> to do so. </b>
+Example 6: &nbsp; <b> The robot moved from the garage to the kitchen because it was <mark>programmed</mark> to do so. </b>
 
 <table>
 <tr><th>WH</th>   <th>AUX</th> <th>PH1</th>       <th>TRG</th>            <th>PH2</th> <th>PP</th> <th>PH3</th>          <th>?</th> <th>ANSWER1</th>  <th>ANSWER2</th> </tr>
 <tr><td>What</td> <td>was</td>   <td> </td>       <td>programmed</td> <td> </td>   <td>to</td> <td>do something</td> <td>?</td> <td>It</td>       <td>The robot</td> </tr>
-<tr><td>What</td> <td>was</td> <td>something</td> <td>programmed</td>     <td> </td>   <td>to</td> <td>do</td>           <td>?</td> <td>So</td> <td>Moved from point A to point B</td> </tr>
+<tr><td>What</td> <td>was</td> <td>something</td> <td>programmed</td>     <td> </td>   <td>to</td> <td>do</td>           <td>?</td> <td>So</td> <td>Moved from the garage to the kitchen</td> </tr>
 </table>
 
 * Note that the answer is "moved from ..." instead of "move from ..." because these are the same words used in the original sentence. 

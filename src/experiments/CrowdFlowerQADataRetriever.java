@@ -3,7 +3,6 @@ package experiments;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +15,6 @@ import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
 import data.StructuredQAPair;
-import edu.stanford.nlp.util.StringUtils;
 import annotation.CrowdFlowerQAResult;
 import annotation.PropositionAligner;
 import annotation.SRLAnnotationValidator;
@@ -25,7 +23,7 @@ public class CrowdFlowerQADataRetriever {
 
 	private static final String annotationFilePath =
 			//"crowdflower/CF_QA_trial_s20_result.csv";
-			"crowdflower/cf_round1_100sents_259units/f680088_CF_QA_s100_0202_results.csv";
+			"crowdflower/cf_round1_100sents_259units/f680088_CF_QA_s100_final_results.csv";
 	
 	public static void readAnnotationResult(
 			ArrayList<CrowdFlowerQAResult> results) throws IOException {
@@ -88,6 +86,31 @@ public class CrowdFlowerQADataRetriever {
 		}
 	}
 	
+	// Find all spans
+	// FIXME: this might be problematic
+	private static int[][] getSpans(int[] flags) {
+		ArrayList<int[]> spanBuffer = new ArrayList<int[]>();
+		int start = -1;
+		for (int i = 0; i < flags.length; i++) {
+			if (flags[i] > 0 && start == -1) {
+				start = i;
+			}
+			if (flags[i] == 0 && start != -1) {
+				spanBuffer.add(new int[] {start, i});
+				start = -1;
+			}
+		}
+		if (start != -1) {
+			spanBuffer.add(new int[] {start, flags.length});
+		}
+		int[][] spans = new int[spanBuffer.size()][2];
+		for (int i = 0; i < spanBuffer.size(); i++) {
+			spans[i][0] = spanBuffer.get(i)[0];
+			spans[i][1] = spanBuffer.get(i)[1];
+		}
+		return spans;
+	}
+	
 	public static void alignAnnotations(
 			ArrayList<AnnotatedSentence> annotatedSentences,
 			ArrayList<CrowdFlowerQAResult> cfResults, SRLCorpus corpus) {
@@ -122,14 +145,18 @@ public class CrowdFlowerQADataRetriever {
 			}
 			currSent.addProposition(propHead);
 			for (int i = 0; i < result.questions.size(); i++) {
-				String[] question = result.questions.get(i);
-				String[] answers = result.answers.get(i);	
+				String[] question = result.questions.get(i);				
+				if (question[0].equalsIgnoreCase("how many")) {
+					continue;
+				}
+				String[] answers = result.answers.get(i);
 				for (String answer : answers) {
 					StructuredQAPair qa = new StructuredQAPair(sentence,
 							propHead, question, answer, result);
 					currSent.addQAPair(propHead, qa);
 				}
 			}
+			// TODO: look at people's feedback
 			/*
 			if (!result.feedback.isEmpty()) {
 				System.out.println(sentence.getTokensString());
@@ -143,24 +170,33 @@ public class CrowdFlowerQADataRetriever {
 			}
 			*/
 		}
-		
+	}
+	
+	static void aggregateAnnotations(
+			ArrayList<AnnotatedSentence> annotatedSentences) {
 		for (AnnotatedSentence annotSent : annotatedSentences) {			
 			for (int propHead : annotSent.qaLists.keySet()) {
-				HashMap<String, int[]> aggregatedQAMap =
-						new HashMap<String, int[]>();
+				HashMap<String, Integer> aggregatedQAMap =
+						new HashMap<String, Integer>();
 				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encodedQuestion =
-							qa.getNaiveQuestionEncoding();
-					if (!aggregatedQAMap.containsKey(encodedQuestion)) {
-						int[] answer = new int[annotSent.sentence.length];
-						Arrays.fill(answer, 0);
-						spanSweep(answer, qa.answerSpans);
-						aggregatedQAMap.put(encodedQuestion, answer);
+					String encodedAnswer = qa.getAnswerString();
+					if (!aggregatedQAMap.containsKey(encodedAnswer)) {
+						aggregatedQAMap.put(encodedAnswer, 1);
 					} else {
-						spanSweep(aggregatedQAMap.get(encodedQuestion),
-								qa.answerSpans);
+						int k = aggregatedQAMap.get(encodedAnswer);
+						aggregatedQAMap.put(encodedAnswer, k + 1);
 					}
 				}
+				ArrayList<StructuredQAPair> agreedList =
+						new ArrayList<StructuredQAPair>();
+				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
+					String encodedAnswer = qa.getAnswerString();
+					if (aggregatedQAMap.get(encodedAnswer) > 1) {
+						agreedList.add(qa);
+						aggregatedQAMap.put(encodedAnswer, 0);
+					}
+				}
+				annotSent.qaLists.put(propHead, agreedList);
 			}
 		}
 	}
@@ -180,6 +216,7 @@ public class CrowdFlowerQADataRetriever {
 			return;
 		}
 		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
+		aggregateAnnotations(annotatedSentences);
 		/*
 		for (AnnotatedSentence sent : annotatedSentences) {
 			//System.out.println(sent.toString());
