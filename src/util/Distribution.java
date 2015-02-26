@@ -33,6 +33,10 @@ public class Distribution {
 		return sum / values.size();
 	}
 	
+	public double getStd() {
+		
+	}
+	
 	public double getMin() {
 		return minValue;
 	}

@@ -13,14 +13,14 @@ import evaluation.F1Metric;
 
 public class SRLAnnotationValidator {
 	
-	private static boolean ignoreRootPropArcs = true;
-	private static boolean ignoreNominalArcs = true;
-	private static boolean ignoreAmModArcs = true;
-	private static boolean ignoreAmAdvArcs = false;
-	private static boolean ignoreAmNegArcs = true;
+	public boolean ignoreRootPropArcs = true;
+	public boolean ignoreNominalArcs = true;
+	public boolean ignoreAmModArcs = true;
+	public boolean ignoreAmAdvArcs = false;
+	public boolean ignoreAmNegArcs = true;
 	
-	private static boolean goldPropositionOnly = true; 
-	private static boolean coreArgsOnly = false;
+	public boolean goldPropositionOnly = true; 
+	public boolean coreArgsOnly = false;
 	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.
@@ -51,6 +51,58 @@ public class SRLAnnotationValidator {
 		String qword = qa.whWord;
 		return qword.equalsIgnoreCase("who") || qword.equals("whom") ||
 			   qword.equalsIgnoreCase("what");
+	}
+	
+	public String[][] getGoldSRL(SRLSentence sentence) {
+		int length = sentence.length + 1;
+		String[][] goldArcs = sentence.getSemanticArcs();
+		
+		for (int i = 0; i < length; i++) {
+			if (!goldArcs[0][i].isEmpty() &&
+				sentence.getPostagString(i - 1).equals("VERB")) {
+			}
+		}
+		
+		for (int i = 0; i < length; i++) {
+			for (int j = 1; j < length; j++) {
+				if (ignoreNominalArcs) {
+					if ((i == 0 && !sentence.getPostagString(j - 1)
+					   		.equals("VERB")) ||
+					   	(i > 0 && !sentence.getPostagString(i - 1)
+						   		.equals("VERB"))) {
+						goldArcs[i][j] = "";
+					}
+				}
+				if (coreArgsOnly && goldArcs[i][j].startsWith("AM")) {
+					goldArcs[i][j] = "";
+				}
+				if (ignoreAmModArcs && goldArcs[i][j].equals("AM-MOD")) {
+					goldArcs[i][j] = "";
+				}
+				if (ignoreAmAdvArcs && goldArcs[i][j].equals("AM-ADV")) {
+					goldArcs[i][j] = "";
+				}
+				if (ignoreAmNegArcs && goldArcs[i][j].equals("AM-NEG")) {
+					goldArcs[i][j] = "";
+				}
+			}
+		}
+		
+		return goldArcs;
+	}
+	
+	public boolean matchedGold(int goldArgHead, StructuredQAPair qa,
+			SRLSentence srlSentence) {
+		boolean headInAnswer = containedInAnswer(goldArgHead,
+				qa.answerSpans);
+		boolean childInAnswer = hasChildInAnswer(goldArgHead,
+				qa.answerSpans, srlSentence);
+		String argHeadPos = srlSentence
+				.getPostagString(goldArgHead);
+		boolean headIsPP = argHeadPos.equals("ADP") ||
+				argHeadPos.equals("PRT");
+		return (headInAnswer || (allowTwoHopValidation &&
+				childInAnswer && headIsPP));
 	}
 	
 	public void computeSRLAccuracy(
@@ -151,16 +203,7 @@ public class SRLAnnotationValidator {
 						if (goldArcs[propHead][argHead].isEmpty()) {
 							continue;
 						}
-						boolean headInAnswer = containedInAnswer(argHead - 1,
-								qa.answerSpans);
-						boolean childInAnswer = hasChildInAnswer(argHead - 1,
-								qa.answerSpans, srlSentence);
-						String argHeadPos = srlSentence
-								.getPostagString(argHead - 1);
-						boolean headIsPP = argHeadPos.equals("ADP") ||
-								argHeadPos.equals("PRT");
-						if (headInAnswer || (allowTwoHopValidation &&
-								childInAnswer && headIsPP)) {
+						if (matchedGold(argHead - 1, qa, srlSentence)) {
 							if (!covered[propHead][argHead]) {
 								numUncoveredGoldArcs --;
 								covered[propHead][argHead] = true;
