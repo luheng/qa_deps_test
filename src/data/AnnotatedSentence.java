@@ -12,19 +12,19 @@ public class AnnotatedSentence {
 		qaLists = new HashMap<Integer, ArrayList<StructuredQAPair>>();
 	}
 	
-	public boolean addProposition(int pid) {
-		if (qaLists.containsKey(pid)) {
+	public boolean addProposition(int propHead) {
+		if (qaLists.containsKey(propHead)) {
 			return false;
 		}
-		qaLists.put(pid, new ArrayList<StructuredQAPair>());
+		qaLists.put(propHead, new ArrayList<StructuredQAPair>());
 		return true;
 	}
 	
-	public boolean addQAPair(int pid, StructuredQAPair qa) {
-		if (!qaLists.containsKey(pid)) {
+	public boolean addQAPair(int propHead, StructuredQAPair qa) {
+		if (!qaLists.containsKey(propHead)) {
 			return false;
 		}
-		ArrayList<StructuredQAPair> qaList = qaLists.get(pid);
+		ArrayList<StructuredQAPair> qaList = qaLists.get(propHead);
 		for (StructuredQAPair qa0 : qaList) {
 			if (qa0.equals(qa)) {
 				qa0.cfAnnotationSources.addAll(qa.cfAnnotationSources);

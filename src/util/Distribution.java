@@ -34,7 +34,11 @@ public class Distribution {
 	}
 	
 	public double getStd() {
-		
+		double std = .0, mean = getMean();
+		for (double val : values) {
+			std += (val - mean) * (val - mean);
+		}
+		return Math.sqrt(std / values.size());
 	}
 	
 	public double getMin() {

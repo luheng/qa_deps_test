@@ -4,18 +4,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 import util.Distribution;
 import util.StringUtils;
 import data.AnnotatedSentence;
-import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
 import data.StructuredQAPair;
 import annotation.CrowdFlowerQAResult;
-import annotation.PropositionAligner;
 import annotation.SRLAnnotationValidator;
 
 public class CrowdFlowerQADataAnalyzer {
@@ -23,12 +19,16 @@ public class CrowdFlowerQADataAnalyzer {
 	private static SRLCorpus corpus;
 	private static ArrayList<CrowdFlowerQAResult> annotationResults;
 	private static ArrayList<ArrayList<StructuredQAPair>> alignedQALists;
-	private static ArrayList<AnnotatedSentence> annotatedSentences;
+	private static HashMap<Integer, ArrayList<Integer>> workerMap;
+	private static HashMap<Integer, Integer> sentenceIdMap;
+	private static HashMap<Integer, AnnotatedSentence> annotatedSentences;
+	private static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> agreedAnswers;
 	
 	private static SRLAnnotationValidator validator = new SRLAnnotationValidator();
 	
 	public static void alignAnnotations() {
 		alignedQALists = new ArrayList<ArrayList<StructuredQAPair>>();
+		annotatedSentences = new HashMap<Integer, AnnotatedSentence>();
 		
 		for (CrowdFlowerQAResult result : annotationResults) {
 			int sentId = result.sentenceId;
@@ -36,6 +36,11 @@ public class CrowdFlowerQADataAnalyzer {
 			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
 			ArrayList<StructuredQAPair> qaList =
 					new ArrayList<StructuredQAPair>();
+			
+			if (!annotatedSentences.containsKey(sentId)) {
+				annotatedSentences.put(sentId, new AnnotatedSentence(sentence));
+			}
+			annotatedSentences.get(sentId).addProposition(propHead);
 			
 			for (int i = 0; i < result.questions.size(); i++) {
 				String[] question = result.questions.get(i);				
@@ -47,10 +52,31 @@ public class CrowdFlowerQADataAnalyzer {
 					StructuredQAPair qa = new StructuredQAPair(sentence,
 							propHead, question, answer, result);
 					qaList.add(qa);
+					annotatedSentences.get(sentId).addQAPair(propHead, qa);
 				}
 			}
-			
 			alignedQALists.add(qaList);
+		}
+	}
+	
+	static void aggregateAnnotations() {
+		agreedAnswers = new HashMap<Integer,
+				HashMap<Integer, HashMap<String, Integer>>>();
+		for (AnnotatedSentence annotSent : annotatedSentences.values()) {
+			int sentId = annotSent.sentence.sentenceID; 
+			agreedAnswers.put(sentId, new HashMap<Integer,
+					HashMap<String, Integer>>());
+			for (int propHead : annotSent.qaLists.keySet()) {
+				HashMap<String, Integer> answerMap =
+						new HashMap<String, Integer>();		
+				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
+					String encodedAnswer = qa.getAnswerString();
+					int k = (answerMap.containsKey(encodedAnswer) ?
+							answerMap.get(encodedAnswer) : 0);
+					answerMap.put(encodedAnswer, k + 1);
+				}
+				agreedAnswers.get(sentId).put(propHead, answerMap);
+			}
 		}
 	}
 	
@@ -63,19 +89,16 @@ public class CrowdFlowerQADataAnalyzer {
 			minTime = Math.min(minTime, secs);
 			maxTime = Math.max(maxTime, secs);
 		}
-		
 		System.out.println("Averaged: " + avgTime / annotationResults.size() + "\n" +
 						   "Minimum: " + minTime + "\n" +
 						   "Maximum: " + maxTime);
-		
 		// TODO
 		// Distribution of completion time
 	}
 	
 	private static void workerAnalysis() {
-		HashMap<Integer, ArrayList<Integer>> workerMap =
-				new HashMap<Integer, ArrayList<Integer>>();
-		HashMap<Integer, Integer> sentIdMap = new HashMap<Integer, Integer>();
+		sentenceIdMap = new HashMap<Integer, Integer>();
+		workerMap = new HashMap<Integer, ArrayList<Integer>>();
 		
 		int numResults = annotationResults.size();
 		
@@ -88,17 +111,17 @@ public class CrowdFlowerQADataAnalyzer {
 			workerMap.get(workerId).add(i);
 			
 			int sentId = result.sentenceId;
-			if (!sentIdMap.containsKey(sentId)) {
-				int mappedId = sentIdMap.size();
-				sentIdMap.put(sentId, mappedId);
+			if (!sentenceIdMap.containsKey(sentId)) {
+				int mappedId = sentenceIdMap.size();
+				sentenceIdMap.put(sentId, mappedId);
 			}
 		}
 		
 		// Get Gold SRL.
-		String[][][] goldSRL = new String[sentIdMap.size()][][];
-		for (int sentId : sentIdMap.keySet()) {
+		String[][][] goldSRL = new String[sentenceIdMap.size()][][];
+		for (int sentId : sentenceIdMap.keySet()) {
 			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
-			goldSRL[sentIdMap.get(sentId)] = validator.getGoldSRL(sentence);
+			goldSRL[sentenceIdMap.get(sentId)] = validator.getGoldSRL(sentence);
 		}
 		
 		// Flags
@@ -107,42 +130,50 @@ public class CrowdFlowerQADataAnalyzer {
 		Arrays.fill(matchedGold, 0);
 		Arrays.fill(agreedAnswer, 0);
 		
-		for (int i = 0; i < numResults; i++) {
+		for (int r = 0; r < numResults; r++) {
 			// Match with gold SRL
-			CrowdFlowerQAResult result = annotationResults.get(i);
+			CrowdFlowerQAResult result = annotationResults.get(r);
 			int sentId = result.sentenceId;
 			int propHead = result.propEnd - 1;
 			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
 			
-			ArrayList<StructuredQAPair> qaList = alignedQALists.get(i);
-			String[][] gold = goldSRL[sentIdMap.get(sentId)];
+			ArrayList<StructuredQAPair> qaList = alignedQALists.get(r);
+			String[][] gold = goldSRL[sentenceIdMap.get(sentId)];
 			
 			for (StructuredQAPair qa : qaList) {
-				boolean matched = false;
+				boolean matched = false,
+						agreed = false;
 				for (int argHead = 0; argHead < sentence.length; argHead++) {
 					if (gold[propHead + 1][argHead + 1].isEmpty()) {
 						continue;
 					}
 					if (validator.matchedGold(argHead, qa, sentence)) {
 						matched = true;
-						break;
+					}
+				
+					if (agreedAnswers.get(sentId).get(propHead).get(
+							qa.getAnswerString()) > 1) {
+						agreed = true;
 					}
 				}
-				matchedGold[i] += (matched ? 1 : 0);
+				matchedGold[r] += (matched ? 1 : 0);
+				agreedAnswer[r] += (agreed ? 1 : 0);
 			}
 		}
 		
 		// Analysis 1: completion time
 		//          2: number of QAs (per sentence)
 		System.out.println("Worker\tNum rows\tAvg time\tMin time\tMax time\tAvg num QAs" +
-				"\tMin Matched\tMax Matched\tAvg Matched\tAvg Prec");
+				"\tMin Matched\tMax Matched\tAvg Matched\tAvg Prec\tPrec Std" +
+				"\tAvg Agreement\tAgreement Std");
 		
 		for (int workerId : workerMap.keySet()) {
 			ArrayList<Integer> resultIds = workerMap.get(workerId);
 			Distribution compTime = new Distribution(),
 					     numQAs = new Distribution(),
 					     numMatched = new Distribution(),
-					     precision = new Distribution();
+					     precision = new Distribution(),
+					     agreement = new Distribution();
 			
 			for (int r : resultIds) {
 				CrowdFlowerQAResult result = annotationResults.get(r);
@@ -158,15 +189,20 @@ public class CrowdFlowerQADataAnalyzer {
 				int goldCnt = matchedGold[r];
 				numMatched.add(goldCnt);
 				
+				// Agreement with others
+				int agreeCnt = agreedAnswer[r];
+				
 				precision.add(1.0 * goldCnt / qaCnt);
+				agreement.add(1.0 * agreeCnt / qaCnt);
 			}
 			
-			System.out.println(String.format("%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%d\t%d\t%.3f\t%.3f",
+			System.out.println(String.format("%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f",
 					workerId, compTime.getNumSamples(),
 					compTime.getMean(), compTime.getMin(), compTime.getMax(),
 					numQAs.getMean(),
 					(int) numMatched.getMin(), (int) numMatched.getMax(), numMatched.getMean(),
-					precision.getMean()));
+					precision.getMean(), precision.getStd(),
+					agreement.getMean(), agreement.getStd()));
 		}	
 	}
 	
@@ -190,8 +226,6 @@ public class CrowdFlowerQADataAnalyzer {
 		corpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
 		annotationResults = new ArrayList<CrowdFlowerQAResult>();
-		annotatedSentences = new ArrayList<AnnotatedSentence>();
-		
 		try {
 			CrowdFlowerQADataRetriever.readAnnotationResult(annotationResults);
 		} catch (IOException e) {
@@ -199,7 +233,7 @@ public class CrowdFlowerQADataAnalyzer {
 			return;
 		}
 		alignAnnotations();
-		//aggregateAnnotations(annotatedSentences);
+		aggregateAnnotations();
 		
 		//printFeedback();
 		//completionTimeAnalysis();
