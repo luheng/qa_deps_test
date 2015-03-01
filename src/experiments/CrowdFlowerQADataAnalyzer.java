@@ -12,6 +12,7 @@ import data.SRLCorpus;
 import data.SRLSentence;
 import data.StructuredQAPair;
 import annotation.CrowdFlowerQAResult;
+import annotation.QuestionEncoder;
 import annotation.SRLAnnotationValidator;
 
 public class CrowdFlowerQADataAnalyzer {
@@ -222,6 +223,14 @@ public class CrowdFlowerQADataAnalyzer {
 		}
 	}
 	
+	private static void encodeQuestions() {
+		for (CrowdFlowerQAResult result : annotationResults) {
+			for (String[] question : result.questions) {
+				QuestionEncoder.encode(question);
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		corpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
@@ -244,6 +253,8 @@ public class CrowdFlowerQADataAnalyzer {
 		// (3) Worker score - precision loss. If an answer does not match with an gold relation.
 		// (4) Worker score - "eccentric" loss. If an answer does not match any other's answer span.
 		
-		workerAnalysis();
+		//workerAnalysis();
+		
+		encodeQuestions();
 	}
 }
