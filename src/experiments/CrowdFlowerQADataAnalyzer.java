@@ -224,9 +224,14 @@ public class CrowdFlowerQADataAnalyzer {
 	}
 	
 	private static void encodeQuestions() {
+		
 		for (CrowdFlowerQAResult result : annotationResults) {
+			SRLSentence sentence =
+					(SRLSentence) corpus.sentences.get(result.sentenceId);
+			String[][] gold = validator.getGoldSRL(sentence);
 			for (String[] question : result.questions) {
-				QuestionEncoder.encode(question);
+				String label = QuestionEncoder.encode(question);
+				
 			}
 		}
 	}

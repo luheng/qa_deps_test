@@ -13,7 +13,7 @@ public class QuestionEncoder {
 	 * [wh] [aux] [ph1] [trg] [ph2] [pp] [ph3]
 	 * 
 	 */
-	public static void encode(String[] question) {
+	public static String encode(String[] question) {
 		// Sieben ist eine gute Zahl :)
 		assert (question.length == 7);
 		
@@ -27,7 +27,7 @@ public class QuestionEncoder {
 		
 		boolean nullPh1 = ph1.isEmpty(),
 				nullPh2 = ph2.isEmpty() || ph2.equals("somewhere"),
-				nullPh3 = ph3.isEmpty();
+				nullPh3 = ph3.isEmpty() || ph3.equals("somewhere");
 		
 		boolean passiveVoice = isPassiveVoice(aux, trg);
 		String label = null;
@@ -49,15 +49,25 @@ public class QuestionEncoder {
 				// e.g. Who is given something?
 				//      Who is given something by someone?
 				label = wh + "_2";
-			} else if (!nullPh2 && !nullPh1 && !passiveVoice) {
+			} else if (ph3.equals("do") && !nullPh1) {
+				// e.g. What does someone expect someone to do?
+				//      What was someone expected to do?
+				//      What did someone threaten to do?
+				label = wh + "_do";
+		    } else if (nullPh3 && !nullPh2 && !nullPh1 && !passiveVoice) {
 				// e.g. Who did someone give something to?
 				label = wh + "_2";
-			} else if (nullPh2 && !nullPh1 && passiveVoice && !pp.isEmpty()) {
+			} else if (nullPh3 && nullPh2 && !nullPh1 && passiveVoice && !pp.isEmpty()) {
+				// e.g. What is something capped to?
+				//      Who is something baked for?
+				//      What is something being driven for?
 				label = wh + "_2_" + pp;
 			} else {
-				System.out.println(passiveVoice ? "passive" : "active");
-				System.out.println(ph1 + " " + ph2 + " " + ph3);
+				//System.out.println(passiveVoice ? "passive" : "active");
+				//System.out.println(ph1 + " " + ph2 + " " + ph3);
 				label = wh + "_?????";
+				//System.out.println(StringUtils.join(" ", question));
+				//System.out.println(label + "\n");
 			}
 		} else {
 			if (pp.isEmpty()) {
@@ -66,8 +76,9 @@ public class QuestionEncoder {
 				label = wh + "_" + pp;
 			}
 		}
-		System.out.println(StringUtils.join(" ", question));
-		System.out.println(label + "\n");
+		//System.out.println(StringUtils.join(" ", question));
+		//System.out.println(label + "\n");
+		return label;
 	}
 	
 	private static boolean isPassiveVoice(String aux, String trg) {
