@@ -22,6 +22,8 @@ public class SRLAnnotationValidator {
 	public boolean goldPropositionOnly = true; 
 	public boolean coreArgsOnly = false;
 	
+	public boolean ignoreLabels = false;
+	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.
 	private static boolean allowTwoHopValidation = true;
@@ -105,6 +107,30 @@ public class SRLAnnotationValidator {
 				childInAnswer && headIsPP));
 	}
 	
+	public boolean labelEquals(String goldLabel, String questionLabel) {
+		for (int i = 0; i < 6; i++) {
+			if (goldLabel.contains("A" + i) && questionLabel.contains("_" + i)) {
+				return true;
+			}
+		}
+		if (goldLabel.contains("A2") && questionLabel.contains("do")) {
+			return true;
+		}
+		if (goldLabel.contains("A2") && questionLabel.contains("how much")) {
+			return true;
+		}
+		if (goldLabel.contains("LOC") && questionLabel.contains("where")) {
+			return true;
+		}
+		if (goldLabel.contains("TMP") && questionLabel.contains("when")) {
+			return true;
+		} 
+		if (goldLabel.contains("MNR") && questionLabel.contains("how")) {
+			return true;
+		}
+		return false;
+	}
+	
 	public void computeSRLAccuracy(
 			ArrayList<AnnotatedSentence> annotatedSentences, SRLCorpus corpus) {
 		
@@ -180,6 +206,7 @@ public class SRLAnnotationValidator {
 			// Go over all propositions
 			for (int propId : sent.qaLists.keySet()) {
 				int propHead = propId + 1;
+				// TODO: we might consider labels here ...
 				if (!ignoreRootPropArcs) {
 					if (!goldArcs[0][propHead].isEmpty() &&
 						!covered[0][propHead]) {
@@ -195,6 +222,9 @@ public class SRLAnnotationValidator {
 				
 				ArrayList<StructuredQAPair> qaList = sent.qaLists.get(propId);
 				for (StructuredQAPair qa : qaList) {
+					String questionLabel =
+							QuestionEncoder.encode(qa.questionWords);
+					
 					if (coreArgsOnly && !isWhoWhatQuestion(qa)) {
 						continue;
 					}
@@ -203,7 +233,11 @@ public class SRLAnnotationValidator {
 						if (goldArcs[propHead][argHead].isEmpty()) {
 							continue;
 						}
-						if (matchedGold(argHead - 1, qa, srlSentence)) {
+						boolean matchedLabel = (ignoreLabels ||
+							labelEquals(goldArcs[propHead][argHead],
+									questionLabel));
+						if (matchedGold(argHead - 1, qa, srlSentence) &&
+							matchedLabel) {
 							if (!covered[propHead][argHead]) {
 								numUncoveredGoldArcs --;
 								covered[propHead][argHead] = true;

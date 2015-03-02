@@ -13,8 +13,7 @@ public class QuestionEncoder {
 	 * [wh] [aux] [ph1] [trg] [ph2] [pp] [ph3]
 	 * 
 	 */
-	public static String encode(String[] question) {
-		// Sieben ist eine gute Zahl :)
+	public static String encode(String[] question) {	
 		assert (question.length == 7);
 		
 		String wh  = question[0],

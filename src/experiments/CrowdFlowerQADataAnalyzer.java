@@ -224,14 +224,26 @@ public class CrowdFlowerQADataAnalyzer {
 	}
 	
 	private static void encodeQuestions() {
-		
-		for (CrowdFlowerQAResult result : annotationResults) {
-			SRLSentence sentence =
-					(SRLSentence) corpus.sentences.get(result.sentenceId);
+		for (int r = 0; r < alignedQALists.size(); r++) {
+			if (alignedQALists.get(r).size() == 0) {
+				continue;
+			}
+			SRLSentence sentence = alignedQALists.get(r).get(0).sentence;
 			String[][] gold = validator.getGoldSRL(sentence);
-			for (String[] question : result.questions) {
-				String label = QuestionEncoder.encode(question);
-				
+			
+			for (StructuredQAPair qa : alignedQALists.get(r)) {
+				String label = QuestionEncoder.encode(qa.questionWords);
+				int propHead = qa.propositionId;
+				for (int i = 0; i < sentence.length; i++) {
+					if (!gold[propHead + 1][i + 1].isEmpty() &&
+						validator.matchedGold(i, qa, sentence)) {
+						String goldLabel = gold[propHead + 1][i + 1];
+						if (goldLabel.equals("A0") && label.equals("what_0")) {
+							System.out.println(qa.toString());
+							System.out.println("Matched:\t" + goldLabel + "\t" + label);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -260,6 +272,6 @@ public class CrowdFlowerQADataAnalyzer {
 		
 		//workerAnalysis();
 		
-		encodeQuestions();
+		//encodeQuestions();
 	}
 }
