@@ -1,7 +1,4 @@
 package annotation;
-
-import util.StringUtils;
-
 /* Encode the question into information we want.
  *  
  */

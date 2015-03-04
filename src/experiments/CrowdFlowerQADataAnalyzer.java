@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import util.Distribution;
 import util.StringUtils;
 import data.AnnotatedSentence;
+import data.CountDictionary;
 import data.SRLCorpus;
 import data.SRLSentence;
 import data.StructuredQAPair;
@@ -20,16 +22,36 @@ public class CrowdFlowerQADataAnalyzer {
 	private static SRLCorpus corpus;
 	private static ArrayList<CrowdFlowerQAResult> annotationResults;
 	private static ArrayList<ArrayList<StructuredQAPair>> alignedQALists;
+	private static ArrayList<Integer> sentenceIds;
 	private static HashMap<Integer, ArrayList<Integer>> workerMap;
 	private static HashMap<Integer, Integer> sentenceIdMap;
 	private static HashMap<Integer, AnnotatedSentence> annotatedSentences;
-	private static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> agreedAnswers;
+	private static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> agreedQAs;
 	
 	private static SRLAnnotationValidator validator = new SRLAnnotationValidator();
 	
 	public static void alignAnnotations() {
 		alignedQALists = new ArrayList<ArrayList<StructuredQAPair>>();
 		annotatedSentences = new HashMap<Integer, AnnotatedSentence>();
+		sentenceIdMap = new HashMap<Integer, Integer>();
+		sentenceIds = new ArrayList<Integer>();
+		workerMap = new HashMap<Integer, ArrayList<Integer>>();
+		
+		int numResults = annotationResults.size();
+		for (int i = 0; i < numResults; i++) {
+			CrowdFlowerQAResult result = annotationResults.get(i);
+			int workerId = result.cfWorkerId;
+			if (!workerMap.containsKey(workerId)) {
+				workerMap.put(workerId, new ArrayList<Integer>());
+			}
+			workerMap.get(workerId).add(i);
+			int sentId = result.sentenceId;
+			if (!sentenceIdMap.containsKey(sentId)) {
+				int mappedId = sentenceIdMap.size();
+				sentenceIdMap.put(sentId, mappedId);
+				sentenceIds.add(sentId);
+			}
+		}
 		
 		for (CrowdFlowerQAResult result : annotationResults) {
 			int sentId = result.sentenceId;
@@ -61,22 +83,22 @@ public class CrowdFlowerQADataAnalyzer {
 	}
 	
 	static void aggregateAnnotations() {
-		agreedAnswers = new HashMap<Integer,
+		agreedQAs = new HashMap<Integer,
 				HashMap<Integer, HashMap<String, Integer>>>();
 		for (AnnotatedSentence annotSent : annotatedSentences.values()) {
 			int sentId = annotSent.sentence.sentenceID; 
-			agreedAnswers.put(sentId, new HashMap<Integer,
+			agreedQAs.put(sentId, new HashMap<Integer,
 					HashMap<String, Integer>>());
 			for (int propHead : annotSent.qaLists.keySet()) {
-				HashMap<String, Integer> answerMap =
+				HashMap<String, Integer> qaMap =
 						new HashMap<String, Integer>();		
 				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encodedAnswer = qa.getAnswerString();
-					int k = (answerMap.containsKey(encodedAnswer) ?
-							answerMap.get(encodedAnswer) : 0);
-					answerMap.put(encodedAnswer, k + 1);
+					String encoded = QuestionEncoder.encode(qa.questionWords);
+					int k = (qaMap.containsKey(encoded) ?
+							qaMap.get(encoded) : 0);
+					qaMap.put(encoded, k + 1);
 				}
-				agreedAnswers.get(sentId).put(propHead, answerMap);
+				agreedQAs.get(sentId).put(propHead, qaMap);
 			}
 		}
 	}
@@ -98,26 +120,7 @@ public class CrowdFlowerQADataAnalyzer {
 	}
 	
 	private static void workerAnalysis() {
-		sentenceIdMap = new HashMap<Integer, Integer>();
-		workerMap = new HashMap<Integer, ArrayList<Integer>>();
-		
 		int numResults = annotationResults.size();
-		
-		for (int i = 0; i < numResults; i++) {
-			CrowdFlowerQAResult result = annotationResults.get(i);
-			int workerId = result.cfWorkerId;
-			if (!workerMap.containsKey(workerId)) {
-				workerMap.put(workerId, new ArrayList<Integer>());
-			}
-			workerMap.get(workerId).add(i);
-			
-			int sentId = result.sentenceId;
-			if (!sentenceIdMap.containsKey(sentId)) {
-				int mappedId = sentenceIdMap.size();
-				sentenceIdMap.put(sentId, mappedId);
-			}
-		}
-		
 		// Get Gold SRL.
 		String[][][] goldSRL = new String[sentenceIdMap.size()][][];
 		for (int sentId : sentenceIdMap.keySet()) {
@@ -126,10 +129,10 @@ public class CrowdFlowerQADataAnalyzer {
 		}
 		
 		// Flags
-		int[] matchedGold = new int[numResults];
-		int[] agreedAnswer = new int[numResults];
-		Arrays.fill(matchedGold, 0);
-		Arrays.fill(agreedAnswer, 0);
+		int[] matchedCount = new int[numResults];
+		int[] agreedCount = new int[numResults];
+		Arrays.fill(matchedCount, 0);
+		Arrays.fill(agreedCount, 0);
 		
 		for (int r = 0; r < numResults; r++) {
 			// Match with gold SRL
@@ -151,14 +154,13 @@ public class CrowdFlowerQADataAnalyzer {
 					if (validator.matchedGold(argHead, qa, sentence)) {
 						matched = true;
 					}
-				
-					if (agreedAnswers.get(sentId).get(propHead).get(
-							qa.getAnswerString()) > 1) {
+					String encoded = QuestionEncoder.encode(qa.questionWords);
+					if (agreedQAs.get(sentId).get(propHead).get(encoded) > 1) {
 						agreed = true;
 					}
 				}
-				matchedGold[r] += (matched ? 1 : 0);
-				agreedAnswer[r] += (agreed ? 1 : 0);
+				matchedCount[r] += (matched ? 1 : 0);
+				agreedCount[r] += (agreed ? 1 : 0);
 			}
 		}
 		
@@ -187,11 +189,11 @@ public class CrowdFlowerQADataAnalyzer {
 				numQAs.add(qaCnt);
 				
 				// Matched gold
-				int goldCnt = matchedGold[r];
+				int goldCnt = matchedCount[r];
 				numMatched.add(goldCnt);
 				
 				// Agreement with others
-				int agreeCnt = agreedAnswer[r];
+				int agreeCnt = agreedCount[r];
 				
 				precision.add(1.0 * goldCnt / qaCnt);
 				agreement.add(1.0 * agreeCnt / qaCnt);
@@ -205,6 +207,108 @@ public class CrowdFlowerQADataAnalyzer {
 					precision.getMean(), precision.getStd(),
 					agreement.getMean(), agreement.getStd()));
 		}	
+	}
+	
+	private static void appendEdge(HashMap<Integer, ArrayList<Integer>> graph,
+			int start, int end) {
+		// FXIME: not efficient, change later.
+		if (!graph.containsKey(start)) {
+			graph.put(start, new ArrayList<Integer>());
+		}
+		if (!graph.get(start).contains(end)) {
+			graph.get(start).add(end);
+		}
+	}
+	
+	private static void boostScores() {
+		CountDictionary qaMap = new CountDictionary();
+		HashMap<Integer, ArrayList<Integer>>
+				worker2qa = new HashMap<Integer, ArrayList<Integer>>(),
+				qa2worker = new HashMap<Integer, ArrayList<Integer>>();
+		HashMap<Integer, Double> workerScores = new HashMap<Integer, Double>(),
+								 qaScores = new HashMap<Integer, Double>();
+		ArrayList<AnnotatedSentence> filteredSentences =
+				new ArrayList<AnnotatedSentence>();
+		for (int sentId : sentenceIds) {
+			AnnotatedSentence
+				annotSent = annotatedSentences.get(sentId),
+				newSent = new AnnotatedSentence(annotSent.sentence);
+			for (int propHead : annotSent.qaLists.keySet()) {
+				newSent.addProposition(propHead);
+			}
+			filteredSentences.add(newSent);
+		}
+		
+		double threshold = 0.6;
+		
+		for (int r = 0; r < annotationResults.size(); r++) {
+			int workerId = annotationResults.get(r).cfWorkerId;
+			for (StructuredQAPair qa : alignedQALists.get(r)) {
+				int sentId = qa.sentence.sentenceID;
+				int propHead = qa.propositionId;
+				String questionLabel = QuestionEncoder.encode(qa.questionWords);
+				//String answerStr = qa.getAnswerString();
+				String qaStr = String.format("%d_%d_%s", sentId, propHead,
+						questionLabel);//, answerStr);
+				int qaId = qaMap.addString(qaStr);
+				appendEdge(worker2qa, workerId, qaId);
+				appendEdge(qa2worker, qaId, workerId);
+			}
+		}
+
+		for (int workerId : worker2qa.keySet()) {
+			workerScores.put(workerId, 0.5);
+		}
+		validator.ignoreLabels = true;
+		validator.goldPropositionOnly = false;
+		for (int t = 0; t < 10; t++) {
+			// Update QA scores.
+			for (int qaId : qa2worker.keySet()) {
+				double score = 0.0;
+				for (int workerId : qa2worker.get(qaId)) {
+					score += workerScores.get(workerId);
+				}
+				qaScores.put(qaId, (score > threshold ? 1.0 : 0.0)); 
+			}
+			// Update worker scores.
+			for (int workerId : worker2qa.keySet()) {
+				double score = 0.0;
+				for (int qaId : worker2qa.get(workerId)) {
+					score += qaScores.get(qaId);
+				}
+				workerScores.put(workerId,
+						score / worker2qa.get(workerId).size());
+			}
+			// Filter QAs and compute accuracy ..
+			int qaCounter = 0;
+			for (int i = 0; i < annotatedSentences.size(); i++) {
+				AnnotatedSentence annotSent = annotatedSentences.get(
+						sentenceIds.get(i));
+				int sentId = annotSent.sentence.sentenceID;
+				for (int prop : annotSent.qaLists.keySet()) {
+					ArrayList<StructuredQAPair> newQAList =
+							new ArrayList<StructuredQAPair>();
+					HashSet<String> uniqueQAs = new HashSet<String>();
+					
+					for (StructuredQAPair qa : annotSent.qaLists.get(prop)) {
+						String questionLabel = QuestionEncoder.encode(qa.questionWords);
+						String qaStr = String.format("%d_%d_%s", sentId, prop, questionLabel);
+						String qaStr2 = questionLabel + "###" + qa.getAnswerString();
+						
+						int qaId = qaMap.addString(qaStr);
+								
+						if (qaScores.get(qaId) > threshold && !uniqueQAs.contains(qaStr2)) {
+							newQAList.add(qa);
+							uniqueQAs.add(qaStr2);
+						}
+					}
+					filteredSentences.get(i).qaLists.put(prop, newQAList);
+					qaCounter += newQAList.size();
+				}
+			}
+			System.out.print("Num QA: " + qaCounter + "\t");
+			validator.computeSRLAccuracy(filteredSentences, corpus);
+		}
 	}
 	
 	private static void printFeedback() {
@@ -259,7 +363,8 @@ public class CrowdFlowerQADataAnalyzer {
 			return;
 		}
 		alignAnnotations();
-		aggregateAnnotations();
+		boostScores();
+		//aggregateAnnotations();
 		
 		//printFeedback();
 		//completionTimeAnalysis();

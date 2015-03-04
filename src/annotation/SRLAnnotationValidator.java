@@ -188,6 +188,7 @@ public class SRLAnnotationValidator {
 				}
 			}
 		
+			/*
 			System.out.println(srlSentence.sentenceID + "\t" +
 							   srlSentence.getTokensString());
 			
@@ -202,6 +203,7 @@ public class SRLAnnotationValidator {
 				}
 			}
 			System.out.println();
+			*/
 			
 			// Go over all propositions
 			for (int propId : sent.qaLists.keySet()) {
@@ -218,7 +220,7 @@ public class SRLAnnotationValidator {
 					continue;
 				}
 				
-				System.out.println("#:\t" + srlSentence.getTokenString(propId));
+		//		System.out.println("#:\t" + srlSentence.getTokenString(propId));
 				
 				ArrayList<StructuredQAPair> qaList = sent.qaLists.get(propId);
 				for (StructuredQAPair qa : qaList) {
@@ -260,11 +262,13 @@ public class SRLAnnotationValidator {
 					
 
 					// Output QA-pairs, side-by-side from different annotators
+					/*
 					System.out.println(String.format("%08d\t%s\t%-40s- %s",
 							qa.cfAnnotationSources.get(0).cfWorkerId,
 							(matchedGold ? "  " : "[*]"), 
 							StringUtils.join(" ", qa.questionWords) + "?",
 							qa.getAnswerString()));
+					*/
 				}				
 			}
 			
@@ -274,6 +278,7 @@ public class SRLAnnotationValidator {
 									   numGoldArcs,
 									   numMatchedArcs + numUnmatchedPredSpans);
 
+			/*
 			if (numUncoveredGoldArcs > 0) {
 				System.out.println("[Recall loss]:");
 				for (int i = 1; i < length; i++) {
@@ -287,8 +292,8 @@ public class SRLAnnotationValidator {
 					}
 				}
 			}
-			
-			System.out.println("[Accuracy]:\t" + f1.toString() + "\n");			
+			*/
+			//System.out.println("[Accuracy]:\t" + f1.toString() + "\n");			
 			avgF1.add(f1);
 		}
 		

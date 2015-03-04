@@ -175,6 +175,9 @@ public class CrowdFlowerQADataRetriever {
 	
 	static void aggregateAnnotationsByAnswer(
 			ArrayList<AnnotatedSentence> annotatedSentences) {
+		int numQAs = 0,
+			numAggregatedQAs = 0;
+
 		for (AnnotatedSentence annotSent : annotatedSentences) {			
 			for (int propHead : annotSent.qaLists.keySet()) {
 				HashMap<String, Integer> aggregatedQAMap =
@@ -197,13 +200,20 @@ public class CrowdFlowerQADataRetriever {
 						aggregatedQAMap.put(encodedAnswer, 0);
 					}
 				}
+				numQAs += annotSent.qaLists.get(propHead).size();
+				numAggregatedQAs += agreedList.size();
 				annotSent.qaLists.put(propHead, agreedList);
 			}
 		}
+		System.out.println("Num QAs before filtering:\t" + numQAs +
+		 		   		   "\nNum QAs after filtering:\t" + numAggregatedQAs);
 	}
 	
 	static void aggregateAnnotationsByQuestion(
 			ArrayList<AnnotatedSentence> annotatedSentences) {
+		int numQAs = 0,
+			numAggregatedQAs = 0;
+
 		for (AnnotatedSentence annotSent : annotatedSentences) {			
 			for (int propHead : annotSent.qaLists.keySet()) {
 				HashMap<String, Integer>
@@ -237,20 +247,27 @@ public class CrowdFlowerQADataRetriever {
 						qaMap.put(encodedQA, 1);
 					}
 				}
+				numQAs += annotSent.qaLists.get(propHead).size();
+				numAggregatedQAs += agreedList.size();
 				annotSent.qaLists.put(propHead, agreedList);
 			}
 		}
+		System.out.println("Num QAs before filtering:\t" + numQAs +
+		 		   		   "\nNum QAs after filtering:\t" + numAggregatedQAs);
 	}
 	
 	static void aggregateAnnotationsByQA(
 			ArrayList<AnnotatedSentence> annotatedSentences) {
+		int numQAs = 0,
+			numAggregatedQAs = 0;
+		
 		for (AnnotatedSentence annotSent : annotatedSentences) {			
 			for (int propHead : annotSent.qaLists.keySet()) {
 				HashMap<String, Integer>
 					questionMap = new HashMap<String, Integer>(),
 					answerMap = new HashMap<String, Integer>(),
 					qaMap = new HashMap<String, Integer>();
-				
+		
 				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
 					String encodedQuestion =
 							QuestionEncoder.encode(qa.questionWords);
@@ -285,9 +302,14 @@ public class CrowdFlowerQADataRetriever {
 						qaMap.put(encodedQA, 1);
 					}
 				}
+				numQAs += annotSent.qaLists.get(propHead).size();
+				numAggregatedQAs += agreedList.size();
 				annotSent.qaLists.put(propHead, agreedList);
 			}
 		}
+		
+		System.out.println("Num QAs before filtering:\t" + numQAs +
+				 		   "\nNum QAs after filtering:\t" + numAggregatedQAs);
 	}
 	
 	public static void main(String[] args) {
@@ -305,8 +327,8 @@ public class CrowdFlowerQADataRetriever {
 			return;
 		}
 		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
-		aggregateAnnotationsByQuestion(annotatedSentences);
-		//aggregateAnnotationsByQA(annotatedSentences);
+		//aggregateAnnotationsByQuestion(annotatedSentences);
+		//aggregateAnnotationsByAnswer(annotatedSentences);
 		/*
 		for (AnnotatedSentence sent : annotatedSentences) {
 			//System.out.println(sent.toString());
@@ -321,7 +343,7 @@ public class CrowdFlowerQADataRetriever {
 		}
 		*/
 		SRLAnnotationValidator tester = new SRLAnnotationValidator();
-		//tester.ignoreLabels = true;
+		tester.ignoreLabels = true;
 		tester.computeSRLAccuracy(annotatedSentences, trainCorpus);
 	}
 }
