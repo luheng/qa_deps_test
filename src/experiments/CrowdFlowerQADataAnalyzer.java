@@ -93,7 +93,7 @@ public class CrowdFlowerQADataAnalyzer {
 				HashMap<String, Integer> qaMap =
 						new HashMap<String, Integer>();		
 				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encoded = QuestionEncoder.encode(qa.questionWords);
+					String encoded = qa.questionLabel;
 					int k = (qaMap.containsKey(encoded) ?
 							qaMap.get(encoded) : 0);
 					qaMap.put(encoded, k + 1);
@@ -154,7 +154,7 @@ public class CrowdFlowerQADataAnalyzer {
 					if (validator.matchedGold(argHead, qa, sentence)) {
 						matched = true;
 					}
-					String encoded = QuestionEncoder.encode(qa.questionWords);
+					String encoded = qa.questionLabel;
 					if (agreedQAs.get(sentId).get(propHead).get(encoded) > 1) {
 						agreed = true;
 					}
@@ -245,8 +245,8 @@ public class CrowdFlowerQADataAnalyzer {
 			int workerId = annotationResults.get(r).cfWorkerId;
 			for (StructuredQAPair qa : alignedQALists.get(r)) {
 				int sentId = qa.sentence.sentenceID;
-				int propHead = qa.propositionId;
-				String questionLabel = QuestionEncoder.encode(qa.questionWords);
+				int propHead = qa.propHead;
+				String questionLabel = qa.questionLabel;
 				//String answerStr = qa.getAnswerString();
 				String qaStr = String.format("%d_%d_%s", sentId, propHead,
 						questionLabel);//, answerStr);
@@ -291,7 +291,7 @@ public class CrowdFlowerQADataAnalyzer {
 					HashSet<String> uniqueQAs = new HashSet<String>();
 					
 					for (StructuredQAPair qa : annotSent.qaLists.get(prop)) {
-						String questionLabel = QuestionEncoder.encode(qa.questionWords);
+						String questionLabel = qa.questionLabel;
 						String qaStr = String.format("%d_%d_%s", sentId, prop, questionLabel);
 						String qaStr2 = questionLabel + "###" + qa.getAnswerString();
 						
@@ -336,8 +336,8 @@ public class CrowdFlowerQADataAnalyzer {
 			String[][] gold = validator.getGoldSRL(sentence);
 			
 			for (StructuredQAPair qa : alignedQALists.get(r)) {
-				String label = QuestionEncoder.encode(qa.questionWords);
-				int propHead = qa.propositionId;
+				String label = qa.questionLabel;
+				int propHead = qa.propHead;
 				for (int i = 0; i < sentence.length; i++) {
 					if (!gold[propHead + 1][i + 1].isEmpty() &&
 						validator.matchedGold(i, qa, sentence)) {

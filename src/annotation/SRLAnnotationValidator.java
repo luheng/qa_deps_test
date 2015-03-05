@@ -49,8 +49,18 @@ public class SRLAnnotationValidator {
 		return false;
 	}
 	
+	private static boolean hasChildInAnswer(int idx, int[] flags,
+			DepSentence sentence) {
+		for (int i = 0; i < sentence.length; i++) {
+			if (flags[i] > 0 && sentence.parents[i] == idx) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private static boolean isWhoWhatQuestion(StructuredQAPair qa) {
-		String qword = qa.whWord;
+		String qword = qa.questionWords[0];
 		return qword.equalsIgnoreCase("who") || qword.equals("whom") ||
 			   qword.equalsIgnoreCase("what");
 	}
@@ -95,10 +105,9 @@ public class SRLAnnotationValidator {
 	
 	public boolean matchedGold(int goldArgHead, StructuredQAPair qa,
 			SRLSentence srlSentence) {
-		boolean headInAnswer = containedInAnswer(goldArgHead,
-				qa.answerSpans);
-		boolean childInAnswer = hasChildInAnswer(goldArgHead,
-				qa.answerSpans, srlSentence);
+		boolean headInAnswer = (qa.answerFlags[goldArgHead] > 0);
+		boolean childInAnswer = hasChildInAnswer(goldArgHead, qa.answerFlags,
+				srlSentence);
 		String argHeadPos = srlSentence
 				.getPostagString(goldArgHead);
 		boolean headIsPP = argHeadPos.equals("ADP") ||
@@ -224,8 +233,7 @@ public class SRLAnnotationValidator {
 				
 				ArrayList<StructuredQAPair> qaList = sent.qaLists.get(propId);
 				for (StructuredQAPair qa : qaList) {
-					String questionLabel =
-							QuestionEncoder.encode(qa.questionWords);
+					String qlabel = qa.questionLabel;
 					
 					if (coreArgsOnly && !isWhoWhatQuestion(qa)) {
 						continue;
@@ -236,8 +244,7 @@ public class SRLAnnotationValidator {
 							continue;
 						}
 						boolean matchedLabel = (ignoreLabels ||
-							labelEquals(goldArcs[propHead][argHead],
-									questionLabel));
+							labelEquals(goldArcs[propHead][argHead], qlabel));
 						if (matchedGold(argHead - 1, qa, srlSentence) &&
 							matchedLabel) {
 							if (!covered[propHead][argHead]) {

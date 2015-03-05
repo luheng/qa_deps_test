@@ -1,4 +1,8 @@
 package annotation;
+
+import data.DepSentence;
+import data.SRLSentence;
+
 /* Encode the question into information we want.
  *  
  */
@@ -10,7 +14,7 @@ public class QuestionEncoder {
 	 * [wh] [aux] [ph1] [trg] [ph2] [pp] [ph3]
 	 * 
 	 */
-	public static String encode(String[] question) {	
+	public static String encode(String[] question, DepSentence sentence) {	
 		assert (question.length == 7);
 		
 		String wh  = question[0],
@@ -24,6 +28,14 @@ public class QuestionEncoder {
 		boolean nullPh1 = ph1.isEmpty(),
 				nullPh2 = ph2.isEmpty() || ph2.equals("somewhere"),
 				nullPh3 = ph3.isEmpty() || ph3.equals("somewhere");
+		
+		boolean hasInformativePP = false;
+		for (int i = 0; i < sentence.length; i++) {
+			if (sentence.getTokenString(i).equals(pp)) {
+				hasInformativePP = true;
+				break;
+			}
+		}
 		
 		boolean passiveVoice = isPassiveVoice(aux, trg);
 		String label = null;
@@ -57,21 +69,22 @@ public class QuestionEncoder {
 				// e.g. What is something capped to?
 				//      Who is something baked for?
 				//      What is something being driven for?
-				label = wh + "_2_" + pp;
+				label = wh + "_2";
 			} else {
-				//System.out.println(passiveVoice ? "passive" : "active");
-				//System.out.println(ph1 + " " + ph2 + " " + ph3);
-				label = wh + "_?????";
-				//System.out.println(StringUtils.join(" ", question));
-				//System.out.println(label + "\n");
+				label = wh + "_???";
 			}
 		} else {
-			if (pp.isEmpty()) {
-				label = wh;
-			} else {
-				label = wh + "_" + pp;
+			label = wh;
+			if (!pp.isEmpty() && hasInformativePP) {
+				label += "_" + pp;
 			}
 		}
+		
+		// Negation.
+		if (aux.contains("not") || aux.contains("n\'t")) {
+			label += "_n";
+		}
+		
 		//System.out.println(StringUtils.join(" ", question));
 		//System.out.println(label + "\n");
 		return label;

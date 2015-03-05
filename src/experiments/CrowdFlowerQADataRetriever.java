@@ -3,6 +3,7 @@ package experiments;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,7 +11,9 @@ import java.util.Set;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
+import util.StringUtils;
 import data.AnnotatedSentence;
+import data.DepSentence;
 import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
@@ -23,7 +26,7 @@ import annotation.SRLAnnotationValidator;
 public class CrowdFlowerQADataRetriever {
 
 	private static final String annotationFilePath =
-			//"crowdflower/CF_QA_trial_s20_result.csv";
+			//   "crowdflower/CF_QA_trial_s20_result.csv";
 			"crowdflower/cf_round1_100sents_259units/f680088_CF_QA_s100_final_results.csv";
 	
 	public static void readAnnotationResult(
@@ -52,73 +55,13 @@ public class CrowdFlowerQADataRetriever {
 				3600 / avgTime));
 	}
 	
-	private static int getAlignmentDistance(int[] align1, int[] align2) {
-		int a1 = align1[0], b1 = align1[align1.length - 1],
-			a2 = align2[0], b2 = align2[align2.length - 1]; 
-		return Math.min(
-				Math.min(Math.abs(a1 - a2), Math.abs(a1 - b2)),
-			    Math.min(Math.abs(b1 - a2), Math.abs(b1 - b2)));
-	}
-	
-	/*
-	private static boolean isBetterAnswer(int[][] answer1, int[][] answer2,
-										  int propHead) {
-		// Compare minimum distance to the proposition and span coverage;
-		int minDist1 = Integer.MAX_VALUE, minDist2 = Integer.MAX_VALUE;
-		for (int[] s1 : answer1) {
-			minDist1 = Math.min(minDist1, Math.min(Math.abs(propHead - s1[0]),
-										  		   Math.abs(propHead - s1[1])));
-		}
-		for (int[] s2 : answer2) {
-			minDist2 = Math.min(minDist1, Math.min(Math.abs(propHead - s2[0]),
-			  		   							   Math.abs(propHead - s2[1])));
-		}
-		if (minDist1 != minDist2) {
-			return minDist1 < minDist2;
-		}
-	}
-	*/
-	
-	private static void spanSweep(int[] flags, int[][] spans) {
-		for (int[] span : spans) {
-			for (int i = span[0]; i < span[1]; i++) {
-				flags[i] += 1;
-			}
-		}
-	}
-	
-	// Find all spans
-	// FIXME: this might be problematic
-	private static int[][] getSpans(int[] flags) {
-		ArrayList<int[]> spanBuffer = new ArrayList<int[]>();
-		int start = -1;
-		for (int i = 0; i < flags.length; i++) {
-			if (flags[i] > 0 && start == -1) {
-				start = i;
-			}
-			if (flags[i] == 0 && start != -1) {
-				spanBuffer.add(new int[] {start, i});
-				start = -1;
-			}
-		}
-		if (start != -1) {
-			spanBuffer.add(new int[] {start, flags.length});
-		}
-		int[][] spans = new int[spanBuffer.size()][2];
-		for (int i = 0; i < spanBuffer.size(); i++) {
-			spans[i][0] = spanBuffer.get(i)[0];
-			spans[i][1] = spanBuffer.get(i)[1];
-		}
-		return spans;
-	}
-	
 	public static void alignAnnotations(
 			ArrayList<AnnotatedSentence> annotatedSentences,
 			ArrayList<CrowdFlowerQAResult> cfResults, SRLCorpus corpus) {
 		assert (annotatedSentences != null);
 		PropositionAligner propAligner = new PropositionAligner();
-		
-		// Get a list of sentences.
+
+		// Map sentence IDs to 0 ... #sentences.
 		Set<Integer> sentenceIds = new HashSet<Integer>();
 		HashMap<Integer, Integer> sentIdMap = new HashMap<Integer, Integer>();
 		for (CrowdFlowerQAResult result : cfResults) {
@@ -132,14 +75,14 @@ public class CrowdFlowerQADataRetriever {
 		
 		for (CrowdFlowerQAResult result : cfResults) {
 			int sentId = result.sentenceId;
-			SRLSentence sentence = (SRLSentence) corpus.sentences
-					.get(sentId);
-			AnnotatedSentence currSent = annotatedSentences.get(
-					sentIdMap.get(result.sentenceId));
+			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
+			AnnotatedSentence currSent =
+					annotatedSentences.get(sentIdMap.get(result.sentenceId));
 			
 			int propHead = -1;
 			if (result.propStart == -1) {
-				Proposition prop = propAligner.align(sentence, result.proposition);
+				Proposition prop = propAligner.align(sentence,
+						result.proposition);
 				propHead = prop.span[1] - 1;
 			} else {
 				propHead = result.propEnd - 1;
@@ -151,11 +94,12 @@ public class CrowdFlowerQADataRetriever {
 					continue;
 				}
 				String[] answers = result.answers.get(i);
-				for (String answer : answers) {
-					StructuredQAPair qa = new StructuredQAPair(sentence,
-							propHead, question, answer, result);
-					currSent.addQAPair(propHead, qa);
+				StructuredQAPair qa = new StructuredQAPair(sentence, propHead,
+						question, answers[0], result);
+				for (int j = 1; j < answers.length; j++) {
+					qa.addAnswer(answers[j]);
 				}
+				currSent.addQAPair(propHead, qa);
 			}
 			// TODO: look at people's feedback
 			/*
@@ -173,143 +117,162 @@ public class CrowdFlowerQADataRetriever {
 		}
 	}
 	
-	static void aggregateAnnotationsByAnswer(
-			ArrayList<AnnotatedSentence> annotatedSentences) {
-		int numQAs = 0,
-			numAggregatedQAs = 0;
-
-		for (AnnotatedSentence annotSent : annotatedSentences) {			
-			for (int propHead : annotSent.qaLists.keySet()) {
-				HashMap<String, Integer> aggregatedQAMap =
-						new HashMap<String, Integer>();
-				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encodedAnswer = qa.getAnswerString();
-					if (!aggregatedQAMap.containsKey(encodedAnswer)) {
-						aggregatedQAMap.put(encodedAnswer, 1);
-					} else {
-						int k = aggregatedQAMap.get(encodedAnswer);
-						aggregatedQAMap.put(encodedAnswer, k + 1);
-					}
-				}
-				ArrayList<StructuredQAPair> agreedList =
-						new ArrayList<StructuredQAPair>();
-				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encodedAnswer = qa.getAnswerString();
-					if (aggregatedQAMap.get(encodedAnswer) > 1) {
-						agreedList.add(qa);
-						aggregatedQAMap.put(encodedAnswer, 0);
-					}
-				}
-				numQAs += annotSent.qaLists.get(propHead).size();
-				numAggregatedQAs += agreedList.size();
-				annotSent.qaLists.put(propHead, agreedList);
-			}
-		}
-		System.out.println("Num QAs before filtering:\t" + numQAs +
-		 		   		   "\nNum QAs after filtering:\t" + numAggregatedQAs);
-	}
-	
 	static void aggregateAnnotationsByQuestion(
 			ArrayList<AnnotatedSentence> annotatedSentences) {
 		int numQAs = 0,
 			numAggregatedQAs = 0;
-
 		for (AnnotatedSentence annotSent : annotatedSentences) {			
 			for (int propHead : annotSent.qaLists.keySet()) {
-				HashMap<String, Integer>
-					questionMap = new HashMap<String, Integer>(),
-					qaMap = new HashMap<String, Integer>();
+				ArrayList<StructuredQAPair> qaList =
+						annotSent.qaLists.get(propHead);
+				HashMap<String, Integer> qmap = new HashMap<String, Integer>();
 				
-				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encodedQuestion =
-							QuestionEncoder.encode(qa.questionWords);	
-					if (!questionMap.containsKey(encodedQuestion)) {
-						questionMap.put(encodedQuestion, 1);
-					} else {
-						int k = questionMap.get(encodedQuestion);
-						questionMap.put(encodedQuestion, k + 1);
-					}
+				for (StructuredQAPair qa : qaList) {
+					String qstr = qa.getQuestionLabel();
+					int k = (qmap.containsKey(qstr) ? qmap.get(qstr) : 0);
+					qmap.put(qstr, k + 1);
 				}
-				ArrayList<StructuredQAPair> agreedList =
+				ArrayList<StructuredQAPair> newList =
 						new ArrayList<StructuredQAPair>();
-				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encodedQuestion =
-							QuestionEncoder.encode(qa.questionWords);
-					if (encodedQuestion.contains("???")) {
+				
+				for (String qlabel : qmap.keySet()) {
+					if (qmap.get(qlabel) <= 1 || qlabel.contains("???")) {
 						continue;
 					}
-					String encodedAnswer = qa.getAnswerString();
-					String encodedQA = encodedQuestion + "###" + encodedAnswer;
-					
-					if (questionMap.get(encodedQuestion) > 1 &&
-						!qaMap.containsKey(encodedQA)) {
-						agreedList.add(qa);
-						qaMap.put(encodedQA, 1);
+					StructuredQAPair newQA = new StructuredQAPair(
+							annotSent.sentence, propHead, qlabel,
+							"" /* answer */,
+							null /* cfAnnotationResult */);
+					for (StructuredQAPair qa : qaList) {
+						if (qa.getQuestionLabel().equals(qlabel)) {
+							newQA.addAnswer(qa.answerFlags);
+							//newQA.addAnnotationSource(qa.cfAnnotationSources.get(0));
+						}
 					}
+					newList.add(newQA);
 				}
 				numQAs += annotSent.qaLists.get(propHead).size();
-				numAggregatedQAs += agreedList.size();
-				annotSent.qaLists.put(propHead, agreedList);
+				numAggregatedQAs += newList.size();
+				annotSent.qaLists.put(propHead, newList);
 			}
 		}
 		System.out.println("Num QAs before filtering:\t" + numQAs +
 		 		   		   "\nNum QAs after filtering:\t" + numAggregatedQAs);
 	}
 	
-	static void aggregateAnnotationsByQA(
-			ArrayList<AnnotatedSentence> annotatedSentences) {
-		int numQAs = 0,
-			numAggregatedQAs = 0;
-		
-		for (AnnotatedSentence annotSent : annotatedSentences) {			
-			for (int propHead : annotSent.qaLists.keySet()) {
-				HashMap<String, Integer>
-					questionMap = new HashMap<String, Integer>(),
-					answerMap = new HashMap<String, Integer>(),
-					qaMap = new HashMap<String, Integer>();
-		
-				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encodedQuestion =
-							QuestionEncoder.encode(qa.questionWords);
-					String encodedAnswer = qa.getAnswerString();
-					
-					if (!questionMap.containsKey(encodedQuestion)) {
-						questionMap.put(encodedQuestion, 1);
-					} else {
-						int k = questionMap.get(encodedQuestion);
-						questionMap.put(encodedQuestion, k + 1);
-					}
-					
-					if (!answerMap.containsKey(encodedAnswer)) {
-						answerMap.put(encodedAnswer, 1);
-					} else {
-						int k = answerMap.get(encodedAnswer);
-						answerMap.put(encodedAnswer, k + 1);
-					}
+	static void checkDistinctQuestionLabels(SRLCorpus corpus,
+			ArrayList<CrowdFlowerQAResult> results) {
+		HashMap<String, String> qmap = new HashMap<String, String>(),
+								amap = new HashMap<String, String>();
+		int numQLabels = 0,
+			numCollided = 0;
+		for (CrowdFlowerQAResult result : results) {
+			for (int i = 0; i < result.questions.size(); i++) {
+				DepSentence sentence = corpus.sentences.get(result.sentenceId);
+				String[] question = result.questions.get(i);
+				String keyStr = String.format("%d_%d_%d_%s",
+						result.sentenceId, result.propEnd - 1,
+						result.cfWorkerId, QuestionEncoder.encode(question, sentence));
+				String aStr = StringUtils.join(" ... ", result.answers.get(i)); 
+				String qaStr = StringUtils.join(" ", question) + "?\t" + aStr;
+						
+				if (qmap.containsKey(keyStr) && !amap.get(keyStr).equals(aStr)) {
+					System.out.println(keyStr);
+					System.out.println("\t" + sentence.getTokensString());
+					System.out.println("\t" + qmap.get(keyStr));
+					System.out.println("\t" + qaStr);
+					System.out.println();
+					numCollided++;
 				}
-				ArrayList<StructuredQAPair> agreedList =
-						new ArrayList<StructuredQAPair>();
-				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
-					String encodedQuestion =
-							QuestionEncoder.encode(qa.questionWords);
-					String encodedAnswer = qa.getAnswerString();
-					String encodedQA = encodedQuestion + "###" + encodedAnswer;
-					
-					if ((questionMap.get(encodedQuestion) > 1 ||
-						answerMap.get(encodedAnswer) > 1) &&
-						!qaMap.containsKey(encodedQA)) {
-						agreedList.add(qa);
-						qaMap.put(encodedQA, 1);
-					}
+				numQLabels ++;
+				qmap.put(keyStr, qaStr);
+				amap.put(keyStr, aStr);
+			}
+		}
+		System.out.println(numQLabels + ", " + numCollided);
+	}
+	
+	static void computeInterAnnotatorAgreement(SRLCorpus corpus,
+			ArrayList<CrowdFlowerQAResult> results) {
+		HashMap<String, ArrayList<StructuredQAPair>> qaMap =
+				new HashMap<String, ArrayList<StructuredQAPair>>();
+		
+		for (CrowdFlowerQAResult result : results) {
+			int sentId = result.sentenceId,
+				propId = result.propEnd - 1;
+			String sentTrgKey = String.format("%d_%d", sentId, propId);
+			
+			if (!qaMap.containsKey(sentTrgKey)) {
+				qaMap.put(sentTrgKey, new ArrayList<StructuredQAPair>());
+			}
+			HashMap<String, StructuredQAPair> qmap =
+					new HashMap<String, StructuredQAPair>();
+			// Aggregate each worker's results by question label.
+			for (int i = 0; i < result.questions.size(); i++) {
+				DepSentence sentence = corpus.sentences.get(result.sentenceId);
+				StructuredQAPair qa = new StructuredQAPair(
+						(SRLSentence) sentence, propId, result.questions.get(i),
+						"" /* ansewr */, result);
+				for (String answer : result.answers.get(i)) {
+					qa.addAnswer(answer);
 				}
-				numQAs += annotSent.qaLists.get(propHead).size();
-				numAggregatedQAs += agreedList.size();
-				annotSent.qaLists.put(propHead, agreedList);
+				String qlabel = qa.getQuestionLabel();
+				if (qmap.containsKey(qlabel)) {
+					qmap.get(qlabel).addAnswer(qa.answerFlags);
+					qmap.get(qlabel).addAnnotationSource(result);
+				} else {
+					qmap.put(qlabel, qa);
+				}
+			}
+			for (String qlabel : qmap.keySet()) {
+				qaMap.get(sentTrgKey).add(qmap.get(qlabel));
 			}
 		}
 		
-		System.out.println("Num QAs before filtering:\t" + numQAs +
-				 		   "\nNum QAs after filtering:\t" + numAggregatedQAs);
+		// Compute inter-annotator agreement
+		// <Q1, A1> \equals <Q2, A2> iff:
+		//   (1) label(Q1) == label(Q2)
+		//   (2) answer(A1) = answer(A2)
+		double avgTwoAgreement = .0, avgThreeAgreement = .0;
+		for (String sentTrgKey : qaMap.keySet()) {
+			int totalQAs = qaMap.get(sentTrgKey).size(),
+				twoAgreedQAs = 0,
+				threeAgreedQAs = 0;
+			HashMap<String, int[]> qaCount = new HashMap<String, int[]>();
+			for (StructuredQAPair qa : qaMap.get(sentTrgKey)) {
+				int sentLength = qa.answerFlags.length;
+				String qlabel = qa.questionLabel;
+				if (!qaCount.containsKey(qlabel)) {
+					qaCount.put(qlabel, new int[sentLength]);
+					Arrays.fill(qaCount.get(qlabel), 0);
+				}
+				int[] flags = qaCount.get(qlabel);
+				for (int i = 0; i < sentLength; i++) {
+					flags[i] += (qa.answerFlags[i] > 0 ? 1 : 0);
+				}
+				System.out.println(qa.cfAnnotationSources.get(0).cfWorkerId +
+						"\t" + qa.toString());
+			}
+			for (String qlabel : qaCount.keySet()) {
+				int maxCount = 0;
+				int[] flags = qaCount.get(qlabel);
+				for (int i = 0; i < flags.length; i++) {
+					maxCount = Math.max(maxCount, flags[i]);
+				}
+				twoAgreedQAs += (maxCount >= 2 ? 1 : 0);
+				threeAgreedQAs += (maxCount >= 3 ? 1 : 0);
+			}
+			
+			System.out.println(String.format("%s\t%d\t%d\t%d\t%.3f\t%.3f",
+					sentTrgKey,
+					totalQAs, twoAgreedQAs, threeAgreedQAs,
+					1.0 * twoAgreedQAs / totalQAs,
+					1.0 * threeAgreedQAs / totalQAs));
+			avgTwoAgreement += 1.0 * twoAgreedQAs / totalQAs;
+			avgThreeAgreement += 1.0 * threeAgreedQAs / totalQAs;
+		}
+		System.out.println(avgTwoAgreement / qaMap.size());
+		System.out.println(avgThreeAgreement / qaMap.size());
 	}
 	
 	public static void main(String[] args) {
@@ -328,7 +291,8 @@ public class CrowdFlowerQADataRetriever {
 		}
 		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
 		//aggregateAnnotationsByQuestion(annotatedSentences);
-		//aggregateAnnotationsByAnswer(annotatedSentences);
+		//checkDistinctQuestionLabels(trainCorpus, annotationResults);
+	
 		/*
 		for (AnnotatedSentence sent : annotatedSentences) {
 			//System.out.println(sent.toString());
@@ -340,10 +304,12 @@ public class CrowdFlowerQADataRetriever {
 				}
 			}
 			System.out.println();
-		}
-		*/
+		}*/
+		
+		computeInterAnnotatorAgreement(trainCorpus, annotationResults);
+		
 		SRLAnnotationValidator tester = new SRLAnnotationValidator();
-		tester.ignoreLabels = true;
+		//tester.ignoreLabels = true;
 		tester.computeSRLAccuracy(annotatedSentences, trainCorpus);
 	}
 }
