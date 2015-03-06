@@ -94,6 +94,13 @@ public class StructuredQAPair {
 		return answerStr;
 	}
 	
+	public String getQuestionString() {
+		if (questionWords == null) {
+			return "";
+		}
+		return StringUtils.join(" ", questionWords) + "?";
+	}
+	
 	public String toString() {
 		String result = questionLabel;
 		//StringUtils.join(" ", questionWords);

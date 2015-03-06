@@ -1,5 +1,7 @@
 package experiments;
 
+import gnu.trove.map.hash.TIntIntHashMap;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -88,19 +90,34 @@ public class CrowdFlowerQADataRetriever {
 				propHead = result.propEnd - 1;
 			}
 			currSent.addProposition(propHead);
+			//HashMap<String, StructuredQAPair> qaMap =
+			//		new HashMap<String, StructuredQAPair>();
 			for (int i = 0; i < result.questions.size(); i++) {
 				String[] question = result.questions.get(i);				
 				if (question[0].equalsIgnoreCase("how many")) {
 					continue;
 				}
-				String[] answers = result.answers.get(i);
 				StructuredQAPair qa = new StructuredQAPair(sentence, propHead,
-						question, answers[0], result);
-				for (int j = 1; j < answers.length; j++) {
-					qa.addAnswer(answers[j]);
+						question, "" /* answer */, result);
+				/*
+				String qlabel = qa.getQuestionLabel();
+				if (!qaMap.containsKey(qlabel)) {
+					qaMap.put(qlabel, qa);
+				} else {
+					qa = qaMap.get(qlabel);
+				}
+				*/
+				for (String answer : result.answers.get(i)) {
+					qa.addAnswer(answer);
 				}
 				currSent.addQAPair(propHead, qa);
 			}
+			/*
+			for (String qlabel : qaMap.keySet()) {
+				currSent.addQAPair(propHead, qaMap.get(qlabel));
+			}
+			*/
+
 			// TODO: look at people's feedback
 			/*
 			if (!result.feedback.isEmpty()) {
@@ -235,10 +252,16 @@ public class CrowdFlowerQADataRetriever {
 		//   (2) answer(A1) = answer(A2)
 		double avgTwoAgreement = .0, avgThreeAgreement = .0;
 		for (String sentTrgKey : qaMap.keySet()) {
-			int totalQAs = qaMap.get(sentTrgKey).size(),
+			/*
+			int totalQAs = 0,
 				twoAgreedQAs = 0,
 				threeAgreedQAs = 0;
+			*/
 			HashMap<String, int[]> qaCount = new HashMap<String, int[]>();
+			TIntIntHashMap workerCount = new TIntIntHashMap(),
+						   workerTwoAgreed = new TIntIntHashMap(),
+						   workerThreeAgreed = new TIntIntHashMap();
+			
 			for (StructuredQAPair qa : qaMap.get(sentTrgKey)) {
 				int sentLength = qa.answerFlags.length;
 				String qlabel = qa.questionLabel;
@@ -250,9 +273,25 @@ public class CrowdFlowerQADataRetriever {
 				for (int i = 0; i < sentLength; i++) {
 					flags[i] += (qa.answerFlags[i] > 0 ? 1 : 0);
 				}
-				System.out.println(qa.cfAnnotationSources.get(0).cfWorkerId +
-						"\t" + qa.toString());
 			}
+			for (StructuredQAPair qa : qaMap.get(sentTrgKey)) {
+				int workerId = qa.cfAnnotationSources.get(0).cfWorkerId;
+				int maxCount = 0;
+				int[] flags = qaCount.get(qa.questionLabel);
+				for (int i = 0; i < qa.answerFlags.length; i++) {
+					if (qa.answerFlags[i] > 0) {
+						maxCount = Math.max(maxCount, flags[i]);
+					}
+				}
+				if (maxCount >= 2) {
+					workerTwoAgreed.adjustOrPutValue(workerId, 1, 1);
+				}
+				if (maxCount >= 3) {
+					workerThreeAgreed.adjustOrPutValue(workerId, 1, 1);
+				}
+				workerCount.adjustOrPutValue(workerId, 1, 1);
+			}
+			/*
 			for (String qlabel : qaCount.keySet()) {
 				int maxCount = 0;
 				int[] flags = qaCount.get(qlabel);
@@ -261,8 +300,21 @@ public class CrowdFlowerQADataRetriever {
 				}
 				twoAgreedQAs += (maxCount >= 2 ? 1 : 0);
 				threeAgreedQAs += (maxCount >= 3 ? 1 : 0);
+				totalQAs += (3 - maxCount + 1);
 			}
+			*/
 			
+			double avgTwoAccuracy = 0.0, avgThreeAccuracy = 0.0;
+			for (int workerId : workerCount.keys()) {
+				int cnt = workerCount.get(workerId);
+				double twoAcc = 1.0 * workerTwoAgreed.get(workerId) / cnt;
+				double threeAcc = 1.0 * workerThreeAgreed.get(workerId) / cnt;
+				avgTwoAccuracy += twoAcc;
+				avgThreeAccuracy += threeAcc;
+			}
+			avgTwoAgreement += 1.0 * avgTwoAccuracy / workerCount.keys().length;
+			avgThreeAgreement += 1.0 * avgThreeAccuracy / workerCount.keys().length;
+			/*
 			System.out.println(String.format("%s\t%d\t%d\t%d\t%.3f\t%.3f",
 					sentTrgKey,
 					totalQAs, twoAgreedQAs, threeAgreedQAs,
@@ -270,9 +322,66 @@ public class CrowdFlowerQADataRetriever {
 					1.0 * threeAgreedQAs / totalQAs));
 			avgTwoAgreement += 1.0 * twoAgreedQAs / totalQAs;
 			avgThreeAgreement += 1.0 * threeAgreedQAs / totalQAs;
+			*/
 		}
 		System.out.println(avgTwoAgreement / qaMap.size());
 		System.out.println(avgThreeAgreement / qaMap.size());
+	}
+	
+	private static void debugOutput(SRLCorpus corpus,
+			ArrayList<AnnotatedSentence> annotatedSentences) {
+		// TODO: Print Precision/recall/F1
+		// TODO: Print sentence 10-by-10
+		SRLAnnotationValidator validator = new SRLAnnotationValidator();
+		validator.ignoreLabels = true;
+		
+		for (AnnotatedSentence annotSent : annotatedSentences) {
+			SRLSentence sentence = annotSent.sentence;
+			System.out.println(sentence.getTokensString());
+			String[][] gold = validator.getGoldSRL(sentence);
+			int sentLength = sentence.length;
+			
+			for (int propId : annotSent.qaLists.keySet()) {
+				System.out.println(annotSent.sentence.getTokenString(propId));
+				// Compute Agreement.
+				HashMap<String, int[]> qaCount = new HashMap<String, int[]>();
+				for (StructuredQAPair qa : annotSent.qaLists.get(propId)) {
+					String qlabel = qa.questionLabel;
+					if (!qaCount.containsKey(qlabel)) {
+						qaCount.put(qlabel, new int[sentLength]);
+						Arrays.fill(qaCount.get(qlabel), 0);
+					}
+					int[] flags = qaCount.get(qlabel);
+					for (int i = 0; i < sentLength; i++) {
+						flags[i] += (qa.answerFlags[i] > 0 ? 1 : 0);
+					}
+				}				
+				for (StructuredQAPair qa : annotSent.qaLists.get(propId)) {
+					int workerId = qa.cfAnnotationSources.get(0).cfWorkerId;
+					String qlabel = qa.getQuestionLabel();
+					boolean agreed = false,
+							matched = false;
+					int[] flags = qaCount.get(qlabel);
+					for (int i = 0; i < sentLength; i++) {
+						if (qa.answerFlags[i] > 0 && flags[i] > 1) {
+							agreed = true;
+						}
+						if (!gold[propId + 1][i + 1].isEmpty() &&
+							validator.matchedGold(propId, qa, sentence)) {
+							matched = true;
+						}
+					}
+					System.out.println(
+							workerId + "\t" +
+							qa.questionLabel + "\t" +
+							qa.getQuestionString() + "\t" +
+							qa.getAnswerString() + "\t" + 
+							(agreed ? " " : "NA") + "\t" +
+							(agreed ? " " : "NG") + "\t");
+				}
+				System.out.println();
+			}
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -290,6 +399,7 @@ public class CrowdFlowerQADataRetriever {
 			return;
 		}
 		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
+		debugOutput(trainCorpus, annotatedSentences);
 		//aggregateAnnotationsByQuestion(annotatedSentences);
 		//checkDistinctQuestionLabels(trainCorpus, annotationResults);
 	
@@ -306,7 +416,7 @@ public class CrowdFlowerQADataRetriever {
 			System.out.println();
 		}*/
 		
-		computeInterAnnotatorAgreement(trainCorpus, annotationResults);
+		//computeInterAnnotatorAgreement(trainCorpus, annotationResults);
 		
 		SRLAnnotationValidator tester = new SRLAnnotationValidator();
 		//tester.ignoreLabels = true;

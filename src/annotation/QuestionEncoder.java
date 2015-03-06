@@ -40,6 +40,9 @@ public class QuestionEncoder {
 		boolean passiveVoice = isPassiveVoice(aux, trg);
 		String label = null;
 		
+		if (wh.equals("whom")) {
+			wh = "who";
+		}
 		if (isWhoWhat(wh)) {
 			if (nullPh1 && !passiveVoice) {
 				// e.g. Who built something? What dropped?
@@ -75,7 +78,7 @@ public class QuestionEncoder {
 			}
 		} else {
 			label = wh;
-			if (!pp.isEmpty() && hasInformativePP) {
+			if (wh.equals("where") && !pp.isEmpty() && nullPh3) {
 				label += "_" + pp;
 			}
 		}
