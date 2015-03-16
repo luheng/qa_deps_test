@@ -2,8 +2,12 @@ package experiments;
 
 import gnu.trove.map.hash.TIntIntHashMap;
 
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,6 +17,7 @@ import java.util.Set;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
+import util.LatticeUtils;
 import util.StringUtils;
 import data.AnnotatedSentence;
 import data.DepSentence;
@@ -334,15 +339,31 @@ public class CrowdFlowerQADataRetriever {
 		// TODO: Print sentence 10-by-10
 		SRLAnnotationValidator validator = new SRLAnnotationValidator();
 		validator.ignoreLabels = true;
+		int sentCount = 0;
+		
+		try {
+			System.setOut(new PrintStream(new BufferedOutputStream(
+					new FileOutputStream("debug2.xls"))));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		
 		for (AnnotatedSentence annotSent : annotatedSentences) {
+			sentCount ++;
 			SRLSentence sentence = annotSent.sentence;
-			System.out.println(sentence.getTokensString());
 			String[][] gold = validator.getGoldSRL(sentence);
+			int[][] covered = new int[gold.length][];
+			for (int i = 0; i < gold.length; i++) {
+				covered[i] = new int[gold[i].length];
+			}
+			LatticeUtils.fill(covered, 0);
 			int sentLength = sentence.length;
-			
-			for (int propId : annotSent.qaLists.keySet()) {
-				System.out.println(annotSent.sentence.getTokenString(propId));
+			for (Proposition prop : sentence.propositions) {
+				int propId = prop.propID;
+				if (!annotSent.qaLists.containsKey(propId)) {
+					continue;
+				}
+				//System.out.println(annotSent.sentence.getTokenString(propId));
 				// Compute Agreement.
 				HashMap<String, int[]> qaCount = new HashMap<String, int[]>();
 				for (StructuredQAPair qa : annotSent.qaLists.get(propId)) {
@@ -354,8 +375,28 @@ public class CrowdFlowerQADataRetriever {
 					int[] flags = qaCount.get(qlabel);
 					for (int i = 0; i < sentLength; i++) {
 						flags[i] += (qa.answerFlags[i] > 0 ? 1 : 0);
+						if (!gold[propId + 1][i + 1].isEmpty() &&
+							validator.matchedGold(i, qa, sentence)) {
+							covered[propId + 1][i + 1] = 1;
+						}
 					}
-				}				
+				}
+				System.out.println(
+						sentence.sentenceID + "\t" +
+						sentence.getTokensString());
+				System.out.println(
+						sentence.getTokenString(propId) + "\t" +
+						corpus.propDict.getString(prop.propType));
+				for (int i = 0; i < prop.argIDs.size(); i++) {
+					int argType = prop.argTypes.get(i),
+						argId = prop.argIDs.get(i);
+					System.out.println(
+							" \t" +
+							corpus.argModDict.getString(argType) + "\t" +
+							" \t" +
+							sentence.getTokenString(argId) + "\t" +
+							(covered[propId + 1][argId + 1] > 0 ? " " : "NC"));
+				}
 				for (StructuredQAPair qa : annotSent.qaLists.get(propId)) {
 					int workerId = qa.cfAnnotationSources.get(0).cfWorkerId;
 					String qlabel = qa.getQuestionLabel();
@@ -367,7 +408,7 @@ public class CrowdFlowerQADataRetriever {
 							agreed = true;
 						}
 						if (!gold[propId + 1][i + 1].isEmpty() &&
-							validator.matchedGold(propId, qa, sentence)) {
+							validator.matchedGold(i, qa, sentence)) {
 							matched = true;
 						}
 					}
@@ -377,7 +418,7 @@ public class CrowdFlowerQADataRetriever {
 							qa.getQuestionString() + "\t" +
 							qa.getAnswerString() + "\t" + 
 							(agreed ? " " : "NA") + "\t" +
-							(agreed ? " " : "NG") + "\t");
+							(matched ? " " : "NG") + "\t");
 				}
 				System.out.println();
 			}
@@ -399,8 +440,8 @@ public class CrowdFlowerQADataRetriever {
 			return;
 		}
 		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
-		debugOutput(trainCorpus, annotatedSentences);
-		//aggregateAnnotationsByQuestion(annotatedSentences);
+		//debugOutput(trainCorpus, annotatedSentences);
+		aggregateAnnotationsByQuestion(annotatedSentences);
 		//checkDistinctQuestionLabels(trainCorpus, annotationResults);
 	
 		/*

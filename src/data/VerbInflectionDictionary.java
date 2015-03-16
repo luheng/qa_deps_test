@@ -65,6 +65,25 @@ public class VerbInflectionDictionary {
 		countInflections();
 	}
 	
+	public int getBestInflectionId(String verb) {
+		ArrayList<Integer> inflIds = inflMap.get(verb);
+		if (inflIds == null) {
+			//System.out.println("!!! Error:\t" + sent.getTokensString() + "\n" + propHead + " not found");
+			System.out.println(verb);
+			//System.out.println(sent.getPostagsString());
+			return -1;
+		}
+		int bestId = -1, bestCount = -1;
+		for (int i = 0; i < inflIds.size(); i++) {
+			int count = inflCount[inflIds.get(i)];
+			if (count > bestCount) {
+				bestId = inflIds.get(i);
+				bestCount = count;
+			}
+		}
+		return bestId;
+	}
+	
 	private void countInflections() {
 		inflCount = new int[inflections.size()];
 		Arrays.fill(inflCount, 0);

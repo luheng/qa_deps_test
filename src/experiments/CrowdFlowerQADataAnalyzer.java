@@ -352,6 +352,59 @@ public class CrowdFlowerQADataAnalyzer {
 		}
 	}
 	
+	private static void questionSlotAnalysis() {
+		CountDictionary whDist = new CountDictionary(),
+					    auxDist = new CountDictionary(),
+					    ph1Dist = new CountDictionary(),
+					    trgDist = new CountDictionary(),
+					    ph2Dist = new CountDictionary(),
+					    ppDist = new CountDictionary(),
+					    ph3Dist = new CountDictionary(),
+					    verbDist = new CountDictionary();
+		for (CrowdFlowerQAResult result : annotationResults) {
+			for (String[] question : result.questions) {
+				whDist.addString(question[0]);
+				auxDist.addString(question[1]);
+				ph1Dist.addString(question[2]);
+				// TODO: transform target
+				String t0 = "", t1 = "read";
+				if (question[3].endsWith("ing")) {
+					t1 = "reading";
+				}
+				String[] tmp = question[3].split(" ");
+				if (tmp.length > 1) {
+					for (int i = 0; i < tmp.length - 1; i++) {
+						t0 += tmp[i] + " ";
+					}
+				}
+				trgDist.addString(t0 + t1);
+				verbDist.addString(question[1] + " " +  question[2] + " " + t0 + " " + t1);
+				ph2Dist.addString(question[4]);
+				ppDist.addString(question[5]);
+				ph3Dist.addString(question[6]);
+				
+				if (question[1].equals("are") || question[1].equals("were")) {
+					System.out.println(result.toString());
+				}
+			}
+		}
+		System.out.println("\nAUX");
+		auxDist.prettyPrint();
+		// Print distribution
+		/*
+		System.out.println("\nTRG");
+		trgDist.prettyPrint();
+		System.out.println("\nVERB");
+		verbDist.prettyPrint();
+		System.out.println("\nPH1");
+		ph1Dist.prettyPrint(); 
+		System.out.println("\nPH2");
+		ph2Dist.prettyPrint();
+		System.out.println("\nPH3");
+		ph3Dist.prettyPrint();
+		*/
+	}
+	
 	public static void main(String[] args) {
 		corpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
@@ -362,8 +415,8 @@ public class CrowdFlowerQADataAnalyzer {
 			e.printStackTrace();
 			return;
 		}
-		alignAnnotations();
-		boostScores();
+		//alignAnnotations();
+		//boostScores();
 		//aggregateAnnotations();
 		
 		//printFeedback();
@@ -376,7 +429,8 @@ public class CrowdFlowerQADataAnalyzer {
 		// (4) Worker score - "eccentric" loss. If an answer does not match any other's answer span.
 		
 		//workerAnalysis();
-		
 		//encodeQuestions();
+		
+		questionSlotAnalysis();
 	}
 }

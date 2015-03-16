@@ -18,6 +18,7 @@ public class SRLAnnotationValidator {
 	public boolean ignoreAmModArcs = true;
 	public boolean ignoreAmAdvArcs = false;
 	public boolean ignoreAmNegArcs = true;
+	public boolean ignoreRAxArcs = true;
 	
 	public boolean goldPropositionOnly = true; 
 	public boolean coreArgsOnly = false;
@@ -95,6 +96,9 @@ public class SRLAnnotationValidator {
 					goldArcs[i][j] = "";
 				}
 				if (ignoreAmNegArcs && goldArcs[i][j].equals("AM-NEG")) {
+					goldArcs[i][j] = "";
+				}
+				if (ignoreRAxArcs && goldArcs[i][j].startsWith("R-A")) {
 					goldArcs[i][j] = "";
 				}
 			}
@@ -187,6 +191,9 @@ public class SRLAnnotationValidator {
 						goldArcs[i][j] = "";
 					}
 					if (ignoreAmNegArcs && goldArcs[i][j].equals("AM-NEG")) {
+						goldArcs[i][j] = "";
+					}
+					if (ignoreRAxArcs && goldArcs[i][j].startsWith("R-A")) {
 						goldArcs[i][j] = "";
 					}
 					if (!goldArcs[i][j].isEmpty()) {

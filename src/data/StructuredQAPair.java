@@ -59,11 +59,9 @@ public class StructuredQAPair {
 		if (answer.isEmpty()) {
 			return;
 		}
-		int[][] answerSpans = AnswerSpanAligner.align(sentence, answer);
-		for (int[] span : answerSpans) {
-			for (int i = span[0]; i < span[1]; i++) {
-				answerFlags[i] = 1;
-			}
+		int[] matched = AnswerSpanAligner.align(sentence, answer);
+		for (int i = 0; i < sentence.length; i++) {
+			answerFlags[i] = matched[i];
 		}
 	}
 	
