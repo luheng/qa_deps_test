@@ -2,15 +2,15 @@ Can you find answer(s) in the sentence?
 
 ### Overview
 We want to teach the computer to understand human language. 
-To do this, we need your help to provide find answers to a question in a given sentence.
+To do this, we need your help to provide answers to a question in a given sentence.
 
 ### Process
 You will be presented with a sentence and a question. 
 Your task is to provide answer(s) to the question using words in the sentence. 
-The question asks about information about a verb (target phrase) in the sentence such as who/what/where. 
+The question asks for information about a verb (target phrase) in the sentence such as who/what/where/when. 
 The target phrase is highlighted to make your work easier. 
 For example, given the sentence "Pat <mark>built</mark> a robot" 
-and question "Who <mark>built</mark> something?", your job is to:
+and the question "Who <mark>built</mark> something?", your job is to:
 
 * <b>Step 1:</b> Decide if the answer can be found in the sentence. If not, choose the reason why it can't be found.
 * <b>Step 2:</b> If the answer can be found in the sentence, answer that question using only words from the original sentence.  For example, "Pat". When there is more than one correct answer, try to list them all.
@@ -19,9 +19,9 @@ and question "Who <mark>built</mark> something?", your job is to:
 ### Tips
 <h4 style="color:#8cc63e;"><strong>Do This</strong></h4>
 * Try to provide all the correct answers.
-* Please read the Examples carefully, pay attention to the correct answer(s) and typical wrong answer(s).
+* Please read the examples carefully, pay attention to the <b>correct answer(s)</b> and <b>typical wrong answer(s)</b>.
 * Some questions might be slightly ungrammatical, please try your best to provide answers as long as you can understand them.
-* Trust your understanding of the language! :)
+* Trust your understanding of the language!
 
 
 <h4 style="color:#f05921;"><strong>Do Not</strong></h4>
@@ -47,16 +47,29 @@ Here are some examples that can help you better understand the task.
 #### Example 2
 
 <table>
-<tr><th> Sentence                  </th> <td> The U.S. interest rate is expected to <mark>decline</mark>, dragging dollars down to around 1.80 marks . </td></tr>
-<tr><th> Question                  </th> <td> What will something <mark>decline</mark> to?                                                             </td></tr>
-<tr><th> Correct Answer(s)         </th> <td> <i>Answer cannot be found because the required information is not provided in the sentence.</i>          </td></tr>
-<tr><th> Typical Wrong Answer(s)   </th> <td> Pat <br> robots                                                                                          </td></tr>
+<tr><th> Sentence                  </th> <td> Pat's plan of building intelligent robots is <mark>supported</mark> by the company . </td></tr>
+<tr><th> Question                  </th> <td> What did something <mark>support</mark> something?                                   </td></tr>
+<tr><th> Correct Answer(s)         </th> <td> <i>The answer(s) cannot be found because the question is incomprehensible.</i>       </td></tr>
 </table>
-
 
 <br>
 
 #### Example 3
+
+<table>
+<tr><th> Sentence                  </th> <td> The U.S. interest rate is expected to <mark>decline</mark>, dragging dollars down to around 1.80 marks . </td></tr>
+<tr><th> Question                  </th> <td> What will something <mark>decline</mark> to?                                                             </td></tr>
+<tr><th> Correct Answer(s)         </th> <td> <i>The answer(s) cannot be found because the required information is not provided in the sentence.</i>   </td></tr>
+<tr><th> Typical Wrong Answer(s)   </th> <td> 1.80 marks                                                                                               </td></tr>
+</table>
+
+<br>
+
+<b>Explanation:</b> Dollars declined to 1.80 marks, not the interest rate.
+
+<br>
+
+#### Example 4
 
 <table>
 <tr><th> Sentence                  </th> <td> Pat and Chris said they were <mark>working</mark> on a new prototype of cooking robot . </td></tr>
@@ -67,18 +80,18 @@ Here are some examples that can help you better understand the task.
 
 <br>
 
-#### Example 4
+#### Example 5
 
 <table>
 <tr><th> Sentence                  </th> <td> During the interview, they <mark>said</mark> the new prototype would come out by the end of next July .  </td></tr>
 <tr><th> Question                  </th> <td> When did someone <mark>say</mark> something?                                                             </td></tr>
 <tr><th> Correct Answer(s)         </th> <td> During the interview                                                                                     </td></tr>
-<tr><th> Typical Wrong Answer(s)   </th> <td> by the end of next July robots                                                                           </td></tr>
+<tr><th> Typical Wrong Answer(s)   </th> <td> by the end of next July                                                                                  </td></tr>
 </table>
 
 <br>
 
-#### Example 5
+#### Example 6
 
 <table>
 <tr><th> Sentence                  </th> <td> “ It ’s a hard task ” , <mark>said</mark> Chris , “ but everything is going well . ”  </td></tr>
@@ -90,4 +103,4 @@ Here are some examples that can help you better understand the task.
 <br>
 
 ### Thank You!
-Thank you for your help! Your good work will help us to have more intelligent machine-reading systems!
+Thank you for your help! Your good work will help us build more intelligent machine-reading systems!
