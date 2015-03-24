@@ -1,15 +1,10 @@
 package experiments;
 
-import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.list.array.TIntArrayList;
 
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,18 +12,14 @@ import java.util.Set;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
-import util.LatticeUtils;
 import util.StringUtils;
 import data.AnnotatedSentence;
-import data.DepSentence;
 import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
-import data.StructuredQAPair;
 import annotation.CrowdFlowerQAResult;
+import annotation.CrowdFlowerStage2Result;
 import annotation.PropositionAligner;
-import annotation.QuestionEncoder;
-import annotation.SRLAnnotationValidator;
 
 public class CrowdFlowerStage2DataRetriever {
 
@@ -37,7 +28,7 @@ public class CrowdFlowerStage2DataRetriever {
 			"crowdflower/cf_round1_100sents_stage2/f705896_CF_QA_s100_stage2_testrun.csv";
 	
 	public static void readAnnotationResult(
-			ArrayList<CrowdFlowerQAResult> results) throws IOException {
+			ArrayList<CrowdFlowerStage2Result> results) throws IOException {
 		assert (results != null);
 		
 		FileReader fileReader = new FileReader(annotationFilePath);
@@ -47,8 +38,7 @@ public class CrowdFlowerStage2DataRetriever {
 		double avgTime = 0;
 		int numRecords = 0;
 		for (CSVRecord record : records) {
-			// TODO: change this ...
-			CrowdFlowerQAResult qa = CrowdFlowerQAResult.parseCSV(record);
+			CrowdFlowerStage2Result qa = CrowdFlowerStage2Result.parseCSV(record);
 			results.add(qa);
 			avgTime += qa.secondsToComplete;
 			++ numRecords;
@@ -63,58 +53,73 @@ public class CrowdFlowerStage2DataRetriever {
 				3600 / avgTime));
 	}
 	
-	public static void alignAnnotations(
-			ArrayList<AnnotatedSentence> annotatedSentences,
-			ArrayList<CrowdFlowerQAResult> cfResults, SRLCorpus corpus) {
-		assert (annotatedSentences != null);
-		PropositionAligner propAligner = new PropositionAligner();
-
-		// Map sentence IDs to 0 ... #sentences.
-		Set<Integer> sentenceIds = new HashSet<Integer>();
-		HashMap<Integer, Integer> sentIdMap = new HashMap<Integer, Integer>();
-		for (CrowdFlowerQAResult result : cfResults) {
-			sentenceIds.add(result.sentenceId);
+	public static void analyzeAnnotations(
+			ArrayList<CrowdFlowerQAResult> stage1Results,
+			ArrayList<CrowdFlowerStage2Result> stage2Results,
+			SRLCorpus corpus) {
+		// Aggregate Stage1 results.
+		HashMap<String, ArrayList<CrowdFlowerQAResult>> stage1ResultsMap =
+				new HashMap<String, ArrayList<CrowdFlowerQAResult>>();
+		for (CrowdFlowerQAResult result : stage1Results) {
+			int sentId = result.sentenceId,
+				propHead = result.propEnd - 1;
+			String cfKey = String.format("%d_%d", sentId, propHead);
+			if (!stage1ResultsMap.containsKey(cfKey)) {
+				stage1ResultsMap.put(cfKey, new ArrayList<CrowdFlowerQAResult>());
+			}
+			stage1ResultsMap.get(cfKey).add(result);
 		}
-		for (int id : sentenceIds) {
-			annotatedSentences.add(new AnnotatedSentence(
-					(SRLSentence) corpus.sentences.get(id)));
-			sentIdMap.put(id, annotatedSentences.size() - 1);
-		}
-		
-		for (CrowdFlowerQAResult result : cfResults) {
+		// Compare with Stage1 results.
+		for (CrowdFlowerStage2Result result : stage2Results) {
 			int sentId = result.sentenceId;
 			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
-			AnnotatedSentence currSent =
-					annotatedSentences.get(sentIdMap.get(result.sentenceId));
-			
-			int propHead = -1;
-			if (result.propStart == -1) {
-				Proposition prop = propAligner.align(sentence,
-						result.proposition);
-				propHead = prop.span[1] - 1;
-			} else {
-				propHead = result.propEnd - 1;
-			}
-			currSent.addProposition(propHead);
+			int propHead = result.propEnd - 1;
 		
-			/* todo here */
+			// Retrieve Stage1 result
+			String cfKey = String.format("%d_%d", sentId, propHead);
+			
+			for (CrowdFlowerQAResult stage1Result : stage1ResultsMap.get(cfKey)) {
+				//TODO: debug the worker ID problem.
+				System.out.println(result.stage1Id + "..." + stage1Result.cfWorkerId); 
+				
+				for (int qid = 0; qid < stage1Result.questions.size(); qid++) {
+					String[] question = stage1Result.questions.get(qid);
+					String qstr = StringUtils.join(" ", question).trim();
+					if (!qstr.equalsIgnoreCase(result.question)) {
+						continue;
+					}
+					// Compare.					
+					System.out.println(qstr);
+					System.out.println("==== stage1 answers ====");
+					System.out.println(StringUtils.join("\n", stage1Result.answers.get(qid)));
+					System.out.println("==== stage2 answers ====");
+					System.out.println(StringUtils.join("\n", result.answers));
+					System.out.println();
+				}
+			}
 		}
 	}
 	
 	public static void main(String[] args) {
 		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
-		ArrayList<CrowdFlowerQAResult> annotationResults =
+		
+		ArrayList<CrowdFlowerQAResult> stage1Results =
 				new ArrayList<CrowdFlowerQAResult>();
+		ArrayList<CrowdFlowerStage2Result> stage2Results =
+				new ArrayList<CrowdFlowerStage2Result>();
 		ArrayList<AnnotatedSentence> annotatedSentences =
 				new ArrayList<AnnotatedSentence>();
 		
 		try {
-			readAnnotationResult(annotationResults);
+			CrowdFlowerQADataRetriever.readAnnotationResult(stage1Results);
+			readAnnotationResult(stage2Results);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
 		}
-		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
+		CrowdFlowerQADataRetriever.alignAnnotations(annotatedSentences,
+				stage1Results, trainCorpus);
+		analyzeAnnotations(stage1Results, stage2Results, trainCorpus);
 	}
 }

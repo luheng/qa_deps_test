@@ -1,13 +1,9 @@
 package annotation;
 
-import java.util.ArrayList;
-
 import org.apache.commons.csv.CSVRecord;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import util.StringUtils;
 
 public class CrowdFlowerResult {
 
@@ -26,9 +22,7 @@ public class CrowdFlowerResult {
 	protected static final DateTimeFormatter cfDateTimeFormatter =
 			DateTimeFormat.forPattern("m/dd/yy HH:mm:ss");
 	
-	public static CrowdFlowerResult parseCSV(CSVRecord csvRecord) {
-		CrowdFlowerResult result = new CrowdFlowerResult();
-		
+	public static void parseCSV(CSVRecord csvRecord, CrowdFlowerResult result) {		
 		// Parse CrowdFlower specific information.
 		result.cfUnitId = Integer.parseInt(csvRecord.get("_unit_id"));
 		result.cfWorkerId = Integer.parseInt(csvRecord.get("_worker_id"));
@@ -43,7 +37,6 @@ public class CrowdFlowerResult {
 				csvRecord.get("_created_at"));
 		result.secondsToComplete = (int) (result.cfCreateTime.getMillis() -
 				result.cfStartTime.getMillis()) / 1000;
-		return result;
 	}
 	
 	@Override

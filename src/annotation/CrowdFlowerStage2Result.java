@@ -1,50 +1,55 @@
 package annotation;
 
-import java.util.ArrayList;
-
 import org.apache.commons.csv.CSVRecord;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
-import util.StringUtils;
 
+// CSV header:
+// _unit_id,_created_at,_golden,_id,_missed,_started_at,_tainted,_channel,
+// _trust,_worker_id,_country,_region,_city,_ip,
+// ans,radio_ans,radio_reason,ans_gold,
+// orig_question,orig_sent,prop_end,prop_id,prop_start,proposition,
+// question,question_label,radio_ans_gold,radio_reason_gold,
+// sent_id,sentence,stage1_id
 public class CrowdFlowerStage2Result extends CrowdFlowerResult {
 	// Used to align with original data.
-	public int sentenceId, propositionId, propStart, propEnd, propHead;
+	public int sentenceId, propositionId, propStart, propEnd, propHead,
+			   stage1Id;
 	public String proposition;
 
-	// TODO: question ID?
-	public String question;
+	public String question, qlabel;
 	// Actual annotation result.
 	
-	public String[] answers;   // multiple versions of each answer
-	// TODO: no answer reason
+	public boolean hasAnswer, badQuestion, isGold;
+	public String[] answers;
 	
-	private CrowdFlowerStage2Result() {
+	protected CrowdFlowerStage2Result() {
+		super();
 	}
 	
 	public static CrowdFlowerStage2Result parseCSV(CSVRecord csvRecord) {
-		CrowdFlowerStage2Result result =
-				(CrowdFlowerStage2Result) CrowdFlowerResult.parseCSV(csvRecord);
+		CrowdFlowerStage2Result result = new CrowdFlowerStage2Result();
+		CrowdFlowerResult.parseCSV(csvRecord, result);
 		
 		// Parse original data information.
 		result.sentenceId = Integer.parseInt(csvRecord.get("sent_id"));
 		result.propositionId = Integer.parseInt(csvRecord.get("prop_id"));
 		result.proposition = csvRecord.get("proposition");
-		if (csvRecord.get("prop_start") != null) {
-			result.propStart = Integer.parseInt(csvRecord.get("prop_start"));
-			result.propEnd = Integer.parseInt(csvRecord.get("prop_end"));
-		} else {
-			result.propStart = result.propEnd = -1;
-		}
+		result.propEnd = Integer.parseInt(csvRecord.get("prop_end"));
+		result.propStart = -1;
 		if (csvRecord.isMapped("prop_head")) {
 			result.propHead = Integer.parseInt(csvRecord.get("prop_head"));
 		} else {
 			result.propHead = -1;
 		}
+		result.question = csvRecord.get("orig_question");
+		result.qlabel = csvRecord.get("question_label");
+		result.stage1Id = Integer.parseInt(csvRecord.get("stage1_id"));
 		
 		// Parse annotation result.
+		result.hasAnswer = csvRecord.get("radio_ans").contains("Yes");
+		result.badQuestion = csvRecord.get("radio_reason").contains("incomprehensible");
+		result.answers = csvRecord.get("ans").split("\n");
+		
 		return result;
 	}
 	

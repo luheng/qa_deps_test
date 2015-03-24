@@ -3,9 +3,6 @@ package annotation;
 import java.util.ArrayList;
 
 import org.apache.commons.csv.CSVRecord;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 import util.StringUtils;
 
@@ -19,7 +16,8 @@ public class CrowdFlowerQAResult extends CrowdFlowerResult {
 	public ArrayList<String[]> answers;   // multiple versions of each answer
 	public String ffQuestion, ffAnswer, feedback;
 	
-	private CrowdFlowerQAResult() {
+	protected CrowdFlowerQAResult() {
+		super();
 		questions = new ArrayList<String[]>();
 		answers = new ArrayList<String[]>();
 	}
@@ -34,8 +32,8 @@ public class CrowdFlowerQAResult extends CrowdFlowerResult {
 	}
 	
 	public static CrowdFlowerQAResult parseCSV(CSVRecord csvRecord) {
-		CrowdFlowerQAResult result =
-				(CrowdFlowerQAResult) CrowdFlowerResult.parseCSV(csvRecord);
+		CrowdFlowerQAResult result = new CrowdFlowerQAResult();
+		CrowdFlowerResult.parseCSV(csvRecord, result);
 
 		// Parse original data information.
 		result.sentenceId = Integer.parseInt(csvRecord.get("sent_id"));

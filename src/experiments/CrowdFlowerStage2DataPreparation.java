@@ -30,8 +30,8 @@ public class CrowdFlowerStage2DataPreparation {
 	private static HashMap<Integer,
 		HashMap<Integer, HashMap<String, TIntArrayList>>> questionMap = null;
 		
-	private static String validationFileName = "crowdflower/CF_QA_firstround_stage2_.csv",
-						  collectionFileName = "crowdflower/CF_QA_firstround_stage2_all.csv";
+	private static String validationFileName = "crowdflower/CF_QA_firstround_stage2_tmp.csv",
+						  collectionFileName = "crowdflower/CF_QA_firstround_stage2_tmp.csv";
 
 	private static String[] kHeader = {
 		"sent_id", "sentence", "orig_sent",
@@ -157,8 +157,7 @@ public class CrowdFlowerStage2DataPreparation {
 					row.add(String.valueOf(propSpan[1]));
 					row.add(sent.getTokenString(propSpan));
 					// Stage 1 Annotation Info
-					row.add(String.valueOf(
-							StringUtils.intArrayToString(" ", workerIds)));
+					row.add(StringUtils.intArrayToString(" ", workerIds));
 					row.add(getHighlightedQuestion(qwords));
 					row.add(qstr);
 					row.add(QuestionEncoder.encode(qwords, sent));
