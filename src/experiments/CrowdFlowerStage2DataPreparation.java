@@ -3,7 +3,9 @@ package experiments;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -17,16 +19,19 @@ import gnu.trove.list.array.TIntArrayList;
 
 public class CrowdFlowerStage2DataPreparation {	
 	private static final int randomSeed = 12345;
+	private static int numTestSentences = 0;
+	private static int maxNumRows = Integer.MAX_VALUE;
 	
 	private static SRLCorpus trainCorpus = null;
 	private static ArrayList<CrowdFlowerQAResult> stage1Results = null;
+	// Maps sent_id + prop_id + worker_id to cf result.
 	private static HashMap<String, CrowdFlowerQAResult> cfResultsMap = null;
+	// Maps sent_id -> prp_id -> question string to list of worker ids/
 	private static HashMap<Integer,
 		HashMap<Integer, HashMap<String, TIntArrayList>>> questionMap = null;
-	
-	private static int maxNumRows = 100;
-	
-	private static String outputFileName = "crowdflower/CF_QA_firstround_stage2.csv";
+		
+	private static String validationFileName = "crowdflower/CF_QA_firstround_stage2_.csv",
+						  collectionFileName = "crowdflower/CF_QA_firstround_stage2_all.csv";
 
 	private static String[] kHeader = {
 		"sent_id", "sentence", "orig_sent",
@@ -59,7 +64,11 @@ public class CrowdFlowerStage2DataPreparation {
 				questionStr += qwords[i] + " ";
 			}
 		}
-		questionStr += "<mark>" + qwords[3] + "</mark>";
+		String[] infl = qwords[3].split("\\s+");
+		for (int i = 0; i < infl.length - 1; i++) {
+			questionStr += infl[i] + " ";
+		}
+		questionStr += "<mark>" + infl[infl.length - 1] + "</mark>";
 		for (int i = 4; i < 7; i++) {
 			if (!qwords[i].isEmpty()) {
 				questionStr += " " + qwords[i];
@@ -83,13 +92,43 @@ public class CrowdFlowerStage2DataPreparation {
 	//   "prop_id", "prop_start", "prop_end", "proposition",
 	//   "stage1_id", "question", "orig_question", "question_label"
 	private static void outputUnits() throws IOException {
-		FileWriter fileWriter = new FileWriter(outputFileName);
-		CSVPrinter csvWriter = new CSVPrinter(fileWriter, CSVFormat.EXCEL
-				.withRecordSeparator("\n"));
-		csvWriter.printRecord((Object[]) kHeader);
-		int rowCounter = 0;
+		// Shuffle sentence ids
+		ArrayList<Integer> sentIds = new ArrayList<Integer>();
 		for (int sentId : questionMap.keySet()) {
+			sentIds.add(sentId);
+		}
+		Collections.shuffle(sentIds, new Random(randomSeed));
+		System.out.println("Validating sentence IDs:");
+		for (int i = 0; i < numTestSentences; i++) {
+		//	System.out.println(sentIds.get(i) + "\t");
+			SRLSentence sent = (SRLSentence) trainCorpus.sentences.get(sentIds.get(i));
+			System.out.println(sent.toString());
+		}
+		System.out.println();
+		
+		// Prepare to write to validating file.
+		CSVPrinter csvWriter = new CSVPrinter(
+				new FileWriter(validationFileName),
+				CSVFormat.EXCEL.withRecordSeparator("\n"));
+		csvWriter.printRecord((Object[]) kHeader);
+		
+		int rowCounter = 0;
+		for (int i = 0; i < sentIds.size(); i++) {
+			int sentId = sentIds.get(i);
 			SRLSentence sent = (SRLSentence) trainCorpus.sentences.get(sentId);
+			
+			if (i == numTestSentences) {
+				// Switch to collection file.
+				csvWriter.close();
+				System.out.println(String.format("Output %d rows to file %s.",
+						rowCounter, validationFileName));
+				csvWriter = new CSVPrinter(
+						new FileWriter(collectionFileName),
+						CSVFormat.EXCEL.withRecordSeparator("\n"));
+				csvWriter.printRecord((Object[]) kHeader);
+				rowCounter = 0;
+			}
+			
 			for (int propHead : questionMap.get(sentId).keySet()) {
 				for (String qstr : questionMap.get(sentId).get(propHead).keySet()) {
 					int[] workerIds = questionMap.get(sentId).get(propHead).get(qstr).toArray();
@@ -128,8 +167,9 @@ public class CrowdFlowerStage2DataPreparation {
 					rowCounter ++;
 					if (rowCounter >= maxNumRows) {
 						csvWriter.close();
-						System.out.println(String.format("Output %d rows to file %s.",
-								rowCounter, outputFileName));
+						System.out.println(
+								String.format("Output %d rows to file %s.",
+										rowCounter, collectionFileName));
 						return;
 					}
 				}
@@ -137,7 +177,7 @@ public class CrowdFlowerStage2DataPreparation {
 		}
 		csvWriter.close();
 		System.out.println(String.format("Output %d rows to file %s.",
-				rowCounter, outputFileName));
+				rowCounter, collectionFileName));
 	}
 	
 	private static void aggregateStage1Results() {

@@ -9,17 +9,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import util.StringUtils;
 
-public class CrowdFlowerQAResult {
-
-	// CrowdFlower specific information.
-	public int cfUnitId, cfWorkerId;
-	public String cfChannel, cfCountry, cfRegion;
-	public float cfTrust;
-
-	// Other annotation information, including start and end time
-	public DateTime cfCreateTime, cfStartTime;
-	public int secondsToComplete; // in seconds
-	
+public class CrowdFlowerQAResult extends CrowdFlowerResult {
 	// Used to align with original data.
 	public int sentenceId, propositionId, propStart, propEnd, propHead;
 	public String proposition;
@@ -33,9 +23,7 @@ public class CrowdFlowerQAResult {
 		questions = new ArrayList<String[]>();
 		answers = new ArrayList<String[]>();
 	}
-	
-	private static final DateTimeFormatter cfDateTimeFormatter =
-			DateTimeFormat.forPattern("m/dd/yy HH:mm:ss");
+
 	private static final int maxNumQA = 10;
 	private static final int numQuestionSlots = 7;
 	private static final String[] slotNames = {"wh", "aux", "ph1", "trg", "ph2",
@@ -46,23 +34,9 @@ public class CrowdFlowerQAResult {
 	}
 	
 	public static CrowdFlowerQAResult parseCSV(CSVRecord csvRecord) {
-		CrowdFlowerQAResult result = new CrowdFlowerQAResult();
-		
-		// Parse CrowdFlower specific information.
-		result.cfUnitId = Integer.parseInt(csvRecord.get("_unit_id"));
-		result.cfWorkerId = Integer.parseInt(csvRecord.get("_worker_id"));
-		result.cfChannel = csvRecord.get("_channel");
-		result.cfCountry = csvRecord.get("_country");
-		result.cfRegion = csvRecord.get("_region");
-		result.cfTrust = Float.parseFloat(csvRecord.get("_trust"));
-		
-		result.cfStartTime = cfDateTimeFormatter.parseDateTime(
-				csvRecord.get("_started_at"));
-		result.cfCreateTime = cfDateTimeFormatter.parseDateTime(
-				csvRecord.get("_created_at"));
-		result.secondsToComplete = (int) (result.cfCreateTime.getMillis() -
-				result.cfStartTime.getMillis()) / 1000;
-		
+		CrowdFlowerQAResult result =
+				(CrowdFlowerQAResult) CrowdFlowerResult.parseCSV(csvRecord);
+
 		// Parse original data information.
 		result.sentenceId = Integer.parseInt(csvRecord.get("sent_id"));
 		result.propositionId = Integer.parseInt(csvRecord.get("prop_id"));
