@@ -2,6 +2,7 @@ package annotation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 import data.AnnotatedSentence;
 import data.DepSentence;
@@ -148,7 +149,8 @@ public class SRLAnnotationValidator {
 	}
 	
 	public void computeSRLAccuracy(
-			ArrayList<AnnotatedSentence> annotatedSentences, SRLCorpus corpus) {
+			Collection<AnnotatedSentence> annotatedSentences,
+			SRLCorpus corpus) {
 		
 		F1Metric avgF1 = new F1Metric();
 		

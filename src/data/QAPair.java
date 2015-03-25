@@ -19,6 +19,7 @@ public class QAPair {
 	public String[] questionWords;
 	public String questionLabel, questionString;
 	public int[] answerFlags;
+	public ArrayList<String> answers;
 	public ArrayList<CrowdFlowerResult> cfAnnotationSources;
 	
 	public QAPair(SRLSentence sent, int prop, String[] question,
@@ -32,8 +33,10 @@ public class QAPair {
 		questionLabel = QuestionEncoder.encode(questionWords, sentence);
 		questionString = StringUtils.join(" ", questionWords);
 		answerFlags = new int[sent.length];
+		answers = new ArrayList<String>();
 		Arrays.fill(answerFlags, 0);
 		addAnswer(answer);
+		
 		cfAnnotationSources = new ArrayList<CrowdFlowerResult>();
 		if (cf != null) {
 			cfAnnotationSources.add(cf);
@@ -50,11 +53,13 @@ public class QAPair {
 			questionLabel = "";
 		} else {
 			questionString = "";
-			questionLabel = qstr;
+			questionLabel = qstr.toLowerCase();
 		}
 		answerFlags = new int[sent.length];
+		answers = new ArrayList<String>();
 		Arrays.fill(answerFlags, 0);
 		addAnswer(answer);
+		
 		cfAnnotationSources = new ArrayList<CrowdFlowerResult>();
 		if (cf != null) {
 			cfAnnotationSources.add(cf);
@@ -65,6 +70,7 @@ public class QAPair {
 		if (answer.isEmpty()) {
 			return;
 		}
+		answers.add(answer);
 		int[] matched = AnswerSpanAligner.align(sentence, answer);
 		for (int i = 0; i < sentence.length; i++) {
 			answerFlags[i] = matched[i];
