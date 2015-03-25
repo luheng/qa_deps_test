@@ -14,7 +14,7 @@ import annotation.CandidateProposition;
 import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 import data.SRLSentence;
 import evaluation.DependencySRLEvaluation;
 import evaluation.F1Metric;
@@ -128,7 +128,7 @@ public class InteractiveAnnotationExperiment {
 	// For each answer span, the word that has outcoming arc is the head of the
 	// argument.
 	// FIXME: Temporary solution. This is inefficient.
-	private static int getAnswerHead(QAPair qa, int[] tree) { 
+	private static int getAnswerHead(QAPairOld qa, int[] tree) { 
 		HashSet<Integer> answerIDs = new HashSet<Integer>();
 		for (int i:  qa.answerAlignment) {
 			if (i != -1) {
@@ -146,7 +146,7 @@ public class InteractiveAnnotationExperiment {
 		return answerHead;
 	}
 	
-	private static int getQuestionHead(QAPair qa) {
+	private static int getQuestionHead(QAPairOld qa) {
 		for (int i : qa.questionAlignment) {
 			if (i != -1) {
 				return i;
@@ -159,7 +159,7 @@ public class InteractiveAnnotationExperiment {
 			AnnotatedDepSentence annotatedSentence) {
 		LatticeUtils.fill(semPred, "");
 		SRLSentence sentence = (SRLSentence) annotatedSentence.depSentence;
-		for (QAPair qa : annotatedSentence.qaList) {
+		for (QAPairOld qa : annotatedSentence.qaList) {
 			int propID = getQuestionHead(qa);
 			int argID = getAnswerHead(qa, synPred);
 			if (propID < 0 || argID < 0) {
@@ -251,7 +251,7 @@ public class InteractiveAnnotationExperiment {
 						System.out.println("Answer:\t" + answer);
 					
 						// Create new QA pair.
-						QAPair qa = new QAPair(question, answer);
+						QAPairOld qa = new QAPairOld(question, answer);
 						int questionPtr = qtemp.getSlotID();
 						for (int i = qWord.wordSpan[0]; i < qWord.wordSpan[1];
 								i++) {

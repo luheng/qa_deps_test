@@ -3,7 +3,7 @@ package constraints;
 import java.util.Arrays;
 
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 /*
  * There might be several outgoing edges from the answer span. But all the
@@ -12,12 +12,12 @@ import data.QAPair;
 public class AnswerIsHeadlessSubtreeConstraint implements AbstractConstraint {
 
 	@Override
-	public boolean validate(DepSentence sentence, QAPair qa) {
+	public boolean validate(DepSentence sentence, QAPairOld qa) {
 		return validate(sentence, qa, sentence.parents);
 	}
 	
 	@Override
-	public boolean validate(DepSentence sentence, QAPair qa, int[] tree) {
+	public boolean validate(DepSentence sentence, QAPairOld qa, int[] tree) {
 		int[] inverseAlignment = new int[sentence.length];
 		Arrays.fill(inverseAlignment, -1);
 		for (int i = 0; i < qa.answerAlignment.length; i++) {

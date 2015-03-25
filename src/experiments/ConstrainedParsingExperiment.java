@@ -13,7 +13,7 @@ import annotation.GreedyQuestionAnswerAligner;
 import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 import decoding.AdjacencyGraph;
 import decoding.Decoder;
 import decoding.QADecoder;
@@ -73,7 +73,7 @@ public class ConstrainedParsingExperiment {
 						continue;
 					}
 					annotatedSentences.get(sentPtr).addQA(
-							new QAPair(info[0].trim(), info[1].trim()));
+							new QAPairOld(info[0].trim(), info[1].trim()));
 				}
 			}
 			System.out.println(String.format("Read %d annotated sentences.",
@@ -93,7 +93,7 @@ public class ConstrainedParsingExperiment {
 		// Do alignment.
 		GreedyQuestionAnswerAligner aligner = new GreedyQuestionAnswerAligner();
 		for (AnnotatedDepSentence sentence : annotatedSentences) {
-			for (QAPair qa : sentence.qaList) {
+			for (QAPairOld qa : sentence.qaList) {
 				aligner.align(sentence.depSentence, qa);
 			}
 		}
@@ -126,7 +126,7 @@ public class ConstrainedParsingExperiment {
 				Arrays.fill(prediction, -1);
 				double[][] votes = new double[length + 1][length + 1];
 				LatticeUtils.fill(votes, 0.0);
-				for (QAPair qa : sentence.qaList) {
+				for (QAPairOld qa : sentence.qaList) {
 					qaVoter.vote(depSentence, qa, votes);
 				}
 				for (int i = 0; i <= length; i++) {

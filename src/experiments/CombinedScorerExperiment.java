@@ -13,7 +13,7 @@ import util.LatticeUtils;
 import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 import decoding.Decoder;
 import decoding.ViterbiDecoder;
 import evaluation.Accuracy;
@@ -65,7 +65,7 @@ public class CombinedScorerExperiment {
 		distScorer.getScores(tempScores, depSentence);
 		LatticeUtils.addTo(scores, tempScores, distWeight);
 		// Compute QA scores.
-		for (QAPair qa : sentence.qaList) {
+		for (QAPairOld qa : sentence.qaList) {
 			qaScorer.getScores(tempScores, depSentence, qa);
 			LatticeUtils.addTo(scores, tempScores, qaWeight);
 		}
@@ -124,7 +124,7 @@ public class CombinedScorerExperiment {
 			distScorer.getScores(tempScores, depSentence);
 			LatticeUtils.addTo(scores, tempScores, distWeight);
 			// Compute QA scores.
-			for (QAPair qa : sentence.qaList) {
+			for (QAPairOld qa : sentence.qaList) {
 				qaScorer.getScores(tempScores, depSentence, qa);
 				LatticeUtils.addTo(scores, tempScores, qaWeight);
 			}
@@ -154,7 +154,7 @@ public class CombinedScorerExperiment {
 			*/
 			
 			// Check constraint violation
-			for (QAPair qa : sentence.qaList) {
+			for (QAPairOld qa : sentence.qaList) {
 				boolean goldViolation = !ConstraintChecker.check(
 						sentence.depSentence, qa, sentence.depSentence.parents);
 				if (goldViolation) {

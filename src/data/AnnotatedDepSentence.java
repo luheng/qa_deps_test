@@ -4,14 +4,14 @@ import java.util.ArrayList;
 
 public class AnnotatedDepSentence {
 	public DepSentence depSentence;
-	public ArrayList<QAPair> qaList;
+	public ArrayList<QAPairOld> qaList;
 	
 	public AnnotatedDepSentence(DepSentence sentence) {
 		this.depSentence = sentence;
-		qaList = new ArrayList<QAPair>();
+		qaList = new ArrayList<QAPairOld>();
 	}
 	
-	public void addQA(QAPair qa) {
+	public void addQA(QAPairOld qa) {
 		this.qaList.add(qa);
 	}
 	
@@ -34,7 +34,7 @@ public class AnnotatedDepSentence {
 		System.out.println();
 		
 		for (int i = 0; i < qaList.size(); i++) {
-			QAPair qa = qaList.get(i);
+			QAPairOld qa = qaList.get(i);
 			System.out.print(String.format("QA%d\t", i));
 			if (qa.propositionTokens != null) {
 				for (int j = 0; j < qa.propositionTokens.length; j++) {

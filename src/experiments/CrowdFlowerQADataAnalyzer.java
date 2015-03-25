@@ -12,7 +12,7 @@ import data.AnnotatedSentence;
 import data.CountDictionary;
 import data.SRLCorpus;
 import data.SRLSentence;
-import data.StructuredQAPair;
+import data.QAPair;
 import annotation.CrowdFlowerQAResult;
 import annotation.QuestionEncoder;
 import annotation.SRLAnnotationValidator;
@@ -21,7 +21,7 @@ public class CrowdFlowerQADataAnalyzer {
 
 	private static SRLCorpus corpus;
 	private static ArrayList<CrowdFlowerQAResult> annotationResults;
-	private static ArrayList<ArrayList<StructuredQAPair>> alignedQALists;
+	private static ArrayList<ArrayList<QAPair>> alignedQALists;
 	private static ArrayList<Integer> sentenceIds;
 	private static HashMap<Integer, ArrayList<Integer>> workerMap;
 	private static HashMap<Integer, Integer> sentenceIdMap;
@@ -31,7 +31,7 @@ public class CrowdFlowerQADataAnalyzer {
 	private static SRLAnnotationValidator validator = new SRLAnnotationValidator();
 	
 	public static void alignAnnotations() {
-		alignedQALists = new ArrayList<ArrayList<StructuredQAPair>>();
+		alignedQALists = new ArrayList<ArrayList<QAPair>>();
 		annotatedSentences = new HashMap<Integer, AnnotatedSentence>();
 		sentenceIdMap = new HashMap<Integer, Integer>();
 		sentenceIds = new ArrayList<Integer>();
@@ -57,8 +57,8 @@ public class CrowdFlowerQADataAnalyzer {
 			int sentId = result.sentenceId;
 			int propHead = result.propEnd - 1;
 			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
-			ArrayList<StructuredQAPair> qaList =
-					new ArrayList<StructuredQAPair>();
+			ArrayList<QAPair> qaList =
+					new ArrayList<QAPair>();
 			
 			if (!annotatedSentences.containsKey(sentId)) {
 				annotatedSentences.put(sentId, new AnnotatedSentence(sentence));
@@ -72,7 +72,7 @@ public class CrowdFlowerQADataAnalyzer {
 				}
 				String[] answers = result.answers.get(i);
 				for (String answer : answers) {
-					StructuredQAPair qa = new StructuredQAPair(sentence,
+					QAPair qa = new QAPair(sentence,
 							propHead, question, answer, result);
 					qaList.add(qa);
 					annotatedSentences.get(sentId).addQAPair(propHead, qa);
@@ -92,7 +92,7 @@ public class CrowdFlowerQADataAnalyzer {
 			for (int propHead : annotSent.qaLists.keySet()) {
 				HashMap<String, Integer> qaMap =
 						new HashMap<String, Integer>();		
-				for (StructuredQAPair qa : annotSent.qaLists.get(propHead)) {
+				for (QAPair qa : annotSent.qaLists.get(propHead)) {
 					String encoded = qa.questionLabel;
 					int k = (qaMap.containsKey(encoded) ?
 							qaMap.get(encoded) : 0);
@@ -141,10 +141,10 @@ public class CrowdFlowerQADataAnalyzer {
 			int propHead = result.propEnd - 1;
 			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
 			
-			ArrayList<StructuredQAPair> qaList = alignedQALists.get(r);
+			ArrayList<QAPair> qaList = alignedQALists.get(r);
 			String[][] gold = goldSRL[sentenceIdMap.get(sentId)];
 			
-			for (StructuredQAPair qa : qaList) {
+			for (QAPair qa : qaList) {
 				boolean matched = false,
 						agreed = false;
 				for (int argHead = 0; argHead < sentence.length; argHead++) {
@@ -243,7 +243,7 @@ public class CrowdFlowerQADataAnalyzer {
 		
 		for (int r = 0; r < annotationResults.size(); r++) {
 			int workerId = annotationResults.get(r).cfWorkerId;
-			for (StructuredQAPair qa : alignedQALists.get(r)) {
+			for (QAPair qa : alignedQALists.get(r)) {
 				int sentId = qa.sentence.sentenceID;
 				int propHead = qa.propHead;
 				String questionLabel = qa.questionLabel;
@@ -286,11 +286,11 @@ public class CrowdFlowerQADataAnalyzer {
 						sentenceIds.get(i));
 				int sentId = annotSent.sentence.sentenceID;
 				for (int prop : annotSent.qaLists.keySet()) {
-					ArrayList<StructuredQAPair> newQAList =
-							new ArrayList<StructuredQAPair>();
+					ArrayList<QAPair> newQAList =
+							new ArrayList<QAPair>();
 					HashSet<String> uniqueQAs = new HashSet<String>();
 					
-					for (StructuredQAPair qa : annotSent.qaLists.get(prop)) {
+					for (QAPair qa : annotSent.qaLists.get(prop)) {
 						String questionLabel = qa.questionLabel;
 						String qaStr = String.format("%d_%d_%s", sentId, prop, questionLabel);
 						String qaStr2 = questionLabel + "###" + qa.getAnswerString();
@@ -335,7 +335,7 @@ public class CrowdFlowerQADataAnalyzer {
 			SRLSentence sentence = alignedQALists.get(r).get(0).sentence;
 			String[][] gold = validator.getGoldSRL(sentence);
 			
-			for (StructuredQAPair qa : alignedQALists.get(r)) {
+			for (QAPair qa : alignedQALists.get(r)) {
 				String label = qa.questionLabel;
 				int propHead = qa.propHead;
 				for (int i = 0; i < sentence.length; i++) {

@@ -1,10 +1,10 @@
 package constraints;
 
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 public interface AbstractConstraint {	
-	public boolean validate(DepSentence sentence, QAPair qa);
+	public boolean validate(DepSentence sentence, QAPairOld qa);
 	
-	public boolean validate(DepSentence sentence, QAPair qa, int[] tree);
+	public boolean validate(DepSentence sentence, QAPairOld qa, int[] tree);
 }

@@ -1,14 +1,14 @@
 package constraints;
 
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 /*
  * Check if a dependency tree violates the constraints with respect to a
  * question-answer pair.
  */
 public class ConstraintChecker {
-	public static boolean check(DepSentence sentence, QAPair qa, int[] tree) {
+	public static boolean check(DepSentence sentence, QAPairOld qa, int[] tree) {
 		AbstractConstraint
 			answerConstraint1 = new AnswerIsSubtreeConstraint(),
 			answerConstraint2 = new AnswerIsHeadlessSubtreeConstraint(),							

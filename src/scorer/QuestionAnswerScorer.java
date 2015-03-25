@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import util.LatticeUtils;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 /**
  * Heuristic scorer based on question-answer annotation.
@@ -17,7 +17,7 @@ public class QuestionAnswerScorer {
 	private boolean addIntraAnswerEdges = true;
 	private boolean addReverseQAEdges = false;
 	
-	public void getScores(double[][] scores, DepSentence sentence, QAPair qa) {
+	public void getScores(double[][] scores, DepSentence sentence, QAPairOld qa) {
 		ArrayList<Integer> questionWords = flagsToList(qa.questionAlignment),
 						   answerWords = flagsToList(qa.answerAlignment);
 		

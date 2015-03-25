@@ -24,7 +24,7 @@ import data.DepSentence;
 import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
-import data.StructuredQAPair;
+import data.QAPair;
 import annotation.CrowdFlowerQAResult;
 import annotation.PropositionAligner;
 import annotation.QuestionEncoder;
@@ -66,8 +66,7 @@ public class CrowdFlowerQADataRetriever {
 			ArrayList<AnnotatedSentence> annotatedSentences,
 			ArrayList<CrowdFlowerQAResult> cfResults, SRLCorpus corpus) {
 		assert (annotatedSentences != null);
-		PropositionAligner propAligner = new PropositionAligner();
-
+		
 		// Map sentence IDs to 0 ... #sentences.
 		Set<Integer> sentenceIds = new HashSet<Integer>();
 		HashMap<Integer, Integer> sentIdMap = new HashMap<Integer, Integer>();
@@ -85,45 +84,26 @@ public class CrowdFlowerQADataRetriever {
 			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
 			AnnotatedSentence currSent =
 					annotatedSentences.get(sentIdMap.get(result.sentenceId));
-			
-			int propHead = -1;
-			if (result.propStart == -1) {
-				Proposition prop = propAligner.align(sentence,
-						result.proposition);
-				propHead = prop.span[1] - 1;
-			} else {
-				propHead = result.propEnd - 1;
-			}
+			int propHead = result.getPropHead();
 			currSent.addProposition(propHead);
-			//HashMap<String, StructuredQAPair> qaMap =
-			//		new HashMap<String, StructuredQAPair>();
+			
 			for (int i = 0; i < result.questions.size(); i++) {
 				String[] question = result.questions.get(i);				
 				if (question[0].equalsIgnoreCase("how many")) {
 					continue;
 				}
-				StructuredQAPair qa = new StructuredQAPair(sentence, propHead,
-						question, "" /* answer */, result);
-				/*
-				String qlabel = qa.getQuestionLabel();
-				if (!qaMap.containsKey(qlabel)) {
-					qaMap.put(qlabel, qa);
-				} else {
-					qa = qaMap.get(qlabel);
-				}
-				*/
+				QAPair qa = new QAPair(
+						sentence,
+						propHead,
+						question,
+						"" /* answer */,
+						result);
 				for (String answer : result.answers.get(i)) {
 					qa.addAnswer(answer);
 				}
 				currSent.addQAPair(propHead, qa);
 			}
-			/*
-			for (String qlabel : qaMap.keySet()) {
-				currSent.addQAPair(propHead, qaMap.get(qlabel));
-			}
-			*/
-
-			// TODO: look at people's feedback
+			// Look at feedback
 			/*
 			if (!result.feedback.isEmpty()) {
 				System.out.println(sentence.getTokensString());
@@ -145,30 +125,32 @@ public class CrowdFlowerQADataRetriever {
 			numAggregatedQAs = 0;
 		for (AnnotatedSentence annotSent : annotatedSentences) {			
 			for (int propHead : annotSent.qaLists.keySet()) {
-				ArrayList<StructuredQAPair> qaList =
+				ArrayList<QAPair> qaList =
 						annotSent.qaLists.get(propHead);
 				HashMap<String, Integer> qmap = new HashMap<String, Integer>();
 				
-				for (StructuredQAPair qa : qaList) {
+				for (QAPair qa : qaList) {
 					String qstr = qa.getQuestionLabel();
 					int k = (qmap.containsKey(qstr) ? qmap.get(qstr) : 0);
 					qmap.put(qstr, k + 1);
 				}
-				ArrayList<StructuredQAPair> newList =
-						new ArrayList<StructuredQAPair>();
+				ArrayList<QAPair> newList =
+						new ArrayList<QAPair>();
 				
 				for (String qlabel : qmap.keySet()) {
+					// Remove unagreed or bad question labels.
 					if (qmap.get(qlabel) <= 1 || qlabel.contains("???")) {
 						continue;
 					}
-					StructuredQAPair newQA = new StructuredQAPair(
-							annotSent.sentence, propHead, qlabel,
+					QAPair newQA = new QAPair(
+							annotSent.sentence,
+							propHead,
+							qlabel,
 							"" /* answer */,
 							null /* cfAnnotationResult */);
-					for (StructuredQAPair qa : qaList) {
+					for (QAPair qa : qaList) {
 						if (qa.getQuestionLabel().equals(qlabel)) {
 							newQA.addAnswer(qa.answerFlags);
-							//newQA.addAnnotationSource(qa.cfAnnotationSources.get(0));
 						}
 					}
 					newList.add(newQA);
@@ -216,8 +198,8 @@ public class CrowdFlowerQADataRetriever {
 	
 	static void computeInterAnnotatorAgreement(SRLCorpus corpus,
 			ArrayList<CrowdFlowerQAResult> results) {
-		HashMap<String, ArrayList<StructuredQAPair>> qaMap =
-				new HashMap<String, ArrayList<StructuredQAPair>>();
+		HashMap<String, ArrayList<QAPair>> qaMap =
+				new HashMap<String, ArrayList<QAPair>>();
 		
 		for (CrowdFlowerQAResult result : results) {
 			int sentId = result.sentenceId,
@@ -225,14 +207,14 @@ public class CrowdFlowerQADataRetriever {
 			String sentTrgKey = String.format("%d_%d", sentId, propId);
 			
 			if (!qaMap.containsKey(sentTrgKey)) {
-				qaMap.put(sentTrgKey, new ArrayList<StructuredQAPair>());
+				qaMap.put(sentTrgKey, new ArrayList<QAPair>());
 			}
-			HashMap<String, StructuredQAPair> qmap =
-					new HashMap<String, StructuredQAPair>();
+			HashMap<String, QAPair> qmap =
+					new HashMap<String, QAPair>();
 			// Aggregate each worker's results by question label.
 			for (int i = 0; i < result.questions.size(); i++) {
 				DepSentence sentence = corpus.sentences.get(result.sentenceId);
-				StructuredQAPair qa = new StructuredQAPair(
+				QAPair qa = new QAPair(
 						(SRLSentence) sentence, propId, result.questions.get(i),
 						"" /* ansewr */, result);
 				for (String answer : result.answers.get(i)) {
@@ -267,7 +249,7 @@ public class CrowdFlowerQADataRetriever {
 						   workerTwoAgreed = new TIntIntHashMap(),
 						   workerThreeAgreed = new TIntIntHashMap();
 			
-			for (StructuredQAPair qa : qaMap.get(sentTrgKey)) {
+			for (QAPair qa : qaMap.get(sentTrgKey)) {
 				int sentLength = qa.answerFlags.length;
 				String qlabel = qa.questionLabel;
 				if (!qaCount.containsKey(qlabel)) {
@@ -279,7 +261,7 @@ public class CrowdFlowerQADataRetriever {
 					flags[i] += (qa.answerFlags[i] > 0 ? 1 : 0);
 				}
 			}
-			for (StructuredQAPair qa : qaMap.get(sentTrgKey)) {
+			for (QAPair qa : qaMap.get(sentTrgKey)) {
 				int workerId = qa.cfAnnotationSources.get(0).cfWorkerId;
 				int maxCount = 0;
 				int[] flags = qaCount.get(qa.questionLabel);
@@ -366,7 +348,7 @@ public class CrowdFlowerQADataRetriever {
 				//System.out.println(annotSent.sentence.getTokenString(propId));
 				// Compute Agreement.
 				HashMap<String, int[]> qaCount = new HashMap<String, int[]>();
-				for (StructuredQAPair qa : annotSent.qaLists.get(propId)) {
+				for (QAPair qa : annotSent.qaLists.get(propId)) {
 					String qlabel = qa.questionLabel;
 					if (!qaCount.containsKey(qlabel)) {
 						qaCount.put(qlabel, new int[sentLength]);
@@ -397,7 +379,7 @@ public class CrowdFlowerQADataRetriever {
 							sentence.getTokenString(argId) + "\t" +
 							(covered[propId + 1][argId + 1] > 0 ? " " : "NC"));
 				}
-				for (StructuredQAPair qa : annotSent.qaLists.get(propId)) {
+				for (QAPair qa : annotSent.qaLists.get(propId)) {
 					int workerId = qa.cfAnnotationSources.get(0).cfWorkerId;
 					String qlabel = qa.getQuestionLabel();
 					boolean agreed = false,
@@ -439,6 +421,7 @@ public class CrowdFlowerQADataRetriever {
 			e.printStackTrace();
 			return;
 		}
+		
 		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
 		//debugOutput(trainCorpus, annotatedSentences);
 		aggregateAnnotationsByQuestion(annotatedSentences);

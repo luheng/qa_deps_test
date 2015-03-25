@@ -8,7 +8,7 @@ import util.LatticeUtils;
 import util.StringUtils;
 import data.AnnotatedDepSentence;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 public class QADecoder {
 
@@ -20,7 +20,7 @@ public class QADecoder {
 	 *  with 1 specifying "must" link, 0 denoting "cannot" link
 	 * 	with -1 denoting "unspecified" 
 	 */
-	public double decode(DepSentence sentence, QAPair qa, double[][] u,
+	public double decode(DepSentence sentence, QAPairOld qa, double[][] u,
 					   int[][] bestDecoded) {
 		assert (bestDecoded.length == sentence.length + 1);
 		ArrayList<Integer> questionTokens = flagsToList(qa.questionAlignment),
@@ -66,7 +66,7 @@ public class QADecoder {
 	 * @param bestDecoded
 	 * @return
 	 */
-	public double decodeEntireSentence(DepSentence sentence, QAPair qa,
+	public double decodeEntireSentence(DepSentence sentence, QAPairOld qa,
 									   double[][] u, int[] bestDecoded) {
 		
 		QuestionAnswerScorer scorer = new QuestionAnswerScorer();
@@ -85,7 +85,7 @@ public class QADecoder {
 		double[][] scores = new double[length][length],
 				   tempScores = new double[length][length];
 		LatticeUtils.fill(scores, 0.0);
-		for (QAPair qa  : sentence.qaList) {
+		for (QAPairOld qa  : sentence.qaList) {
 			scorer.getScores(tempScores, sentence.depSentence, qa);
 			LatticeUtils.addTo(scores, tempScores);
 		}
@@ -137,7 +137,7 @@ public class QADecoder {
 	
 	// Temporary solution.
 	// Assign "votes" to edges that comply with the constraints.
-	public void vote(DepSentence sentence, QAPair qa, double[][] scores) {
+	public void vote(DepSentence sentence, QAPairOld qa, double[][] scores) {
 		assert (scores.length == sentence.length + 1);
 		
 		// Get inverse alignment.

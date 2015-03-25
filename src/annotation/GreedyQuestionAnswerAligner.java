@@ -3,12 +3,12 @@
 import java.util.Arrays;
 
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 public class GreedyQuestionAnswerAligner implements AbstractQuestionAnswerAligner {
 
 	@Override
-	public void align(DepSentence sentence, QAPair qa) {
+	public void align(DepSentence sentence, QAPairOld qa) {
 		String[] sentenceTokens = sentence.corpus.wordDict.getStringArray(
 				sentence.tokens);
 		greedyMatch(qa.questionAlignment, sentenceTokens, qa.questionTokens);

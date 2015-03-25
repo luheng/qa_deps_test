@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 import data.AnnotatedDepSentence;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 public class DataUtils {
 
@@ -29,7 +29,7 @@ public class DataUtils {
 		for (AnnotatedDepSentence sentence : annotatedSentences) {
 			DepSentence sent = sentence.depSentence;
 			writer.write(sent.sentenceID + "\t" + sent.getTokensString()+ "\n");
-			for (QAPair qa : sentence.qaList) {
+			for (QAPairOld qa : sentence.qaList) {
 				writer.write(qa.getQuestionString() + " ### " +
 							 qa.getAnswerString() + "\n");
 			}

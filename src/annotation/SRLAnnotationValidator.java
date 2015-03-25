@@ -7,7 +7,7 @@ import data.AnnotatedSentence;
 import data.DepSentence;
 import data.SRLCorpus;
 import data.SRLSentence;
-import data.StructuredQAPair;
+import data.QAPair;
 import util.StringUtils;
 import evaluation.F1Metric;
 
@@ -29,6 +29,7 @@ public class SRLAnnotationValidator {
 	// span, we say there is a match.
 	private static boolean allowTwoHopValidation = true;
 	
+	/*
 	private static boolean containedInAnswer(int idx, int[][] spans) {
 		for (int i = 0; i < spans.length; i++) {
 			if (spans[i][0] <= idx && idx < spans[i][1]) {
@@ -49,6 +50,8 @@ public class SRLAnnotationValidator {
 		}
 		return false;
 	}
+	*/
+	
 	
 	private static boolean hasChildInAnswer(int idx, int[] flags,
 			DepSentence sentence) {
@@ -60,7 +63,7 @@ public class SRLAnnotationValidator {
 		return false;
 	}
 	
-	private static boolean isWhoWhatQuestion(StructuredQAPair qa) {
+	private static boolean isWhoWhatQuestion(QAPair qa) {
 		String qword = qa.questionWords[0];
 		return qword.equalsIgnoreCase("who") || qword.equals("whom") ||
 			   qword.equalsIgnoreCase("what");
@@ -107,7 +110,7 @@ public class SRLAnnotationValidator {
 		return goldArcs;
 	}
 	
-	public boolean matchedGold(int goldArgHead, StructuredQAPair qa,
+	public boolean matchedGold(int goldArgHead, QAPair qa,
 			SRLSentence srlSentence) {
 		boolean headInAnswer = (qa.answerFlags[goldArgHead] > 0);
 		boolean childInAnswer = hasChildInAnswer(goldArgHead, qa.answerFlags,
@@ -224,7 +227,7 @@ public class SRLAnnotationValidator {
 			// Go over all propositions
 			for (int propId : sent.qaLists.keySet()) {
 				int propHead = propId + 1;
-				// TODO: we might consider labels here ...
+
 				if (!ignoreRootPropArcs) {
 					if (!goldArcs[0][propHead].isEmpty() &&
 						!covered[0][propHead]) {
@@ -238,8 +241,8 @@ public class SRLAnnotationValidator {
 				
 		//		System.out.println("#:\t" + srlSentence.getTokenString(propId));
 				
-				ArrayList<StructuredQAPair> qaList = sent.qaLists.get(propId);
-				for (StructuredQAPair qa : qaList) {
+				ArrayList<QAPair> qaList = sent.qaLists.get(propId);
+				for (QAPair qa : qaList) {
 					String qlabel = qa.questionLabel;
 					
 					if (coreArgsOnly && !isWhoWhatQuestion(qa)) {

@@ -76,6 +76,14 @@ public class CrowdFlowerQAResult extends CrowdFlowerResult {
 		return result;
 	}
 	
+	public int getSentId() {
+		return sentenceId;
+	}
+	
+	public int getPropHead() {
+		return propHead >= 0 ? propHead : propEnd - 1;
+	}
+	
 	@Override
 	public String toString() {
 		String result = "";

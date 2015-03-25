@@ -13,7 +13,7 @@ import annotation.GreedyQuestionAnswerAligner;
 import annotation.AbstractQuestionAnswerAligner;
 import data.AnnotatedDepSentence;
 import data.DepCorpus;
-import data.QAPair;
+import data.QAPairOld;
 import data.SRLCorpus;
 import data.UniversalPostagMap;
 
@@ -109,7 +109,7 @@ public class ExperimentUtils {
 						continue;
 					}
 					annotatedSentences.get(sentPtr).addQA(
-							new QAPair(info[0].trim(), info[1].trim()));
+							new QAPairOld(info[0].trim(), info[1].trim()));
 				}
 			}
 			System.out.println(String.format("Read %d annotated sentences.",
@@ -159,7 +159,7 @@ public class ExperimentUtils {
 						lastQuestion = question;
 					}
 					annotatedSentences.get(sentPtr).addQA(
-							QAPair.parseNumberedQAPair(question, answer));
+							QAPairOld.parseNumberedQAPair(question, answer));
 				}
 			}
 			System.out.println(String.format("Read %d annotated sentences.",
@@ -236,7 +236,7 @@ public class ExperimentUtils {
 					}
 					
 					annotatedSentences.get(annotatedSentences.size() - 1)
-						.addQA(new QAPair(questionString, answerString,
+						.addQA(new QAPairOld(questionString, answerString,
 								propositionString));		
 				}
 			}
@@ -251,7 +251,7 @@ public class ExperimentUtils {
 		AbstractQuestionAnswerAligner aligner;
 		aligner = new DistanceSensitiveQuestionAnswerAligner();
 		for (AnnotatedDepSentence sentence : annotatedSentences) {
-			for (QAPair qa : sentence.qaList) {
+			for (QAPairOld qa : sentence.qaList) {
 				aligner.align(sentence.depSentence, qa);
 			}
 		}
@@ -274,7 +274,7 @@ public class ExperimentUtils {
 			aligner = new GreedyQuestionAnswerAligner();
 		}
 		for (AnnotatedDepSentence sentence : annotatedSentences) {
-			for (QAPair qa : sentence.qaList) {
+			for (QAPairOld qa : sentence.qaList) {
 				aligner.align(sentence.depSentence, qa);
 			}
 		}

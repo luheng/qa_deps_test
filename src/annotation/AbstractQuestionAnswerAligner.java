@@ -1,8 +1,8 @@
 package annotation;
 
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 public interface AbstractQuestionAnswerAligner {
-	public void align(DepSentence sentence, QAPair qa);
+	public void align(DepSentence sentence, QAPairOld qa);
 }

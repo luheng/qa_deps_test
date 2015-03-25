@@ -1,124 +1,114 @@
 package data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import util.StringUtils;
+import annotation.AnswerSpanAligner;
+import annotation.CrowdFlowerResult;
+import annotation.QuestionEncoder;
 
+/**
+ * This class contains
+ * @author luheng
+ *
+ */
 public class QAPair {
-	public String[] questionTokens, answerTokens, propositionTokens;
-	// Contains indices of words in the original sentence. -1 means unaligned.
-	public int[] questionAlignment, answerAlignment, propositionAlignment;
+	public SRLSentence sentence;
+	public int propHead;
+	public String[] questionWords;
+	public String questionLabel, questionString;
+	public int[] answerFlags;
+	public ArrayList<CrowdFlowerResult> cfAnnotationSources;
 	
-	// FIXME: try to come up with a better name.
-	// If the answer is an "alternative answer" of another, then it has this
-	// "mainQA" field set.
-	// i.e. in the sentence "The robot moved because it is programmed to do so".
-	// and the question "What is programmed to do something?", 
-	// the main answer would be "it", and an alternative one is "the robot".
-	// Usually we can figure this out by distance in the original sentence.
-	public QAPair mainQA;
-	
-	public QAPair(String question, String answer) {
-		questionTokens = question.split("\\s+");
-		answerTokens = answer.split("\\s+");
-		for (int i = 0; i < questionTokens.length; i++) {
-			questionTokens[i] = questionTokens[i].trim();
+	public QAPair(SRLSentence sent, int prop, String[] question,
+							String answer, CrowdFlowerResult cf) { 
+		sentence = sent;
+		propHead = prop;
+		questionWords = new String[question.length];
+		for (int i = 0; i < question.length; i++) {
+			questionWords[i] = question[i].toLowerCase();
 		}
-		for (int i = 0; i < answerTokens.length; i++) {
-			answerTokens[i] = answerTokens[i].trim();
-		}
-		propositionTokens = null;
-		
-		questionAlignment = new int[questionTokens.length];
-		answerAlignment = new int[answerTokens.length];
-		Arrays.fill(questionAlignment, -1);
-		Arrays.fill(answerAlignment, -1);
-		
-		mainQA = null;
-	}
-	
-	public QAPair(String question, String answer, String proposition) {
-		this(question, answer);
-		this.propositionTokens = proposition.split("\\s+");
-		for (int i = 0; i < propositionTokens.length; i++) {
-			propositionTokens[i] = propositionTokens[i].trim();
-		}
-		propositionAlignment = new int[propositionTokens.length];
-		Arrays.fill(propositionAlignment, -1);
-	}
-	
-	public static QAPair parseNumberedQAPair(String question, String answer) {
-		QAPair qa = new QAPair(question, answer);
-		for (int i = 0; i < qa.questionTokens.length; i++) {
-			String token = qa.questionTokens[i];
-			int split = token.lastIndexOf('/');
-			if (split != -1) {
-				qa.questionTokens[i] = token.substring(0, split);
-				qa.questionAlignment[i] = Integer.parseInt(
-						token.substring(split + 1));
-			}
-		}
-		for (int i = 0; i < qa.answerTokens.length; i++) {
-			String token = qa.answerTokens[i];
-			int split = token.lastIndexOf('/');
-			if (split != -1) {
-				qa.answerTokens[i] = token.substring(0, split);
-				qa.answerAlignment[i] = Integer.parseInt(
-						token.substring(split + 1));
-			}
-		}
-		return qa;
-	}
-	
-	public void setAlignedProposition(Proposition prop) {
-		int start = prop.span[0], end = prop.span[1];
-		int len = end - start;
-		propositionTokens = new String[len];
-		propositionAlignment = new int[len];
-		for (int i = 0; i < len; i++) {
-			propositionTokens[i] = prop.sentence.getTokenString(i + start);
-			propositionAlignment[i] = i + start; 
+		questionLabel = QuestionEncoder.encode(questionWords, sentence);
+		questionString = StringUtils.join(" ", questionWords);
+		answerFlags = new int[sent.length];
+		Arrays.fill(answerFlags, 0);
+		addAnswer(answer);
+		cfAnnotationSources = new ArrayList<CrowdFlowerResult>();
+		if (cf != null) {
+			cfAnnotationSources.add(cf);
 		}
 	}
 	
-	public int getPropositionHead() {
-		if (this.propositionTokens == null) {
-			return -1;
+	public QAPair(SRLSentence sent, int prop, String qstr,
+			String answer, CrowdFlowerResult cf) { 
+		sentence = sent;
+		propHead = prop;
+		questionWords = null;
+		if (qstr.contains(" ")) {
+			questionString = qstr;
+			questionLabel = "";
+		} else {
+			questionString = "";
+			questionLabel = qstr;
 		}
-		return propositionAlignment[propositionAlignment.length - 1];
+		answerFlags = new int[sent.length];
+		Arrays.fill(answerFlags, 0);
+		addAnswer(answer);
+		cfAnnotationSources = new ArrayList<CrowdFlowerResult>();
+		if (cf != null) {
+			cfAnnotationSources.add(cf);
+		}
 	}
 	
-	public String getQuestionString() {
-		return StringUtils.join(" ", questionTokens);
+	public void addAnswer(String answer) {
+		if (answer.isEmpty()) {
+			return;
+		}
+		int[] matched = AnswerSpanAligner.align(sentence, answer);
+		for (int i = 0; i < sentence.length; i++) {
+			answerFlags[i] = matched[i];
+		}
+	}
+	
+	public void addAnswer(int[] flags) {
+		for (int i = 0; i < answerFlags.length; i++) {
+			answerFlags[i] = (flags[i] > 0 ? 1 : answerFlags[i]);
+		}
+	}
+	
+	public void addAnnotationSource(CrowdFlowerResult cfSource) {
+		this.cfAnnotationSources.add(cfSource);
+	}
+	
+	public String getQuestionLabel() {
+		return questionLabel;
 	}
 	
 	public String getAnswerString() {
-		return StringUtils.join(" ", answerTokens);
+		String answerStr = "";
+		int prevIdx = -1;
+		for (int i = 0; i < sentence.length; i++) {
+			if (answerFlags[i] > 0) {
+				answerStr +=  (i > prevIdx + 1 && prevIdx >= 0) ? " ... " : " ";
+				answerStr += sentence.getTokenString(i);
+				prevIdx = i;
+			}
+		}
+		return answerStr;
 	}
 	
-	@Override
+	public String getQuestionString() {
+		if (questionWords == null) {
+			return "";
+		}
+		return StringUtils.join(" ", questionWords) + "?";
+	}
+	
 	public String toString() {
-		return StringUtils.join(" ", questionTokens) + "\t" +
-			   StringUtils.join(" ", answerTokens);
+		String result = questionLabel;
+		//StringUtils.join(" ", questionWords);
+		result += "\t [A]: " + getAnswerString();
+		return result;
 	}
-	
-	public void printAlignment() {
-		for (int i = 0; i < questionTokens.length; i++) {
-			System.out.print(questionTokens[i] + "\t");
-		}
-		System.out.println();
-		for (int i = 0; i < questionTokens.length; i++) {
-			System.out.print(questionAlignment[i] + "\t");
-		}
-		System.out.println();
-		for (int i = 0; i < answerTokens.length; i++) {
-			System.out.print(answerTokens[i] + "\t");
-		}
-		System.out.println();
-		for (int i = 0; i < answerTokens.length; i++) {
-			System.out.print(answerAlignment[i] + "\t");
-		}
-		System.out.println();
-	}
-	
 }

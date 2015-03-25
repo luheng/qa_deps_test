@@ -14,7 +14,7 @@ import util.DebugUtils;
 import annotation.CandidateProposition;
 import data.AnnotatedDepSentence;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 import data.SRLCorpus;
 import data.SRLSentence;
 import experiments.ExperimentUtils;
@@ -200,7 +200,7 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 		}
 		// Show current QAs
 		String qaText = "";
-		for (QAPair qa : annotatedSentence.qaList) {
+		for (QAPairOld qa : annotatedSentence.qaList) {
 			qaText += qa.toString() + "\n";
 			
 		}
@@ -259,7 +259,7 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 			String question = getQuestion();
 			String answer = getAnswer();
 			// System.out.println(question + ", " + answer);
-			QAPair qa = new QAPair(question, answer);
+			QAPairOld qa = new QAPairOld(question, answer);
 			annotatedSentences.get(currentSentenceId).addQA(qa);
 			refreshPanel();
 			

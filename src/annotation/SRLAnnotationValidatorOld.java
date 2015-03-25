@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import data.AnnotatedDepSentence;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 import data.SRLCorpus;
 import data.SRLSentence;
 import evaluation.F1Metric;
@@ -49,7 +49,7 @@ public class SRLAnnotationValidatorOld {
 		return false;
 	}
 	
-	private static boolean isWhoWhatQuestion(QAPair qa) {
+	private static boolean isWhoWhatQuestion(QAPairOld qa) {
 		String qword = qa.questionTokens[0];
 		return qword.equalsIgnoreCase("who") || qword.equals("whom") ||
 			   qword.equalsIgnoreCase("what");
@@ -125,7 +125,7 @@ public class SRLAnnotationValidatorOld {
 			
 			System.out.println("[Precision loss]:");
 			
-			for (QAPair qa : sentence.qaList) {
+			for (QAPairOld qa : sentence.qaList) {
 				// If the answer is the "secondary answer" provided by annotator
 				if (qa.mainQA != null) {
 					continue;

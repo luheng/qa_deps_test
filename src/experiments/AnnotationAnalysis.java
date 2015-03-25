@@ -18,7 +18,7 @@ import annotation.GreedyQuestionAnswerAligner;
 import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 public class AnnotationAnalysis {
 	
@@ -69,7 +69,7 @@ public class AnnotationAnalysis {
 						continue;
 					}
 					annotatedSentences.get(sentPtr).addQA(
-							new QAPair(info[0].trim(), info[1].trim()));
+							new QAPairOld(info[0].trim(), info[1].trim()));
 				}
 			}
 			System.out.println(String.format("Read %d annotated sentences.",
@@ -101,7 +101,7 @@ public class AnnotationAnalysis {
 			DepSentence depSentence = sentence.depSentence;
 			String[] tokens = trainCorpus.wordDict.getStringArray(depSentence.tokens);
 			
-			for (QAPair qa : sentence.qaList) {
+			for (QAPairOld qa : sentence.qaList) {
 				
 				aligner.align(sentence.depSentence, qa);
 		

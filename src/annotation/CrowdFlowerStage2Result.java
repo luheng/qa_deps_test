@@ -53,6 +53,14 @@ public class CrowdFlowerStage2Result extends CrowdFlowerResult {
 		return result;
 	}
 	
+	public int getSentId() {
+		return sentenceId;
+	}
+	
+	public int getPropHead() {
+		return propHead >= 0 ? propHead : propEnd - 1;
+	}
+	
 	@Override
 	public String toString() {
 		String result = "";

@@ -1,7 +1,7 @@
 package constraints;
 
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 /*
  * Assume the answer is a single span.
@@ -9,12 +9,12 @@ import data.QAPair;
 public class AnswerIsSingleSpanConstraint implements AbstractConstraint {
 
 	@Override
-	public boolean validate(DepSentence sentence, QAPair qa) {
+	public boolean validate(DepSentence sentence, QAPairOld qa) {
 		return validate(sentence, qa, sentence.parents);
 	}
 	
 	@Override
-	public boolean validate(DepSentence sentence, QAPair qa, int[] tree) {
+	public boolean validate(DepSentence sentence, QAPairOld qa, int[] tree) {
 		int spanStart = -1;
 		int numSpans = 0;
 		for (int i = 0; i < qa.answerAlignment.length; i++) {

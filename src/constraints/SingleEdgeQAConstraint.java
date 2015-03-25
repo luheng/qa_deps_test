@@ -3,14 +3,14 @@ package constraints;
 import java.util.Arrays;
 
 import data.DepSentence;
-import data.QAPair;
+import data.QAPairOld;
 
 /*
  * Assume there is exactly one edge going from question to answer.
  */
 public class SingleEdgeQAConstraint implements AbstractConstraint {
 
-	private int getSubtreeHead(DepSentence sentence, QAPair qa, int[] tree) {
+	private int getSubtreeHead(DepSentence sentence, QAPairOld qa, int[] tree) {
 		int[] inverseAlignment = new int[sentence.length];
 		Arrays.fill(inverseAlignment, -1);
 		for (int i = 0; i < qa.answerAlignment.length; i++) {
@@ -49,12 +49,12 @@ public class SingleEdgeQAConstraint implements AbstractConstraint {
 	}
 	
 	@Override
-	public boolean validate(DepSentence sentence, QAPair qa) {
+	public boolean validate(DepSentence sentence, QAPairOld qa) {
 		return validate(sentence, qa, sentence.parents);
 	}
 	
 	@Override
-	public boolean validate(DepSentence sentence, QAPair qa, int[] tree) {
+	public boolean validate(DepSentence sentence, QAPairOld qa, int[] tree) {
 		int subtreeHead = getSubtreeHead(sentence, qa, tree);
 		if (subtreeHead < 0) {
 			// Answer does not represent a single subtree.

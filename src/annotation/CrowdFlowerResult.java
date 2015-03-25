@@ -39,6 +39,14 @@ public class CrowdFlowerResult {
 				result.cfStartTime.getMillis()) / 1000;
 	}
 	
+	public int getSentId() {
+		return -1;
+	}
+	
+	public int getPropHead() {
+		return -1;
+	}
+	
 	@Override
 	public String toString() {
 		String result = "";
