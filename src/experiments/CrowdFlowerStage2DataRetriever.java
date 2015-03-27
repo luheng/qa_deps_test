@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -101,51 +100,12 @@ public class CrowdFlowerStage2DataRetriever {
 		}
 	}
 	
-	public static void analyzeAnnotations(
-			ArrayList<CrowdFlowerQAResult> stage1Results,
-			ArrayList<CrowdFlowerStage2Result> stage2Results,
-			SRLCorpus corpus) {
-		// Aggregate Stage1 results.
-		HashMap<String, ArrayList<CrowdFlowerQAResult>> stage1ResultsMap =
-				new HashMap<String, ArrayList<CrowdFlowerQAResult>>();
-		for (CrowdFlowerQAResult result : stage1Results) {
-			int sentId = result.sentenceId,
-				propHead = result.propEnd - 1;
-			String cfKey = String.format("%d_%d", sentId, propHead);
-			if (!stage1ResultsMap.containsKey(cfKey)) {
-				stage1ResultsMap.put(cfKey, new ArrayList<CrowdFlowerQAResult>());
-			}
-			stage1ResultsMap.get(cfKey).add(result);
+	private static void addQuestion(HashMap<String, HashSet<String>> amap,
+			String qlabel, String question) {
+		if (!amap.containsKey(qlabel)) {
+			amap.put(qlabel, new HashSet<String>());
 		}
-		// Compare with Stage1 results.
-		for (CrowdFlowerStage2Result result : stage2Results) {
-			int sentId = result.sentenceId;
-			SRLSentence sentence = (SRLSentence) corpus.sentences.get(sentId);
-			int propHead = result.propEnd - 1;
-		
-			// Retrieve Stage1 result
-			String cfKey = String.format("%d_%d", sentId, propHead);
-			
-			for (CrowdFlowerQAResult stage1Result : stage1ResultsMap.get(cfKey)) {
-				//TODO: debug the worker ID problem.
-				System.out.println(result.stage1Id + "..." + stage1Result.cfWorkerId); 
-				
-				for (int qid = 0; qid < stage1Result.questions.size(); qid++) {
-					String[] question = stage1Result.questions.get(qid);
-					String qstr = StringUtils.join(" ", question).trim();
-					if (!qstr.equalsIgnoreCase(result.question)) {
-						continue;
-					}
-					// Compare.					
-					System.out.println(qstr);
-					System.out.println("==== stage1 answers ====");
-					System.out.println(StringUtils.join("\n", stage1Result.answers.get(qid)));
-					System.out.println("==== stage2 answers ====");
-					System.out.println(StringUtils.join("\n", result.answers));
-					System.out.println();
-				}
-			}
-		}
+		amap.get(qlabel).add(question);
 	}
 	
 	private static void addAnswer(HashMap<String, int[]> qmap, String qlabel,
@@ -161,24 +121,31 @@ public class CrowdFlowerStage2DataRetriever {
 		}
 	}
 	
-	private static void printAnswerTokens(SRLSentence sentence,
+	private static String printAnswerTokens(SRLSentence sentence,
 			int[] answerFlags) {
+		String ret = "";
 		for (int i = 0; i < answerFlags.length; i++) {
 			if (answerFlags[i] > 0) {
-				System.out.print(String.format("%s(%d) ",
-						sentence.getTokenString(i), answerFlags[i]));
+				ret += String.format("%s(%d) ",
+						sentence.getTokenString(i), answerFlags[i]);
 			}
 		}
-		System.out.println();
+		return ret;
 	}
 	
 	public static void aggregateAnnotations(
 			HashMap<Integer, AnnotatedSentence> qaSents,
 			HashMap<Integer, AnnotatedSentence> s2Sents,
+			SRLCorpus trainCorpus,
 			ArrayList<AnnotatedSentence> testSents) {
 		
 		int numQAs = 0,
-			numAggregatedQAs = 0;
+			numAggregatedQAs = 0,
+			numGoodFilters = 0,
+			numBadFilters = 0;
+		
+		SRLAnnotationValidator validator = new SRLAnnotationValidator();
+		//validator.ignoreLabels = true;
 		
 		for (int sentId : qaSents.keySet()) {
 			AnnotatedSentence qaSent = qaSents.get(sentId);
@@ -186,13 +153,35 @@ public class CrowdFlowerStage2DataRetriever {
 			int s1Props = qaSent.qaLists.size(),
 				s2Props = 0;
 			
-			for (int propHead : qaSent.qaLists.keySet()) {
+			String[][] gold = validator.getGoldSRL(sent);
+			
+			int[][] covered = new int[gold.length][];
+			for (int i = 0; i < gold.length; i++) {
+				covered[i] = new int[gold[i].length];
+			}
+			LatticeUtils.fill(covered, 0);
+		
+			int sentLength = sent.length;
+			
+			for (Proposition prop : qaSent.sentence.propositions) {
+				int propHead = prop.propID;
+				if (!qaSent.qaLists.containsKey(propHead)) {
+					continue;
+				}
+				//for (int propHead : qaSent.qaLists.keySet()) {
+				// QLabel to Questions
+				HashMap<String, HashSet<String>>
+					s1QMap = new HashMap<String, HashSet<String>>(),
+					s2QMap = new HashMap<String, HashSet<String>>();
+				// QLabel to Answer Flags
 				HashMap<String, int[]>
-					s1QMap = new HashMap<String, int[]>(),
-					s2QMap = new HashMap<String, int[]>();			 
+					s1AMap = new HashMap<String, int[]>(),
+					s2AMap = new HashMap<String, int[]>();			 
 
 				for (QAPair qa : qaSent.qaLists.get(propHead)) {
-					addAnswer(s1QMap, qa.getQuestionLabel(), qa.answerFlags);
+					addQuestion(s1QMap, qa.getQuestionLabel(),
+							qa.getQuestionString());
+					addAnswer(s1AMap, qa.getQuestionLabel(), qa.answerFlags);
 				}
 				
 				if (s2Sents.containsKey(sentId)) {
@@ -200,52 +189,99 @@ public class CrowdFlowerStage2DataRetriever {
 					s2Props = s2Sent.qaLists.size();
 					if (s2Sent.qaLists.containsKey(propHead)) {
 						for (QAPair qa : s2Sent.qaLists.get(propHead)) {
-							addAnswer(s2QMap, qa.getQuestionLabel(),
+							addQuestion(s2QMap, qa.getQuestionLabel(),
+									qa.getQuestionString());
+							addAnswer(s2AMap, qa.getQuestionLabel(),
 									qa.answerFlags);
+						}
+						
+						// Print sentence info.
+						System.out.println();
+						System.out.println(sent.sentenceID + "\t" + sent.getTokensString());
+						System.out.println(sent.getTokenString(propHead));
+						for (int i = 0; i < prop.argIDs.size(); i++) {
+							int argType = prop.argTypes.get(i),
+								argId = prop.argIDs.get(i);
+							System.out.println(
+									" \t" + trainCorpus.argModDict.getString(argType) + "\t" +
+									" \t" + sent.getTokenString(argId) + "\t");
 						}
 					}
 				}
 				
 				ArrayList<QAPair> newList = new ArrayList<QAPair>();
+				
 				// Compute Stage1-Stage2 Agreement
-				for (String qlabel : s1QMap.keySet()) {
-					boolean disagree = false;
-					int[] flags1 = s1QMap.get(qlabel);
-					if (s2QMap.containsKey(qlabel)) {
-						printAnswerTokens(sent, s1QMap.get(qlabel));
-						printAnswerTokens(sent, s2QMap.get(qlabel));
-						int[] flags2 = s2QMap.get(qlabel);
+				for (String qlabel : s1AMap.keySet()) {
+					boolean disagree = false,
+							matched = false;
+					int[] flags1 = s1AMap.get(qlabel);
+					QAPair newQA = new QAPair(qaSent.sentence, propHead,
+							qlabel, "" /* answer */, null /* cfResult */);
+					LatticeUtils.copy(newQA.answerFlags, flags1);
+					
+					if (s2AMap.containsKey(qlabel)) {
+						int[] flags2 = s2AMap.get(qlabel);
 						int overlap = 0, all = 0, minS1 = 0;
-						for (int i = 0; i < flags1.length; i++) {
+						for (int i = 0; i < sentLength; i++) {
 							overlap += Math.min(flags1[i], flags2[i]);
 							all += Math.max(flags1[i], flags2[i]);
 							minS1 = Math.min(minS1, flags1[i]);
 						}
-						System.out.println(overlap + ", " + all);
+						//System.out.println(overlap + ", " + all);
 						double overlapRatio = 1.0 * overlap / all;
-						if (overlapRatio < 0.1 && minS1 <= 1) {
+						if (overlap == 0) {
 							disagree = true;
 						}
 					}
+					
 					if (!disagree) {
-						QAPair newQA = new QAPair(qaSent.sentence, propHead,
-							qlabel, "" /* answer */, null /* cfResult */);
-						LatticeUtils.copy(newQA.answerFlags, flags1);
+						if (s2AMap.containsKey(qlabel)) {
+							newQA.addAnswer(s2AMap.get(qlabel));
+						}
 						newList.add(newQA);
+					}
+
+					for (int i = 0; i < sentLength; i++) {
+						if (!gold[propHead + 1][i + 1].isEmpty() &&
+							validator.matchedGold(i, newQA, sent)) {
+							covered[propHead + 1][i + 1] = 1;
+							matched = true;
+						}
+					}
+					
+					if (s2AMap.containsKey(qlabel)) {
+						// Print debug output.
+						System.out.println(
+							qlabel + "\t" +
+							StringUtils.join(",", s1QMap.get(qlabel).toArray()) + "\t" +
+							StringUtils.join(",", s2QMap.get(qlabel).toArray()) + "\t" +
+							printAnswerTokens(sent, s1AMap.get(qlabel)) + "\t" + 
+							printAnswerTokens(sent, s2AMap.get(qlabel)) + "\t" + 
+							(disagree ? "NA" : " ") + "\t" +
+							(matched ? " " : "NG") + "\t");
+						
+						if (disagree && !matched) {
+							numGoodFilters ++;
+						} else if(disagree && matched) {
+							numBadFilters ++;
+						}
 					}
 				}
 				qaSent.qaLists.put(propHead, newList);
 				if (s2Props == s1Props) {
 					testSents.add(qaSent);
-					numQAs += s1QMap.size();
+					numQAs += s1AMap.size();
 					numAggregatedQAs += newList.size();
 				}
-
 			}
 		}
 		System.out.println(
 				   "Num QAs before filtering:\t" + numQAs +
 		   		   "\nNum QAs after filtering:\t" + numAggregatedQAs);
+		System.out.println(
+				 	"Number of good filters:\t" + numGoodFilters + "\n" +
+					"Number of bad filters:\t" + numBadFilters);
 		System.out.println("Number of test sentences\t" + testSents.size());
 		
 	}
@@ -282,9 +318,9 @@ public class CrowdFlowerStage2DataRetriever {
 		ArrayList<AnnotatedSentence> testSents =
 				new ArrayList<AnnotatedSentence>();
 		
-		aggregateAnnotations(qaSents, s2Sents, testSents);
+		aggregateAnnotations(qaSents, s2Sents, trainCorpus, testSents);
 		SRLAnnotationValidator tester = new SRLAnnotationValidator();
-		tester.ignoreLabels = true;
+		//tester.ignoreLabels = true;
 		tester.computeSRLAccuracy(testSents, trainCorpus);
 	}
 }

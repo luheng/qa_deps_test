@@ -5,14 +5,14 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 public class StringUtils {
-	public static String join(String delimiter, String[] stringArr) {
+	public static String join(String delimiter, Object[] objects) {
 		String joined = "";
-		for (int i = 0; i < stringArr.length; i++) {
-			if (!stringArr[i].trim().isEmpty()) {
+		for (int i = 0; i < objects.length; i++) {
+			if (!objects[i].toString().trim().isEmpty()) {
 				if (!joined.isEmpty()) {
 					joined += delimiter;
 				}
-				joined += stringArr[i];
+				joined += objects[i];
 			}
 		}
 		return joined;
