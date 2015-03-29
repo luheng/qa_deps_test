@@ -109,6 +109,7 @@ public class VerbInflectionDictionary {
 			e.printStackTrace();
 		}
 		
+		/*
 		for (String verb : inflDict.inflMap.keySet()) {
 			ArrayList<Integer> inflIds = inflDict.inflMap.get(verb);
 			if (inflIds.size() > 1) {
@@ -120,5 +121,6 @@ public class VerbInflectionDictionary {
 				System.out.println();
 			}
 		}
+		*/
 	}
 }

@@ -20,7 +20,7 @@ and the question "Who <mark>built</mark> something?", your job is to:
 <h4 style="color:#8cc63e;"><strong>Do This</strong></h4>
 * Try to provide all the correct answers.
 * Please read the examples carefully, pay attention to the <b>correct answer(s)</b> and <b>typical wrong answer(s)</b>.
-* Some questions might be slightly ungrammatical, please try your best to provide answers as long as you can understand them.
+* Some questions might be slightly ungrammatical or have the wrong tense, please try your best to provide answers as long as you can understand them.
 * Trust your understanding of the language!
 
 

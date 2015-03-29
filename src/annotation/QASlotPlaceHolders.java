@@ -6,8 +6,14 @@ public class QASlotPlaceHolders {
 			"",
 			"someone",
 			"something",
-			"do something",
-			"do",
-			"somewhere"
 		};
+	
+	public static final String[] ph3Values = {
+		"",
+		"someone",
+		"something",
+		"do something",
+		"do",
+		"somewhere"
+	};
 }

@@ -2,6 +2,8 @@ package experiments;
 
 import gnu.trove.list.array.TIntArrayList;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,8 +13,13 @@ import java.util.Random;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
 
+import annotation.AnnotationStage;
 import annotation.AuxiliaryVerbIdentifier;
+import annotation.CrowdFlowerQAResult;
+import annotation.CrowdFlowerResult;
+import annotation.CrowdFlowerStage2Result;
 import annotation.QASlotPrepositions;
 import data.DepSentence;
 import data.Proposition;
@@ -23,7 +30,7 @@ import data.VerbInflectionDictionary;
 public class CrowdFlowerQADataPreparation {
 	
 	private static SRLCorpus trainCorpus = null;
-	private static final int maxNumSentences = 100;
+	private static final int maxNumSentences = 200;
 	private static final int maxSentenceID = 5000;
 	
 	private static final int randomSeed = 12345;
@@ -34,11 +41,15 @@ public class CrowdFlowerQADataPreparation {
 	private static VerbInflectionDictionary inflDict = null;
 	private static AuxiliaryVerbIdentifier auxVerbID = null;
 	
-	private static String outputFileName = "crowdflower/CF_QA_firstround_s100_test.csv";
+	private static String[] previousFileNames = new String[] {
+			"crowdflower/CF_QA_firstround_s100.csv"
+		};
+	private static String outputFileName =
+			"crowdflower/CF_QA_firstround_r2_s100.csv";
 
 	private static String[] kHeader = {"sent_id", "sentence", "orig_sent",
-		"prop_id", "prop_start", "prop_end", "proposition", "trg_options",
-		"pp_options"};
+		"prop_id", "prop_head", "prop_start", "prop_end", "proposition",
+		"trg_options", "pp_options"};
 	
 	private static String getPartiallyHighlightedSentence(SRLSentence sentence,
 			Proposition prop) {
@@ -81,20 +92,25 @@ public class CrowdFlowerQADataPreparation {
 			}
 		}
 		// Generate list for dropdown.
+		// Changes: removed all the ing words.
 		HashSet<String> opSet= new HashSet<String>();
 		ArrayList<String> options = new ArrayList<String>();
 		String[] inflections = inflDict.inflections.get(bestId);
-		for (String infl : inflections) {
-			opSet.add(infl);
+		for (int i = 0; i < inflections.length; i++) {
+			if (i != 2) {
+				opSet.add(inflections[i]);
+			}
 		}
 		opSet.add("be " + inflections[4]);
-		opSet.add("been " + inflections[4]);
-		opSet.add("being " + inflections[4]);
 		opSet.add("have " + inflections[4]);
 		opSet.add("have been " + inflections[4]);
+		/*
+ 		opSet.add("been " + inflections[4]);
+		opSet.add("being " + inflections[4]);
 		opSet.add("be " + inflections[2]);
 		opSet.add("been " + inflections[2]);
 		opSet.add("have been " + inflections[2]);
+		*/
 		for (String op : opSet) {
 			options.add(op);
 		}
@@ -143,7 +159,7 @@ public class CrowdFlowerQADataPreparation {
 	}
 	
 	// Output the following fields:
-	// "sent_id", "sentence", "orig_sent", "prop_id", "prop_start", "prop_end", "proposition", "trg_options"
+	// "sent_id", "sentence", "orig_sent", "prop_id", "prop_head", "prop_start", "prop_end", "proposition", "trg_options"
 	private static void outputUnits() throws IOException {
 		FileWriter fileWriter = new FileWriter(outputFileName);
 		CSVPrinter csvWriter = new CSVPrinter(fileWriter, CSVFormat.EXCEL
@@ -168,6 +184,7 @@ public class CrowdFlowerQADataPreparation {
 				row.add(getPartiallyHighlightedSentence(sent, prop));
 				row.add(sent.getTokensString());
 				row.add(String.valueOf(j));
+				row.add(String.valueOf(prop.span[1] - 1));
 				row.add(String.valueOf(prop.span[0]));
 				row.add(String.valueOf(prop.span[1]));
 				row.add(sent.getTokenString(prop.span));
@@ -202,10 +219,28 @@ public class CrowdFlowerQADataPreparation {
 		return ids.toArray();
 	}
 	
+	private static HashSet<Integer> getAnnotatedSentenceIds() {
+		HashSet<Integer> annotatedIds = new HashSet<Integer>();
+		FileReader fileReader = null;
+		Iterable<CSVRecord> records = null;
+		for (String filePath : previousFileNames) {
+			try {
+				fileReader = new FileReader(filePath);
+				records = CSVFormat.DEFAULT.withHeader().parse(fileReader);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			for (CSVRecord record : records) {
+				int sentId = Integer.parseInt(record.get("sent_id"));
+				annotatedIds.add(sentId);
+			}
+		}
+		return annotatedIds;
+	}
+	
 	public static void main(String[] args) {
 		trainCorpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
-		
 		inflDict = new VerbInflectionDictionary(trainCorpus);
 		try {
 			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
@@ -213,53 +248,48 @@ public class CrowdFlowerQADataPreparation {
 			e.printStackTrace();
 		}
 		auxVerbID = new AuxiliaryVerbIdentifier(trainCorpus);
-		
 		sentences = new ArrayList<SRLSentence>();
 		propositions = new ArrayList<ArrayList<Proposition>>();
 		
-		int[] nonQuestionIds = getNonQuestionSentenceIds();
-		//int[] sentenceIds = RandomSampler.sampleIDs(nonQuestionIds,
-		//		nonQuestionIds.length, numUnits, randomSeed);
-		
+		int[] nonQuestionIds = getNonQuestionSentenceIds();		
 		System.out.println("Number of non-question sentences:\t" +
 						   nonQuestionIds.length);
 		
+		// Exclude sentences that are already annotated ...
+		HashSet<Integer> annotatedIds = getAnnotatedSentenceIds();
+		
+		// Throw away sentences that contains verbs we don't identify ...
 		for (int id : nonQuestionIds) {
+			if (annotatedIds.contains(id)) {
+				continue;
+			}
 			SRLSentence sentence = (SRLSentence) trainCorpus.sentences.get(id);
-			// Pre-examine
-			boolean throwAwaySentence = false;
+			boolean containsUnidentifiedVerb = false;
+			int numTargets = 0;
 			for (int j = 0; j < sentence.length; j++) {
 				if (sentence.getPostagString(j).equals("VERB") &&
-					!auxVerbID.ignoreVerbForSRL(sentence, j) &&
-					getTrgOptions(sentence, j) == null) {
-					throwAwaySentence = true;
+					!auxVerbID.ignoreVerbForSRL(sentence, j)) {
+					if (getTrgOptions(sentence, j) == null) {
+						containsUnidentifiedVerb = true;
+					}
+					numTargets ++;
 					break;
 				}
 			}
-			if (!throwAwaySentence) {
+			if (!containsUnidentifiedVerb && numTargets > 0) {
 				sentences.add(sentence);
 			}
 		}
 		System.out.println("Sentences left:\t" + sentences.size());
 		
 		Collections.shuffle(sentences, new Random(randomSeed));
-		
+	
 		for (int i = 0; i < sentences.size(); i++) {
 			SRLSentence sentence = sentences.get(i);
 			ArrayList<Proposition> props = new ArrayList<Proposition>();
 			for (int j = 0; j < sentence.length; j++) {
 				if (sentence.getPostagString(j).equals("VERB") &&
-					!auxVerbID.ignoreVerbForSRL(sentence, j)) {
-					/*
-					if (j < sentence.length  - 2) {
-						String pos1 = sentence.getPostagString(j+1);
-						String pos2 = sentence.getPostagString(j+2);
-						if ((pos1.equals("ADP") || pos1.equals("PRT")) &&
-							(pos2.equals("ADP") || pos2.equals("PRT"))) {
-							System.out.println(sentence.getTokensString());
-							System.out.println(sentence.getTokenString(new int[] {j, j + 3}));
-						}
-					}*/
+					!auxVerbID.ignoreVerbForSRL(sentence, j)) {					
 					Proposition prop = new Proposition();
 					prop.sentence = sentence;
 					prop.setPropositionSpan(j, j + 1);

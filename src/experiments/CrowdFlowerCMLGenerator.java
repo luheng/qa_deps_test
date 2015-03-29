@@ -142,7 +142,7 @@ public class CrowdFlowerCMLGenerator {
 		// Generate ph3 slot
 		qstr += generateDropdown(ph3SlotLabel,
 				 				 questionId,
-				 				 QASlotPlaceHolders.values,
+				 				 QASlotPlaceHolders.ph3Values,
 				 				 "" /* no validator */);
 		
 		qstr += "<strong>?</strong><br>\n";
@@ -232,9 +232,9 @@ public class CrowdFlowerCMLGenerator {
 	}
 	
 	public static void main(String[] args) {
-		CrowdFlowerCMLGenerator cmlGen = new CrowdFlowerCMLGenerator(10);
+		CrowdFlowerCMLGenerator cmlGen = new CrowdFlowerCMLGenerator(8);
 		try {
-			cmlGen.generateCML("crowdflower/cml_10q.html");			
+			cmlGen.generateCML("crowdflower/cml_qa_new_8q.html");			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

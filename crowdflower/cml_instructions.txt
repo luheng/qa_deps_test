@@ -15,11 +15,11 @@ drop-down boxes, as shown below:
 <tr><th>Drop-down Box</th> <th>Description</th> <th>Example options</th></tr>
 <tr><th>WH *</th>   <td>Question words (wh-words).</td> <td>who, what, where ...</td></tr>
 <tr><th>AUX</th>  <td>Auxiliary verbs</td>           <td>is, was, have, had, could, won't ...</td></tr>
-<tr><th>PH1</th>  <td>Place-holding words</td>       <td>something, someone, do something ...</td></tr>
+<tr><th>PH1</th>  <td>Place-holding words</td>       <td>something, someone</td></tr>
 <tr><th>TRG *</th>  <td>Some form of the target word. </td> <td> (if original word is built) builds, build, built, being built</td></tr> 
 <tr><th>PH2</th>  <td>Same as PH1</td>  <td> </td> </tr>
 <tr><th>PP</th>   <td>Prepositions</td> <td>to, from, by, with, ... </td> </tr>
-<tr><th>PH3</th>  <td>Same as PH1 and PH2</td>  <td> </td> </tr>
+<tr><th>PH3</th>  <td>Same as PH1 and PH2, with additional options such as "do something"</td>  <td> </td> </tr>
 </table>
 \*: WH and TRG are required drop-down boxes. The rest can be left empty when appropriate.
 
@@ -144,10 +144,15 @@ Example 10: &nbsp; <b> Newspaper reported that Pat have n't actually <mark>built
 
 ### Tips
 <h4 style="color:#8cc63e;"><strong>Do This</strong></h4>
-* There is often more than one way to ask the same question. For example, "Who was given something," vs. "Who was given something by someone," in example 2 above. Any equivalent question is acceptable but you should only provide one. When this happens, any of the questions are acceptable.
 * Please make sure the questions you asked are grammatical and understandable.
 * Trust your understanding of the language! :)
 * Feedback is highly appreciated!
+
+<h4 style="color:#ffcb02;"><strong>Be Careful Of</strong></h4>
+* There is often more than one way to ask the same question.
+For example, "Who was given something," vs. "Who was given something by someone," in example 2 above.
+<b>Any equivalent question is acceptable but you should only provide one. </b>
+When this happens, any of the questions are acceptable.
 
 <h4 style="color:#f05921;"><strong>Do Not</strong></h4>
 * Do not use words not in the original sentence for answer.

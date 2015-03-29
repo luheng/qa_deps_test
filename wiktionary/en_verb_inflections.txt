@@ -653,7 +653,7 @@ afterthought	afterthoughts	afterthoughting	afterthoughted	afterthoughted
 againsay	againsays	againsaying	againsaid	againsaid
 againstand	againstands	againstanding	againstood	againstood
 agatize	agatizes	agatizing	agatized	agatized
-age	ages	ageing	aged	aged
+age	ages	aging	aged	aged
 aggerate	aggerates	aggerating	aggerated	aggerated
 aggest	aggests	aggesting	aggested	aggested
 agglomerate	agglomerates	agglomerating	agglomerated	agglomerated
@@ -2149,7 +2149,7 @@ bethink	bethinks	bethinking	bethought	bethought
 bethrall	bethralls	bethralling	bethralled	bethralled
 bethrong	bethrongs	bethronging	bethronged	bethronged
 bethrow	bethrows	bethrowing	bethrew	bethrown
-bethrust	bethrusts	bethrusting	'''[[bethrusted]]''' or '''[[bethrust]]'''	'''[[bethrusted]]''' or '''[[bethrust]]'''
+bethrust	bethrusts	bethrusting	bethrusted	bethrusted
 bethumb	bethumbs	bethumbing	bethumbed	bethumbed
 bethump	bethumps	bethumping	bethumped	bethumped
 bethwack	bethwacks	bethwacking	bethwacked	bethwacked
@@ -3223,6 +3223,7 @@ chicane	chicanes	chicaning	chicaned	chicaned
 chick	chicks	chicking	chicked	chicked
 chicken	chickens	chickening	chickened	chickened
 chide	chides	chiding	chid	chid
+chide	chides	chiding	chided	chided
 childmind	childminds	childminding	childminded	childminded
 childproof	childproofs	childproofing	childproofed	childproofed
 chill	chills	chilling	chilled	chilled
@@ -3432,7 +3433,7 @@ climber	climbers	climbering	climbered	climbered
 clinch	clinches	clinching	clinched	clinched
 cling	clings	clinging	clung	clung
 clink	clinks	clinking	clinked	clinked
-clip	clips	clipping	clipt	clipt
+clip	clips	clipping	clipped	clipped
 clique	cliques	cliquing	cliqued	cliqued
 clit	clits	clitting	clitted	clitted
 clitch	clitches	clitching	clitched	clitched
@@ -7065,7 +7066,7 @@ eponymize	eponymizes	eponymizing	eponymized	eponymized
 epoxidise	epoxidises	epoxidising	epoxidised	epoxidised
 epoxidize	epoxidizes	epoxidizing	epoxidized	epoxidized
 epoxy	epoxies	epoxying	epoxied	epoxied
-equal	equals	equalling	equalled	equalled
+equal	equals	equaling	equaled	equaled
 equalise	equalises	equalising	equalised	equalised
 equalize	equalizes	equalizing	equalized	equalized
 equate	equates	equating	equated	equated
@@ -7850,7 +7851,7 @@ flustrate	flustrates	flustrating	flustrated	flustrated
 flute	flutes	fluting	fluted	fluted
 flutter	flutters	fluttering	fluttered	fluttered
 flux	fluxes	fluxing	fluxed	fluxed
-fly	flies	flying	flied	flied
+fly	flies	flying	flew	flown
 flyblow	flyblows	flyblowing	flyblew	flyblown
 flyer	flyers	flyering	flyered	flyered
 flypost	flyposts	flyposting	flyposted	flyposted
@@ -8053,7 +8054,7 @@ forewish	forewishes	forewishing	forewished	forewished
 forewit	forewot	forewitting	forewist	forewist
 forework	foreworks	foreworking	foreworked	foreworked
 forewrite	forewrites	forewriting	forewrote	forewritten
-forfare	forfares	forfaring	'''[[forfared]]''' or '''[[forfore]]'''	'''[[forfared]]''' or '''[[forfaren]]'''
+forfare	forfares	forfaring	forefared	forfared
 forfeit	forfeits	forfeiting	forfeited	forfeited
 forfend	forfends	forfending	forfended	forfended
 forfete	forfetes	forfeting	forfeted	forfeted
@@ -8385,7 +8386,7 @@ fub	fubs	fubbing	fubbed	fubbed
 fuck	fucks	fucking	fucked	fucked
 fuddle	fuddles	fuddling	fuddled	fuddled
 fudge	fudges	fudging	fudged	fudged
-fuel	fuels	fuelling	fuelled	fuelled
+fuel	fuels	fueling	fueled	fueled
 fuff	fuffs	fuffing	fuffed	fuffed
 fuffle	fuffles	fuffling	fuffled	fuffled
 fugle	fugles	fugling	fugled	fugled
@@ -8420,7 +8421,7 @@ fungate	fungates	fungating	fungated	fungated
 fungiproof	fungiproofs	fungiproofing	fungiproofed	fungiproofed
 fungusproof	fungusproofs	fungusproofing	fungusproofed	fungusproofed
 funk	funks	funking	funked	funked
-funnel	funnels	funnelling	funnelled	funnelled
+funnel	funnels	funneling	funneled	funneled
 fur	furs	furring	furred	furred
 furbelow	furbelows	furbelowing	furbelowed	furbelowed
 furbish	furbishes	furbishing	furbished	furbished
@@ -8627,7 +8628,7 @@ gerrymander	gerrymanders	gerrymandering	gerrymandered	gerrymandered
 gestate	gestates	gestating	gestated	gestated
 gesticulate	gesticulates	gesticulating	gesticulated	gesticulated
 gesture	gestures	gesturing	gestured	gestured
-get	gets	getting	got	got
+get	gets	getting	got	gotten
 gether	gethers	gethering	gethered	gethered
 getter	getters	gettering	gettered	gettered
 gezumph	gezumphs	gezumphing	gezumphed	gezumphed
@@ -9247,7 +9248,7 @@ hick	hicks	hicking	hicked	hicked
 hickup	hickups	hickuping	hickuped	hickuped
 hidate	hidates	hidating	hidated	hidated
 hiddle	hiddles	hiddling	hiddled	hiddled
-hide	hides	hiding	hided	hided
+hide	hides	hiding	hid	hidden
 hie	hies	hying	hied	hied
 hield	hields	hielding	hielded	hielded
 hierarchize	hierarchizes	hierarchizing	hierarchized	hierarchized
@@ -10993,7 +10994,7 @@ lirt	lirts	lirting	lirted	lirted
 lisp	lisps	lisping	lisped	lisped
 liss	lisses	lissing	lissed	lissed
 lisse	lisses	lissing	lissed	lissed
-list	lists	listing	list	list
+list	lists	listing	listed	listed
 listen	listens	listening	listened	listened
 lit	lits	litting	litted	litted
 lite	lites	liting	lited	lited
@@ -11347,7 +11348,7 @@ meach	meaches	meaching	meached	meached
 meager	meagers	meagering	meagered	meagered
 meagre	meagres	meagring	meagred	meagred
 meal	meals	mealing	mealed	mealed
-mean	means	meaning	meaned	meaned
+mean	means	meaning	meant	meant
 meander	meanders	meandering	meandered	meandered
 measure	measures	measuring	measured	measured
 meaw	meaws	meawing	meawed	meawed
@@ -11924,7 +11925,7 @@ misvouch	misvouches	misvouching	misvouched	misvouched
 miswander	miswanders	miswandering	miswandered	miswandered
 miswant	miswants	miswanting	miswanted	miswanted
 miswear	miswears	miswearing	miswore	misworn
-miswed	misweds	miswedding	'''[[miswed]]''' or '''[[miswedded]]'''	'''[[miswed]]''' or '''[[miswedded]]'''
+miswed	misweds	miswedding	miswed	miswed
 misween	misweens	misweening	misweened	misweened
 miswend	miswends	miswending	miswent	miswent
 misword	miswords	miswording	misworded	misworded
@@ -11953,7 +11954,7 @@ mock	mocks	mocking	mocked	mocked
 mocque	mocques	mocquing	mocqued	mocqued
 mod	mods	modding	modded	modded
 modalise	modalises	modalising	modalised	modalised
-model	models	modelling	modelled	modelled
+model	models	modeling	modeled	modeled
 modelize	modelizes	modelizing	modelized	modelized
 modell	modells	modelling	modelled	modelled
 modem	modems	modeming	modemed	modemed
@@ -13237,7 +13238,7 @@ overlash	overlashes	overlashing	overlashed	overlashed
 overlaunch	overlaunches	overlaunching	overlaunched	overlaunched
 overlay	overlays	overlaying	overlaid	overlaid
 overlead	overleads	overleading	overled	overled
-overlean	overleans	overleaning	'''[[overleant]]''' or '''[[overleaned]]'''	'''[[overleant]]''' or '''[[overleaned]]'''
+overlean	overleans	overleaning	overleaned	overleaned
 overleap	overleaps	overleaping	overleaped	overleaped
 overlearn	overlearns	overlearning	overlearned	overlearned
 overleave	overleaves	overleaving	overleft	overleft
@@ -13764,7 +13765,7 @@ peck	pecks	pecking	pecked	pecked
 pectize	pectizes	pectizing	pectized	pectized
 peculate	peculates	peculating	peculated	peculated
 peculiarize	peculiarizes	peculiarizing	peculiarized	peculiarized
-pedal	pedals	pedalling	pedalled	pedalled
+pedal	pedals	pedaling	pedaled	pedaled
 pedantize	pedantizes	pedantizing	pedantized	pedantized
 peddle	peddles	peddling	peddled	peddled
 pedestal	pedestals	pedestaling	pedestaled	pedestaled
@@ -14162,6 +14163,7 @@ playlist	playlists	playlisting	playlisted	playlisted
 playtest	playtests	playtesting	playtested	playtested
 pleach	pleaches	pleaching	pleached	pleached
 plead	pleads	pleading	pled	pled
+plead	pleads	pleading	pleaded	pleaded
 please	pleases	pleasing	pleased	pleased
 pleasure	pleasures	pleasuring	pleasured	pleasured
 pleat	pleats	pleating	pleated	pleated
@@ -14922,7 +14924,7 @@ pulverise	pulverises	pulverising	pulverised	pulverised
 pulverize	pulverizes	pulverizing	pulverized	pulverized
 pumicate	pumicates	pumicating	pumicated	pumicated
 pumice	pumices	pumicing	pumiced	pumiced
-pummel	pummels	pummelling	pummelled	pummelled
+pummel	pummels	pummeling	pummeled	pummeled
 pump	pumps	pumping	pumped	pumped
 pun	puns	punning	punned	punned
 punch	punches	punching	punched	punched
@@ -16767,7 +16769,7 @@ revarnish	revarnishes	revarnishing	revarnished	revarnished
 reveal	reveals	revealing	revealed	revealed
 revector	revectors	revectoring	revectored	revectored
 revegetate	revegetates	revegetating	revegetated	revegetated
-revel	revels	revelling	revelled	revelled
+revel	revels	reveling	reveled	reveled
 revelate	revelates	revelating	revelated	revelated
 revendicate	revendicates	revendicating	revendicated	revendicated
 revenge	revenges	revenging	revenged	revenged
@@ -16825,7 +16827,8 @@ reweave	reweaves	reweaving	rewove	rewoven
 rewed	reweds	rewedding	rewed	rewed
 reweigh	reweighs	reweighing	reweighed	reweighed
 reweight	reweights	reweighting	reweighted	reweighted
-rewet	rewets	rewetting	'''[[rewet]]''' or '''[[rewetted]]'''	'''[[rewet]]''' or '''[[rewetted]]'''
+rewet	rewets	rewetting	rewet	rewet
+rewet	rewets	rewetting	rewetted	rewetted
 rewetten	rewettens	rewettening	rewettened	rewettened
 rewicker	rewickers	rewickering	rewickered	rewickered
 rewild	rewilds	rewilding	rewilded	rewilded
@@ -17217,7 +17220,7 @@ scamble	scambles	scambling	scambled	scambled
 scamp	scamps	scamping	scamped	scamped
 scamper	scampers	scampering	scampered	scampered
 scan	scans	scanning	scanned	scanned
-scandal	scandals	'''[[scandalling]]''' or '''[[scandaling]]'''	'''[[scandalled]]''' or '''[[scandaled]]'''	'''[[scandalled]]''' or '''[[scandaled]]'''
+scandal	scandals	scandal	scandaled	scandaled
 scandalise	scandalises	scandalising	scandalised	scandalised
 scandalize	scandalizes	scandalizing	scandalized	scandalized
 scanlate	scanlates	scanlating	scanlated	scanlated
@@ -17689,7 +17692,7 @@ shrine	shrines	shrining	shrined	shrined
 shrink	shrinks	shrinking	shrank	shrunk
 shrinkwrap	shrinkwraps	shrinkwrapping	shrinkwrapped	shrinkwrapped
 shritch	shritches	shritching	shritched	shritched
-shrithe	shrithes	shrithing	'''[[shrothe]]''' or '''[[shrithed]]'''	'''[[shrithen]]''' or '''[[shrithed]]'''
+shrithe	shrithes	shrithing	shrithed	shrithed
 shrive	shrives	shriving	shrived	shrived
 shrivel	shrivels	shrivelling	shrivelled	shrivelled
 shrood	shroods	shrooding	shrooded	shrooded
@@ -17746,7 +17749,7 @@ sight	sights	sighting	sighted	sighted
 sightread	sightreads	sightreading	sightread	sightread
 sightsee	sightsees	sightseeing	sightsaw	sightseen
 sign	signs	signing	signed	signed
-signal	signals	signalling	signalled	signalled
+signal	signals	signaling	signaled	signaled
 signalise	signalises	signalising	signalised	signalised
 signalize	signalizes	signalizing	signalized	signalized
 signall	signalls	signalling	signalled	signalled
@@ -19647,7 +19650,7 @@ tosunder	tosunders	tosundering	tosundered	tosundered
 toswap	toswaps	toswapping	toswapped	toswapped
 toswink	toswinks	toswinking	toswank	toswunk
 tot	tots	totting	totted	totted
-total	totals	totalling	totalled	totalled
+total	totals	totaling	totaled	totaled
 totalize	totalizes	totalizing	totalized	totalized
 tote	totes	toting	toted	toted
 totear	totears	totearing	totore	totorn
@@ -19812,7 +19815,7 @@ traumatize	traumatizes	traumatizing	traumatized	traumatized
 traunch	traunches	traunching	traunched	traunched
 traunt	traunts	traunting	traunted	traunted
 travail	travails	travailing	travailed	travailed
-travel	travels	travelling	travelled	travelled
+travel	travels	traveling	traveled	traveled
 travell	travells	travelling	travelled	travelled
 traverse	traverses	traversing	traversed	traversed
 travesty	travesties	travestying	travestied	travestied
@@ -21443,7 +21446,7 @@ wait	waits	waiting	waited	waited
 waitlist	waitlists	waitlisting	waitlisted	waitlisted
 waitress	waitresses	waitressing	waitressed	waitressed
 waive	waives	waiving	waived	waived
-wake	wakes	waking	''(senses 1, 2, 3, 5)'' '''[[woke]]''' ''or'' ''(US, or English dialectal; archaic elsewhere (senses 1, 2, 3, 5) (sense 4)'' '''[[waked]]'''	''(senses 1, 2, 3, 5)'' '''[[woken]]''' ''or'' ''(US, or English dialectal; archaic elsewhere (senses 1, 2, 3, 5) (sense 4)'' '''[[waked]]'''
+wake	wakes	waking	woke	woken
 wakeboard	wakeboards	wakeboarding	wakeboarded	wakeboarded
 waken	wakens	wakening	wakened	wakened
 wald	walds	walding	walded	walded

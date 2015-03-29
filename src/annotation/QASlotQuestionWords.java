@@ -9,9 +9,9 @@ public class QASlotQuestionWords {
 		"Where",
 		"How",
 		"How much",
-		"How many",
+	//	"How many",
 		"Why",
-		"Whom"
+	//	"Whom"
 	};
 	
 }
