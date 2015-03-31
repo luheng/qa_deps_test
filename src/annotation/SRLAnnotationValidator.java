@@ -65,9 +65,8 @@ public class SRLAnnotationValidator {
 	}
 	
 	private static boolean isWhoWhatQuestion(QAPair qa) {
-		String qword = qa.questionWords[0];
-		return qword.equalsIgnoreCase("who") || qword.equals("whom") ||
-			   qword.equalsIgnoreCase("what");
+		String qstr = qa.getQuestionLabel().toLowerCase();
+		return qstr.startsWith("who") || qstr.startsWith("what");
 	}
 	
 	public String[][] getGoldSRL(SRLSentence sentence) {

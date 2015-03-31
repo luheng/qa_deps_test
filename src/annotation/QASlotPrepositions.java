@@ -31,6 +31,7 @@ public class QASlotPrepositions {
 		"to",
 		"for",
 		"with",
-		"of"
+		"about",
+	//	"of"
 	};
 }

@@ -22,7 +22,7 @@ public class CrowdFlowerQAResult extends CrowdFlowerResult {
 		answers = new ArrayList<String[]>();
 	}
 
-	private static final int maxNumQA = 10;
+	public static final int maxNumQA = 10;
 	private static final int numQuestionSlots = 7;
 	private static final String[] slotNames = {"wh", "aux", "ph1", "trg", "ph2",
 											   "pp", "ph3"};
@@ -52,8 +52,9 @@ public class CrowdFlowerQAResult extends CrowdFlowerResult {
 		}
 		
 		// Parse annotation result.
-		for (int i = 0; i < maxNumQA; i++) {
-			String whSlot = getSlotName(i, 0);
+		int qaCnt = 0;
+		for ( ; qaCnt < maxNumQA; qaCnt++) {
+			String whSlot = getSlotName(qaCnt, 0);
 			if (!csvRecord.isMapped(whSlot)) {
 				break;
 			}
@@ -62,16 +63,16 @@ public class CrowdFlowerQAResult extends CrowdFlowerResult {
 			}
 			String[] qWords = new String[numQuestionSlots];
 			for (int j = 0; j < numQuestionSlots; j++) {
-				qWords[j] = csvRecord.get(getSlotName(i, j));
+				qWords[j] = csvRecord.get(getSlotName(qaCnt, j));
 			}
-			String[] answerStrs = csvRecord.get("a" + i).split("\n");
+			String[] answerStrs = csvRecord.get("a" + qaCnt).split("\n");
 			result.questions.add(qWords);
 			result.answers.add(answerStrs);
 		}
 		
 		// Get free-form QA, and feedback.
-		result.ffQuestion = csvRecord.get("q" + maxNumQA + "ff");
-		result.ffAnswer = csvRecord.get("a" + maxNumQA);
+		result.ffQuestion = csvRecord.get("q" + qaCnt + "ff");
+		result.ffAnswer = csvRecord.get("a" + qaCnt);
 		result.feedback = csvRecord.get("fdbk");
 		return result;
 	}

@@ -34,7 +34,8 @@ public class CrowdFlowerQADataRetriever {
 
 	private static final String annotationFilePath =
 			//   "crowdflower/CF_QA_trial_s20_result.csv";
-			"crowdflower/cf_round1_100sents_259units/f680088_CF_QA_s100_final_results.csv";
+			//"crowdflower/cf_round1_100sents_259units/f680088_CF_QA_s100_final_results.csv";
+			"crowdflower/cf_round2_100sents/cf_qa_r2_test_f708517_4.csv";
 	
 	public static void readAnnotationResult(
 			ArrayList<CrowdFlowerQAResult> results) throws IOException {
@@ -104,18 +105,17 @@ public class CrowdFlowerQADataRetriever {
 				currSent.addQAPair(propHead, qa);
 			}
 			// Look at feedback
-			/*
 			if (!result.feedback.isEmpty()) {
+				System.out.println(result.cfWorkerId);
 				System.out.println(sentence.getTokensString());
 				System.out.println("Prop:\t" + sentence.getTokenString(propHead));
 				System.out.println("Feedback:\t" + result.feedback);
 				for (int i = 0; i < result.questions.size(); i++) {
-					System.out.println("\t" + StringUtils.join(result.questions.get(i), " "));
-					System.out.println("\t" + StringUtils.join(result.answers.get(i), " / "));
+					System.out.println("\t" + StringUtils.join(" ", result.questions.get(i)));
+					System.out.println("\t" + StringUtils.join(" / ", result.answers.get(i)));
 				}
 				System.out.println();
 			}
-			*/
 		}
 	}
 	
@@ -325,7 +325,7 @@ public class CrowdFlowerQADataRetriever {
 		
 		try {
 			System.setOut(new PrintStream(new BufferedOutputStream(
-					new FileOutputStream("debug2.xls"))));
+					new FileOutputStream("debug_r2.xls"))));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -370,11 +370,17 @@ public class CrowdFlowerQADataRetriever {
 						sentence.getTokenString(propId) + "\t" +
 						corpus.propDict.getString(prop.propType));
 				for (int i = 0; i < prop.argIDs.size(); i++) {
-					int argType = prop.argTypes.get(i),
+					int argTypeId = prop.argTypes.get(i),
 						argId = prop.argIDs.get(i);
+					String argType = corpus.argModDict.getString(argTypeId);
+					if (argType.equals("AM-NEG") ||
+						argType.equals("AM-MOD") ||
+						argType.startsWith("R-")) {
+						continue;
+					}
 					System.out.println(
 							" \t" +
-							corpus.argModDict.getString(argType) + "\t" +
+							argType + "\t" +
 							" \t" +
 							sentence.getTokenString(argId) + "\t" +
 							(covered[propId + 1][argId + 1] > 0 ? " " : "NC"));
@@ -423,7 +429,7 @@ public class CrowdFlowerQADataRetriever {
 		}
 		
 		alignAnnotations(annotatedSentences, annotationResults, trainCorpus);
-		//debugOutput(trainCorpus, annotatedSentences);
+		debugOutput(trainCorpus, annotatedSentences);
 		aggregateAnnotationsByQuestion(annotatedSentences);
 		//checkDistinctQuestionLabels(trainCorpus, annotationResults);
 	
