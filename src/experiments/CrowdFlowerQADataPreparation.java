@@ -19,13 +19,20 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFDataValidationConstraint;
 import org.apache.poi.xssf.usermodel.XSSFDataValidationHelper;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -63,6 +70,9 @@ public class CrowdFlowerQADataPreparation {
 		};
 	private static String outputFileName =
 			"crowdflower/CF_QA_r2_s100_v2.csv";
+	
+	private static String xlsxFileName =
+			"odesk/r2_s100_new.xlsx";
 
 	private static String[] kHeader = {"sent_id", "sentence", "orig_sent",
 		"prop_id", "prop_head", "prop_start", "prop_end", "proposition",
@@ -70,9 +80,10 @@ public class CrowdFlowerQADataPreparation {
 	
 	private static String[] kAnnotationHeader = {"Annotation", "WH", "AUX",
 		"PH1", "TRG", "PH2", "PP", "PH3", "?", "A1", "A2", "A3", "A4", "A5",
-		"Review" };
+		"Note" };
 	
 	private static int maxNumQAs = 8;
+	private static int maxNumSentsPerSheet = 10;
 	
 	private static String getPartiallyHighlightedSentence(SRLSentence sentence,
 			Proposition prop) {
@@ -224,42 +235,76 @@ public class CrowdFlowerQADataPreparation {
 	}
 	
 	private static void outputXlsx() throws IOException {
-		//Blank workbook
-        XSSFWorkbook workbook = new XSSFWorkbook();
-         
-        //Create a blank sheet
-        XSSFSheet sheet = workbook.createSheet("Annotation Batch 1");
+		XSSFWorkbook workbook = new XSSFWorkbook();
         
         // Set editablity
         // sheet.protectSheet("password");
-        CellStyle editable = workbook.createCellStyle();
-        editable.setLocked(false);
+        XSSFCellStyle editableStyle = workbook.createCellStyle();
+        editableStyle.setLocked(false);
         
-        // DV helper
-        XSSFDataValidationHelper dvHelper = new XSSFDataValidationHelper(sheet);
+        // Set fonts cell styles
+        XSSFFont headerFont = workbook.createFont(),
+        		 commentFont = workbook.createFont(),
+   				 highlightFont = workbook.createFont();
         
-        int unitCounter = 0,
-        	rowCounter = 0;
+        headerFont.setBold(true);
+        headerFont.setFontHeightInPoints((short) 10);
+        commentFont.setColor(new XSSFColor(new java.awt.Color(0, 102, 204)));
+        highlightFont.setBold(true);
+        highlightFont.setColor(IndexedColors.RED.getIndex());
+
+        XSSFCellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+        headerStyle.setFillForegroundColor(new XSSFColor(new java.awt.Color(220, 220, 220)));
         
-        CellRangeAddressList whCells = new CellRangeAddressList(),
-        					 auxCells = new CellRangeAddressList(),
-        					 ph1Cells = new CellRangeAddressList(),
-        					 ph2Cells = new CellRangeAddressList(),
-        					 ph3Cells = new CellRangeAddressList();
+        XSSFCellStyle infoStyle = workbook.createCellStyle();
+        infoStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+        infoStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        infoStyle.setFillForegroundColor(new XSSFColor(new java.awt.Color(204, 255, 204)));
+        
+        XSSFCellStyle commentStyle = workbook.createCellStyle();
+        commentStyle.setFont(commentFont);
+       
+        
+        int numSentsOnCurrentSheet = 0,
+        	sheetCounter = 0,
+      		unitCounter = 0,
+           	rowCounter = 0;
+        XSSFSheet sheet = null;
+        XSSFDataValidationHelper dvHelper = null;
+        CellRangeAddressList whCells = null,
+        					 auxCells = null,
+        					 ph1Cells = null,
+        					 ph2Cells = null,
+        					 ph3Cells = null;
         
         for (int i = 0; i < maxNumSentences; i++) {
+        	if (numSentsOnCurrentSheet == 0) {
+        		//Create a new blank sheet
+        		sheet = workbook.createSheet(
+        			String.format("batch_%d", sheetCounter++));
+                dvHelper = new XSSFDataValidationHelper(sheet);
+                whCells = new CellRangeAddressList();
+                auxCells = new CellRangeAddressList();
+                ph1Cells = new CellRangeAddressList();
+                ph2Cells = new CellRangeAddressList();
+                ph3Cells = new CellRangeAddressList();
+                
+                rowCounter = 0;
+        	}
+        	
 			SRLSentence sent = sentences.get(i);
 			ArrayList<Proposition> props = propositions.get(i);
 			if (props.size() == 0) {
 				continue;
 			}
-			
+		
 			ArrayList<String> ppOptions = getPPOptions(sent);
 			XSSFDataValidationConstraint ppConstraint =
 				(XSSFDataValidationConstraint)
 					dvHelper.createExplicitListConstraint(
 						ppOptions.toArray(new String[ppOptions.size()]));
-
 			
 			for (int j = 0; j < props.size(); j++) {
 				Proposition prop = props.get(j);
@@ -273,41 +318,62 @@ public class CrowdFlowerQADataPreparation {
 						dvHelper.createExplicitListConstraint(
 							trgOptions.toArray(new String[trgOptions.size()]));
 				
+				//System.out.println(unitCounter + ", " + sheet.getSheetName());
+				
 				// Write unit id and sentence ID
 				Row row = sheet.createRow(rowCounter++);
-				row.createCell(0).setCellValue("Unit ID");
-				row.createCell(1).setCellValue(unitCounter++);
+				row.createCell(0).setCellValue(
+						String.format("UNIT_%05d", unitCounter++));
+				row.getCell(0).setCellStyle(headerStyle);
 				
-				// Write sentence
+				// Write partially highlighted sentence
 				row = sheet.createRow(rowCounter++);
-				row.createCell(0).setCellValue("Sentence ID");
-				row.createCell(1).setCellValue(sent.sentenceID);
-				row.createCell(2).setCellValue("Sentence");
-				// TODO: add highlight to prop
-				row.createCell(3).setCellValue(sent.getTokensString());
+				row.createCell(0).setCellValue(
+						String.format("SENT_%05d", sent.sentenceID));
+				XSSFRichTextString sentStr = new XSSFRichTextString("");
+				sentStr.append(sent.getTokenString(new int[] {0, prop.span[0]}) + " ");
+				sentStr.append(sent.getTokenString(prop.span), highlightFont);
+				sentStr.append(" " + sent.getTokenString(new int[] {prop.span[1], sent.length}));				
+				row.createCell(1).setCellValue(sentStr);
 				sheet.addMergedRegion(new CellRangeAddress(
-			            row.getRowNum(), row.getRowNum(), 3, 50));
+			            row.getRowNum(), row.getRowNum(), 1, 50));
+				row.getCell(0).setCellStyle(headerStyle);
+				row.getCell(1).setCellStyle(infoStyle);
 				
 				// Write target word
 				row = sheet.createRow(rowCounter++);
-				row.createCell(0).setCellValue("Target ID");
-				row.createCell(1).setCellValue(prop.span[1] - 1);
-				row.createCell(2).setCellValue("Target");
-				row.createCell(3).setCellValue(sent.getTokenString(prop.span));
+				row.createCell(0).setCellValue(
+						String.format("TRG_%05d", prop.span[1] - 1));
+				row.createCell(1).setCellValue(sent.getTokenString(prop.span));
+				int[] extendedSpan = new int[] {
+					Math.max(0, prop.span[0] - 3),
+					Math.min(sent.length, prop.span[1] + 3)
+				};
+				row.createCell(2).setCellValue(String.format(" (as in \"%s\")",
+						sent.getTokenString(extendedSpan)));
+				sheet.addMergedRegion(new CellRangeAddress(
+			            row.getRowNum(), row.getRowNum(), 2, 50));
+				row.getCell(0).setCellStyle(headerStyle);
+				row.getCell(1).setCellStyle(infoStyle);
+				row.getCell(2).setCellStyle(commentStyle);
 				
 				// Write annotation header
 				row = sheet.createRow(rowCounter++);
 				for (int c = 0; c < kAnnotationHeader.length; c++) {
-					row.createCell(c).setCellValue(kAnnotationHeader[c]);
+					Cell cell = row.createCell(c);
+					cell.setCellValue(kAnnotationHeader[c]);
+					cell.setCellStyle(headerStyle);
 				}
 				
 				// Write QA slots
 				for (int r = 0; r < maxNumQAs; r++) {
 					row = sheet.createRow(rowCounter++);
 					row.createCell(0).setCellValue("QA" + r);
+					row.getCell(0).setCellStyle(headerStyle);
 					for (int c = 1; c < kAnnotationHeader.length; c++) {
 						Cell cell = row.createCell(c);
-						cell.setCellStyle(editable);
+						cell.setCellStyle(editableStyle);
+						cell.setCellType(Cell.CELL_TYPE_STRING);
 					}
 					
 					CellRangeAddressList trgCells = new CellRangeAddressList(),
@@ -321,24 +387,28 @@ public class CrowdFlowerQADataPreparation {
 					ph2Cells.addCellRangeAddress(rn, 5, rn, 5);
 					ppCells.addCellRangeAddress(rn, 6, rn, 6);
 					ph3Cells.addCellRangeAddress(rn, 7, rn, 7);
-					for (int c = 9; c < 13; c++) {
+					
+					for (int c = 9; c <= 13; c++) {
 						CellRangeAddressList ansCells = new CellRangeAddressList();
 						Cell ansCell = row.getCell(c);
 						ansCells.addCellRangeAddress(rn, c, rn, c);
 						
-						CellReference cref = new CellReference(ansCell);
-						
+						CellReference cref = new CellReference(ansCell);	
 						XSSFDataValidation ansVal =
 							(XSSFDataValidation) dvHelper.createValidation(
 								(XSSFDataValidationConstraint) dvHelper.createCustomConstraint(
-									String.format("=FIND(TRIM(%s), \"%s\")",
-											cref.formatAsString(), sent.getTokensString())),
+									String.format("=FIND(LOWER(TRIM(%s)), \"%s\")",
+											cref.formatAsString(),
+											sent.getTokensString().toLowerCase())),
 							ansCells);
 						
 						ansVal.createErrorBox("Error", "Only use words in the sentence for answer");
+						ansVal.setErrorStyle(DataValidation.ErrorStyle.WARNING);
 						ansVal.setShowErrorBox(true);
 						sheet.addValidationData(ansVal);
 					}
+					Cell noteCell = row.getCell(14);
+					noteCell.setCellStyle(commentStyle);
 					
 					// Unit-specific validations
 					XSSFDataValidation
@@ -347,59 +417,76 @@ public class CrowdFlowerQADataPreparation {
 						ppVal = (XSSFDataValidation) dvHelper.createValidation(
 							ppConstraint, ppCells);
 						
-					trgVal.createErrorBox("Error", "Input value not valid.");
+					trgVal.createErrorBox("Invalid input value", "See dropdown box for valid options.");
 					trgVal.setShowErrorBox(true);
-					ppVal.createErrorBox("Error", "Input value not valid.");
+					ppVal.createErrorBox("Invalid input value", "See dropdown box for valid options.");
 					ppVal.setShowErrorBox(true);
 					
 					sheet.addValidationData(trgVal);
-					sheet.addValidationData(ppVal);
+					sheet.addValidationData(ppVal);					
 				}
 				
 				// Write notes line
+				/*
 				row = sheet.createRow(rowCounter++);
 				row.createCell(0).setCellValue("Feedback");
+				row.getCell(0).setCellStyle(headerStyle);
 				Cell cell = row.createCell(1);
-				cell.setCellStyle(editable);
+				cell.setCellStyle(editableStyle);
+				sheet.addMergedRegion(new CellRangeAddress(
+			            row.getRowNum(), row.getRowNum(), 1, 50));
+			    */
 				
 				// Write separator .. whew
 				row = sheet.createRow(rowCounter++);
 			}
+			
+			numSentsOnCurrentSheet ++;
+			if (numSentsOnCurrentSheet == maxNumSentsPerSheet) {
+				// Finish a sheet
+				numSentsOnCurrentSheet = 0;
+				
+				// Add WH, AUX, TRG, PH constraints.
+		        XSSFDataValidationConstraint
+		        	whConstraint = (XSSFDataValidationConstraint)
+		        		dvHelper.createExplicitListConstraint(QASlotQuestionWords.values),
+		        	auxConstraint = (XSSFDataValidationConstraint)
+		            	dvHelper.createExplicitListConstraint(QASlotAuxiliaryVerbs.values),
+		            phConstraint = (XSSFDataValidationConstraint)
+		            	dvHelper.createExplicitListConstraint(QASlotPlaceHolders.values),
+		            ph3Constraint = (XSSFDataValidationConstraint)
+		              	dvHelper.createExplicitListConstraint(QASlotPlaceHolders.ph3Values);
+		        
+		        XSSFDataValidation
+		        	whVal = (XSSFDataValidation) dvHelper.createValidation(whConstraint, whCells),
+		        	auxVal = (XSSFDataValidation) dvHelper.createValidation(auxConstraint, auxCells),
+		        	ph1Val = (XSSFDataValidation) dvHelper.createValidation(phConstraint, ph1Cells),
+		        	ph2Val = (XSSFDataValidation) dvHelper.createValidation(phConstraint, ph2Cells),
+		        	ph3Val = (XSSFDataValidation) dvHelper.createValidation(ph3Constraint, ph3Cells);
+		        
+		        whVal.createErrorBox("Invalid input value", "See dropdown box for valid options."); whVal.setShowErrorBox(true);
+		        auxVal.createErrorBox("Invalid input value", "See dropdown box for valid options."); auxVal.setShowErrorBox(true);
+		        ph1Val.createErrorBox("Invalid input value", "See dropdown box for valid options."); ph1Val.setShowErrorBox(true);
+		        ph2Val.createErrorBox("Invalid input value", "See dropdown box for valid options."); ph2Val.setShowErrorBox(true);
+		        ph3Val.createErrorBox("Invalid input value", "See dropdown box for valid options."); ph3Val.setShowErrorBox(true);
+		        
+		        sheet.addValidationData(whVal);
+		        sheet.addValidationData(auxVal);
+		        sheet.addValidationData(ph1Val);
+		        sheet.addValidationData(ph2Val);
+		        sheet.addValidationData(ph3Val);
+		        
+		        sheet.setZoom(125);
+		        sheet.setDefaultColumnWidth(10);
+			}	
 		}
-       
-        // Add WH, AUX, TRG, PH constraints.
-        XSSFDataValidationConstraint
-        	whConstraint = (XSSFDataValidationConstraint)
-        		dvHelper.createExplicitListConstraint(QASlotQuestionWords.values),
-        	auxConstraint = (XSSFDataValidationConstraint)
-            	dvHelper.createExplicitListConstraint(QASlotAuxiliaryVerbs.values),
-            phConstraint = (XSSFDataValidationConstraint)
-            	dvHelper.createExplicitListConstraint(QASlotPlaceHolders.values),
-            ph3Constraint = (XSSFDataValidationConstraint)
-              	dvHelper.createExplicitListConstraint(QASlotPlaceHolders.ph3Values);
         
-        XSSFDataValidation
-        	whVal = (XSSFDataValidation) dvHelper.createValidation(whConstraint, whCells),
-        	auxVal = (XSSFDataValidation) dvHelper.createValidation(auxConstraint, auxCells),
-        	ph1Val = (XSSFDataValidation) dvHelper.createValidation(phConstraint, ph1Cells),
-        	ph2Val = (XSSFDataValidation) dvHelper.createValidation(phConstraint, ph2Cells),
-        	ph3Val = (XSSFDataValidation) dvHelper.createValidation(ph3Constraint, ph3Cells);
-        
-        whVal.createErrorBox("Error", "Input value not valid."); whVal.setShowErrorBox(true);
-        auxVal.createErrorBox("Error", "Input value not valid."); auxVal.setShowErrorBox(true);
-        ph1Val.createErrorBox("Error", "Input value not valid."); ph1Val.setShowErrorBox(true);
-        ph2Val.createErrorBox("Error", "Input value not valid."); ph2Val.setShowErrorBox(true);
-        ph3Val.createErrorBox("Error", "Input value not valid."); ph3Val.setShowErrorBox(true);
-        
-        sheet.addValidationData(whVal);
-        sheet.addValidationData(auxVal);
-        sheet.addValidationData(ph1Val);
-        sheet.addValidationData(ph2Val);
-        sheet.addValidationData(ph3Val);
-        
-        FileOutputStream out = new FileOutputStream(new File("test.xlsx"));
-        workbook.write(out);
-        out.close();
+        FileOutputStream outStream = new FileOutputStream(new File(xlsxFileName));
+        workbook.write(outStream);
+        outStream.close();
+        workbook.close();
+        System.out.println(String.format("Wrote %d units to file %s",
+        		unitCounter, xlsxFileName));
 	}
 	
 	private static boolean isQuestion(DepSentence sentence) {
