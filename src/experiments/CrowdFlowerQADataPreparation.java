@@ -66,21 +66,22 @@ public class CrowdFlowerQADataPreparation {
 	private static AuxiliaryVerbIdentifier auxVerbID = null;
 	
 	private static String[] previousFileNames = new String[] {
-			"crowdflower/CF_QA_firstround_s100.csv"
+			"crowdflower/CF_QA_firstround_s100.csv",
+			"crowdflower/CF_QA_r2_s100_v2.csv",
 		};
 	private static String outputFileName =
-			"crowdflower/CF_QA_r2_s100_v2.csv";
+			"crowdflower/CF_QA_r3_s100.csv";
 	
 	private static String xlsxFileName =
-			"odesk/r2_s100_new.xlsx";
+			"odesk/odesk_r3_s100.xlsx";
 
 	private static String[] kHeader = {"sent_id", "sentence", "orig_sent",
 		"prop_id", "prop_head", "prop_start", "prop_end", "proposition",
 		"trg_options", "pp_options"};
 	
 	private static String[] kAnnotationHeader = {"Annotation", "WH", "AUX",
-		"PH1", "TRG", "PH2", "PP", "PH3", "?", "A1", "A2", "A3", "A4", "A5",
-		"Note" };
+		"PH1", "TRG", "PH2", "PP", "PH3", "?",
+		"Answer1", "Answer2", "Answer3", "Answer4", "Answer5", "Note" };
 	
 	private static int maxNumQAs = 8;
 	private static int maxNumSentsPerSheet = 10;
@@ -340,11 +341,14 @@ public class CrowdFlowerQADataPreparation {
 				row.getCell(0).setCellStyle(headerStyle);
 				row.getCell(1).setCellStyle(infoStyle);
 				
+				CellReference sentRef = new CellReference(row.getCell(1));
+				
 				// Write target word
 				row = sheet.createRow(rowCounter++);
 				row.createCell(0).setCellValue(
 						String.format("TRG_%05d", prop.span[1] - 1));
 				row.createCell(1).setCellValue(sent.getTokenString(prop.span));
+				/*
 				int[] extendedSpan = new int[] {
 					Math.max(0, prop.span[0] - 3),
 					Math.min(sent.length, prop.span[1] + 3)
@@ -353,9 +357,10 @@ public class CrowdFlowerQADataPreparation {
 						sent.getTokenString(extendedSpan)));
 				sheet.addMergedRegion(new CellRangeAddress(
 			            row.getRowNum(), row.getRowNum(), 2, 50));
+			     */
 				row.getCell(0).setCellStyle(headerStyle);
 				row.getCell(1).setCellStyle(infoStyle);
-				row.getCell(2).setCellStyle(commentStyle);
+				//row.getCell(2).setCellStyle(commentStyle);
 				
 				// Write annotation header
 				row = sheet.createRow(rowCounter++);
@@ -393,14 +398,27 @@ public class CrowdFlowerQADataPreparation {
 						Cell ansCell = row.getCell(c);
 						ansCells.addCellRangeAddress(rn, c, rn, c);
 						
-						CellReference cref = new CellReference(ansCell);	
+						CellReference ansRef = new CellReference(ansCell);	
+						/*
+						String sstr = sent.getTokensString().toLowerCase()
+								.replaceAll("&", "\"& CHAR(38) &\"")
+								.replaceAll("\\$", "\"& CHAR(36) &\"");
+						
+						if (sstr.contains("CHAR(38)")) {
+							System.out.println(sstr);
+						}
+						*/
 						XSSFDataValidation ansVal =
 							(XSSFDataValidation) dvHelper.createValidation(
 								(XSSFDataValidationConstraint) dvHelper.createCustomConstraint(
-									String.format("=FIND(LOWER(TRIM(%s)), \"%s\")",
-											cref.formatAsString(),
-											sent.getTokensString().toLowerCase())),
+								//	String.format("=FIND(LOWER(TRIM(%s)), \"%s\")",
+									String.format("=FIND(LOWER(TRIM(%s)), %s)",
+											ansRef.formatAsString(),
+											sentRef.formatAsString())),
 							ansCells);
+						
+						//String val = String.format("=FIND(LOWER(TRIM(%s)), \"%s\")",
+						//		cref.formatAsString(), sstr);
 						
 						ansVal.createErrorBox("Error", "Only use words in the sentence for answer");
 						ansVal.setErrorStyle(DataValidation.ErrorStyle.WARNING);
@@ -593,7 +611,7 @@ public class CrowdFlowerQADataPreparation {
 		}
 		
 		try {
-		//	outputUnits();
+			outputUnits();
 			outputXlsx();
 		} catch (IOException e) {
 			e.printStackTrace();

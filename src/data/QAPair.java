@@ -21,6 +21,7 @@ public class QAPair {
 	public int[] answerFlags;
 	public ArrayList<String> answers;
 	public ArrayList<CrowdFlowerResult> cfAnnotationSources;
+	public String comment = "";
 	
 	public QAPair(SRLSentence sent, int prop, String[] question,
 							String answer, CrowdFlowerResult cf) { 
