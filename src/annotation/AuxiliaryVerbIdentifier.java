@@ -42,6 +42,7 @@ public class AuxiliaryVerbIdentifier {
 			"need",
 			"shall",
 			"should",
+			"ought",
 		//	"ought to",
 		//	"is going to"
 	};

@@ -14,7 +14,7 @@ public class QASlotPrepositions {
 	 */
 	
 	public static final String[] values = {
-		"aboard", "about", "above", "across", "afore", "after", "against", "along", "alongside", "amid",
+		"aboard", "about", "above", "across", "afore", "after", "against", "ahead", "along", "alongside", "amid",
 		"amidst", "among", "amongst", "around", "as", "aside", "astride", "at", "atop", "before",
 		"behind", "below", "beneath", "beside", "besides", "between", "beyond", "by", "despite", "down",
 		"during", "except", "for", "from", "given", "in", "inside", "into", "near", "next",

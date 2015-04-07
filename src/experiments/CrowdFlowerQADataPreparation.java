@@ -71,12 +71,15 @@ public class CrowdFlowerQADataPreparation {
 			"crowdflower/CF_QA_r3_s100.csv",
 			"crowdflower/CF_QA_r4_s100.csv",
 			"crowdflower/CF_QA_r5_s100.csv",
+			"crowdflower/CF_QA_r6_s100.csv",
+			"crowdflower/CF_QA_r7_s100.csv",
+			"crowdflower/CF_QA_r8_s100.csv",
 		};
 	private static String outputFileName =
-			"crowdflower/CF_QA_r6_s100.csv";
+			"crowdflower/CF_QA_r9_s100.csv";
 	
 	private static String xlsxFileName =
-			"odesk/odesk_r6_s100.xlsx";
+			"odesk/odesk_r9_s100.xlsx";
 
 	private static String[] kHeader = {"sent_id", "sentence", "orig_sent",
 		"prop_id", "prop_head", "prop_start", "prop_end", "proposition",

@@ -12,9 +12,10 @@ public class QASlotPlaceHolders {
 		"",
 		"someone",
 		"something",
-		"do something",
+		"somewhere",
 		"do",
 		"doing",
-		"somewhere"
+		"do something",
+		"doing something",
 	};
 }

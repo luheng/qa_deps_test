@@ -17,6 +17,7 @@ public class SRLAnnotationValidator {
 	public boolean ignoreRootPropArcs = true;
 	public boolean ignoreNominalArcs = true;
 	public boolean ignoreAmModArcs = true;
+	public boolean ignoreAmDisArcs = true;
 	public boolean ignoreAmAdvArcs = false;
 	public boolean ignoreAmNegArcs = true;
 	public boolean ignoreRAxArcs = true;
@@ -93,6 +94,9 @@ public class SRLAnnotationValidator {
 					goldArcs[i][j] = "";
 				}
 				if (ignoreAmModArcs && goldArcs[i][j].equals("AM-MOD")) {
+					goldArcs[i][j] = "";
+				}
+				if (ignoreAmDisArcs && goldArcs[i][j].equals("AM-DIS")) {
 					goldArcs[i][j] = "";
 				}
 				if (ignoreAmAdvArcs && goldArcs[i][j].equals("AM-ADV")) {
