@@ -67,20 +67,27 @@ public class QAPair {
 		}
 	}
 	
-	public void addAnswer(String answer) {
+	/** return false if answer is not aligned */
+	public boolean addAnswer(String answer) {
 		if (answer.isEmpty()) {
-			return;
+			return false;
 		}
 		answers.add(answer);
 		int[] matched = AnswerSpanAligner.align(sentence, answer);
+		boolean aligned = false;
 		for (int i = 0; i < sentence.length; i++) {
-			answerFlags[i] = matched[i];
+			answerFlags[i] += matched[i];
+			if (matched[i] > 0) {
+				aligned = true;
+			}
 		}
+		return aligned;
 	}
 	
 	public void addAnswer(int[] flags) {
 		for (int i = 0; i < answerFlags.length; i++) {
-			answerFlags[i] = (flags[i] > 0 ? 1 : answerFlags[i]);
+			//answerFlags[i] = (flags[i] > 0 ? 1 : answerFlags[i]);
+			answerFlags[i] += flags[i];
 		}
 	}
 	

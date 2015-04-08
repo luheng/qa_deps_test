@@ -18,6 +18,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.DataValidation;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
@@ -70,16 +71,16 @@ public class CrowdFlowerQADataPreparation {
 			"crowdflower/CF_QA_r2_s100_v2.csv",
 			"crowdflower/CF_QA_r3_s100.csv",
 			"crowdflower/CF_QA_r4_s100.csv",
-			"crowdflower/CF_QA_r5_s100.csv",
-			"crowdflower/CF_QA_r6_s100.csv",
-			"crowdflower/CF_QA_r7_s100.csv",
-			"crowdflower/CF_QA_r8_s100.csv",
+	//		"crowdflower/CF_QA_r5_s100.csv",
+	//		"crowdflower/CF_QA_r6_s100.csv",
+	//		"crowdflower/CF_QA_r7_s100.csv",
+	//		"crowdflower/CF_QA_r8_s100.csv",
 		};
 	private static String outputFileName =
-			"crowdflower/CF_QA_r9_s100.csv";
+			"crowdflower/CF_QA_r5_s100.csv";
 	
 	private static String xlsxFileName =
-			"odesk/odesk_r9_s100.xlsx";
+			"odesk/odesk_r5_s100.xlsx";
 
 	private static String[] kHeader = {"sent_id", "sentence", "orig_sent",
 		"prop_id", "prop_head", "prop_start", "prop_end", "proposition",
@@ -247,6 +248,8 @@ public class CrowdFlowerQADataPreparation {
         // Set editablity
         // sheet.protectSheet("password");
         XSSFCellStyle editableStyle = workbook.createCellStyle();
+        DataFormat textFormat = workbook.createDataFormat();
+        editableStyle.setDataFormat(textFormat.getFormat("@"));
         editableStyle.setLocked(false);
         
         // Set fonts cell styles

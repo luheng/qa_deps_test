@@ -27,10 +27,12 @@ public class XSSFDataRetriever {
 
 	private static String xlsxFilePath =
 		//	"odesk/r2_s100_new_with_samples copy.xlsx";
-		//	"odesk/raw_annotation/r2_s100_new_with_samples_breanna.xlsx";
+			"odesk/raw_annotation/odesk_r2_s90_breanna_fixed.xlsx";
+		//	"odesk/raw_annotation/odesk_r3_s100_breanna.xlsx";
 		//	"odesk/reviewed_annotation/r2_s100_new_with_samples_breanna_luheng_updated.xlsx";
 		//	"odesk/training/r2_s100_new_with_samples donna_20150404.xlsx";
-			"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx";
+		//	"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx";
+		//	"odesk/training/FrancinePoh_R6.xlsx";
 	
 	private static int getHeaderId(String header) {
 		if (!header.contains("_")) {
@@ -54,7 +56,8 @@ public class XSSFDataRetriever {
         String prevSheetName = "";
         SRLSentence sent = null;
         
-        for (int sn = 0; sn < workbook.getNumberOfSheets(); sn++) {
+        for (int sn = 1; sn < workbook.getNumberOfSheets(); sn++) {
+        //for (int sn : new int[] {1, 3}) {
         	XSSFSheet sheet = workbook.getSheetAt(sn);    
 	        for (int r = 0; r <= sheet.getLastRowNum(); r++) {
 	        	XSSFRow row = sheet.getRow(r);
@@ -111,14 +114,18 @@ public class XSSFDataRetriever {
 	        		}
 	        		String ans = row.getCell(c).toString();
 	        		if (!ans.isEmpty()) {
-	        			qa.addAnswer(ans);
-	        			ansPerQuestion ++;
+	        			if (qa.addAnswer(ans)) {
+	        				ansPerQuestion ++;
+	        			} else {
+	        				System.out.println("unaligned answer:\t" + ans);
+	        			}
 	        		}
 	        	}
+	        	qa.comment = row.getCell(14).getStringCellValue().trim();
 	        	if (ansPerQuestion == 0) {
 	        		hasEmptyAnswer = true;
+	        		continue;
 	        	}
-	        	qa.comment = row.getCell(14).getStringCellValue().trim();
 	        	if (!question[0].isEmpty() && !question[3].isEmpty()) {
 	        		annotatedSentences.get(sentId).addQAPair(propHead, qa);
 		        	totalNumQAs ++;
@@ -154,14 +161,14 @@ public class XSSFDataRetriever {
 		SRLAnnotationValidator validator = new SRLAnnotationValidator();
 		validator.ignoreLabels = true;
 		int sentCount = 0;
-		
+		/*
 		try {
 			System.setOut(new PrintStream(new BufferedOutputStream(
-					new FileOutputStream("odesk/debug/odesk_debug_r2_breanna.xls"))));
+					new FileOutputStream("odesk/debug/odesk_debug_r3_breanna.xls"))));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		
+		*/
 		for (AnnotatedSentence annotSent : annotatedSentences.values()) {
 			sentCount ++;
 			SRLSentence sentence = annotSent.sentence;
@@ -256,8 +263,9 @@ public class XSSFDataRetriever {
 		// TODO align annotation
 		
 		SRLAnnotationValidator tester = new SRLAnnotationValidator();
-	//	tester.ignoreLabels = true;
 	//	tester.coreArgsOnly = true;
+		tester.computeSRLAccuracy(annotatedSentences.values(), trainCorpus);
+		tester.ignoreLabels = true;
 		tester.computeSRLAccuracy(annotatedSentences.values(), trainCorpus);
 		
 	//	debugOutput(trainCorpus, annotatedSentences);
