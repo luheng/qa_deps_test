@@ -27,11 +27,12 @@ public class XSSFDataRetriever {
 
 	private static String xlsxFilePath =
 		//	"odesk/r2_s100_new_with_samples copy.xlsx";
-			"odesk/raw_annotation/odesk_r2_s90_breanna_fixed.xlsx";
+		//	"odesk/raw_annotation/odesk_r3_s100_breanna_fixed.xlsx";
 		//	"odesk/raw_annotation/odesk_r3_s100_breanna.xlsx";
 		//	"odesk/reviewed_annotation/r2_s100_new_with_samples_breanna_luheng_updated.xlsx";
 		//	"odesk/training/r2_s100_new_with_samples donna_20150404.xlsx";
 		//	"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx";
+			"odesk/training/odesk_r3_s100_katie.xlsx";
 		//	"odesk/training/FrancinePoh_R6.xlsx";
 	
 	private static int getHeaderId(String header) {
@@ -41,7 +42,7 @@ public class XSSFDataRetriever {
 		return Integer.parseInt(header.substring(header.indexOf('_') + 1));
 	}
 	
-	private static void readXSSFAnnotations(
+	public static void readXSSFAnnotations(
 			String filePath, SRLCorpus corpus,
 			HashMap<Integer, AnnotatedSentence> annotatedSentences)
 					throws IOException {
@@ -56,8 +57,8 @@ public class XSSFDataRetriever {
         String prevSheetName = "";
         SRLSentence sent = null;
         
-        for (int sn = 1; sn < workbook.getNumberOfSheets(); sn++) {
-        //for (int sn : new int[] {1, 3}) {
+        //for (int sn = 0; sn < workbook.getNumberOfSheets(); sn++) {
+        for (int sn : new int[] {0, 1}) {
         	XSSFSheet sheet = workbook.getSheetAt(sn);    
 	        for (int r = 0; r <= sheet.getLastRowNum(); r++) {
 	        	XSSFRow row = sheet.getRow(r);
