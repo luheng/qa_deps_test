@@ -76,6 +76,16 @@ public class ExperimentUtils {
 		}
 		return corpus;
 	}
+	
+	public static UniversalPostagMap loadPostagMap() {
+		UniversalPostagMap univmap = new UniversalPostagMap();
+		try {
+			univmap.loadFromFile(enUnivPostagFilename);
+		} catch (NumberFormatException | IOException e) {
+			e.printStackTrace();
+		}
+		return univmap;
+	}
 		
 	public static ArrayList<AnnotatedDepSentence> loadAnnotatedSentences(
 			DepCorpus corpus) {

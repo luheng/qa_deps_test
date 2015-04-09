@@ -1,6 +1,7 @@
 package syntax;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +10,9 @@ import java.util.List;
 import data.AnnotatedSentence;
 import data.QAPair;
 import data.SRLCorpus;
+import data.UniversalPostagMap;
 import edu.stanford.nlp.ling.Sentence;
+import edu.stanford.nlp.ling.TaggedWord;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParserQuery;
 import edu.stanford.nlp.trees.GrammaticalStructure;
@@ -47,7 +50,8 @@ public class KBestParseRetriever {
 	
 	
 	private static void test(SRLCorpus corpus,
-			HashMap<Integer, AnnotatedSentence> annotatedSentences) {
+			HashMap<Integer, AnnotatedSentence> annotatedSentences,
+			UniversalPostagMap umap) {
 		LexicalizedParser lp = LexicalizedParser.loadModel(
 				"edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz",
                 "-maxLength", "80",
@@ -64,6 +68,29 @@ public class KBestParseRetriever {
 			LexicalizedParserQuery lpq = (LexicalizedParserQuery) lp.parserQuery();
 			lpq.parse(Sentence.toWordList(tokens));
 			List<ScoredObject<Tree>> parses = lpq.getKBestPCFGParses(kBest);
+			ArrayList<Collection<TypedDependency>> kBestParses =
+					new ArrayList<Collection<TypedDependency>>();
+			ArrayList<Double> kBestScores = new ArrayList<Double>();
+			String[] postags = new String[sent.sentence.length];
+			
+			for (int i = 0; i < parses.size(); i++) {
+				kBestScores.add(parses.get(i).score());
+				GrammaticalStructure gs =
+						gsf.newGrammaticalStructure(parses.get(i).object());
+				Collection<TypedDependency> deps =
+						gs.typedDependenciesCCprocessed();
+				kBestParses.add(deps);
+				if (i == 0) {
+					// Get postags from one-best.
+					ArrayList<TaggedWord> tags =
+							parses.get(i).object().taggedYield();
+					assert (tags.size() == sent.sentence.length);
+					for (int j = 0; j < tags.size(); j++) {
+						String postag = tags.get(j).tag();
+						postags[j] = umap.getUnivPostag(postag);
+					}
+				}
+			}
 			
 			for (int propHead : sent.qaLists.keySet()) {
 				for (QAPair qa : sent.qaLists.get(propHead)) {
@@ -85,15 +112,12 @@ public class KBestParseRetriever {
 							}
 						}
 					}
-					//System.out.print(qa.toString() + "\t");
-					for (int ahead : answerHeads) {
-						System.out.println(tokens[ahead]);
+					//System.out.print(qa.toString() + "\t");)
+					for (int answerHead : answerHeads) {
+						QASample newSample = new QASample(qa, answerHead,
+								kBestScores, kBestParses, postags);
+						// TODO: add samples
 					}
-					
-					// Print extracted positive example
-					// < answer_head, verb, question, sentence, parses>
-					
-					
 				}
 			}
 			
@@ -110,6 +134,8 @@ public class KBestParseRetriever {
 				"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx";
 		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-trial");
+		UniversalPostagMap umap = ExperimentUtils.loadPostagMap();
+		
 		HashMap<Integer, AnnotatedSentence> annotatedSentences =
 				new HashMap<Integer, AnnotatedSentence>();
 		try {
@@ -120,6 +146,6 @@ public class KBestParseRetriever {
 			return;
 		}
 		
-		test(trainCorpus, annotatedSentences);
+		test(trainCorpus, annotatedSentences, umap);
 	}
 }
