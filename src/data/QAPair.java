@@ -109,7 +109,7 @@ public class QAPair {
 				prevIdx = i;
 			}
 		}
-		return answerStr;
+		return answerStr.trim();
 	}
 	
 	public String getQuestionString() {

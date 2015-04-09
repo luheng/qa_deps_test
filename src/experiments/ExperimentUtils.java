@@ -16,6 +16,7 @@ import data.DepCorpus;
 import data.QAPairOld;
 import data.SRLCorpus;
 import data.UniversalPostagMap;
+import data.VerbInflectionDictionary;
 
 public class ExperimentUtils {
 
@@ -85,6 +86,17 @@ public class ExperimentUtils {
 			e.printStackTrace();
 		}
 		return univmap;
+	}
+	
+	public static VerbInflectionDictionary loadInflectionDictionary(
+			SRLCorpus corpus) {
+		VerbInflectionDictionary inflDict = new VerbInflectionDictionary(corpus);
+		try {
+			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return inflDict;
 	}
 		
 	public static ArrayList<AnnotatedDepSentence> loadAnnotatedSentences(

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import util.StringUtils;
 import data.AnnotatedSentence;
 import data.QAPair;
 import data.SRLCorpus;
@@ -61,9 +62,11 @@ public class KBestParseRetriever {
 		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
 		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
 
+		ArrayList<QASample> trainingSamples = new ArrayList<QASample>();
+		
 		int cnt = 0;
 		for (AnnotatedSentence sent : annotatedSentences.values()) {
-			System.out.println(sent.sentence.getTokensString());
+			//System.out.println(sent.sentence.getTokensString());
 			String[] tokens = sent.sentence.getTokensString().split("\\s+");
 			LexicalizedParserQuery lpq = (LexicalizedParserQuery) lp.parserQuery();
 			lpq.parse(Sentence.toWordList(tokens));
@@ -71,7 +74,8 @@ public class KBestParseRetriever {
 			ArrayList<Collection<TypedDependency>> kBestParses =
 					new ArrayList<Collection<TypedDependency>>();
 			ArrayList<Double> kBestScores = new ArrayList<Double>();
-			String[] postags = new String[sent.sentence.length];
+			String[] postags = new String[sent.sentence.length],
+					 lemmas = new String[sent.sentence.length];
 			
 			for (int i = 0; i < parses.size(); i++) {
 				kBestScores.add(parses.get(i).score());
@@ -81,17 +85,25 @@ public class KBestParseRetriever {
 						gs.typedDependenciesCCprocessed();
 				kBestParses.add(deps);
 				if (i == 0) {
-					// Get postags from one-best.
+					// Get postags and lemmas from one-best.
 					ArrayList<TaggedWord> tags =
 							parses.get(i).object().taggedYield();
 					assert (tags.size() == sent.sentence.length);
-					for (int j = 0; j < tags.size(); j++) {
+					for (int j = 0;  j < tags.size(); j++) {
 						String postag = tags.get(j).tag();
 						postags[j] = umap.getUnivPostag(postag);
 					}
+					/*
+					for (TypedDependency dep : deps) {
+						int wid = dep.dep().index() - 1;
+						if (wid >= 0) {
+							lemmas[wid] = dep.dep().lemma();
+						}
+					}
+					*/
 				}
 			}
-			
+
 			for (int propHead : sent.qaLists.keySet()) {
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					int[] answerSpans = getAnswerSpans(qa.answerFlags);
@@ -99,10 +111,9 @@ public class KBestParseRetriever {
 							new HashSet<Integer>();
 					// Get answer heads
 					for (ScoredObject<Tree> parse : parses) {
-						GrammaticalStructure gs =
-								gsf.newGrammaticalStructure(parse.object());
-						Collection<TypedDependency> deps =
-								gs.typedDependenciesCCprocessed();
+						GrammaticalStructure gs = gsf.newGrammaticalStructure(parse.object());
+						Collection<TypedDependency> deps = gs.typedDependenciesCCprocessed();
+		
 						for (TypedDependency dep : deps) {
 							int head = dep.gov().index() - 1,
 								arg = dep.dep().index() - 1;
@@ -114,9 +125,11 @@ public class KBestParseRetriever {
 					}
 					//System.out.print(qa.toString() + "\t");)
 					for (int answerHead : answerHeads) {
-						QASample newSample = new QASample(qa, answerHead,
-								kBestScores, kBestParses, postags);
-						// TODO: add samples
+						trainingSamples.add(
+							QASample.addPositiveSample(
+								qa, answerHead,
+								kBestScores, kBestParses,
+								postags, lemmas));
 					}
 				}
 			}
@@ -124,6 +137,10 @@ public class KBestParseRetriever {
 			if (++cnt >= 10) {
 				break;
 			}
+		}
+		
+		for (QASample sample : trainingSamples) {
+			System.out.println(sample  + "\n");
 		}
 	}
 	

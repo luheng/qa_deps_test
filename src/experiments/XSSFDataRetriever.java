@@ -34,7 +34,8 @@ public class XSSFDataRetriever {
 		//	"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx";
 		//	"odesk/training/odesk_r3_s100_katie.xlsx";
 		//	"odesk/training/FrancinePoh_R6.xlsx";
-			"odesk/raw_annotation/odesk_r7_s100_ellen.xlsx";
+		//	"odesk/raw_annotation/odesk_r2_s90_donna.xlsx";
+			"odesk/reviewed_annotation/odesk_r3_s100_katie.xlsx";
 	
 	private static int getHeaderId(String header) {
 		if (!header.contains("_")) {
@@ -58,8 +59,8 @@ public class XSSFDataRetriever {
         String prevSheetName = "";
         SRLSentence sent = null;
         
-        for (int sn = 0; sn < workbook.getNumberOfSheets(); sn++) {
-        //for (int sn : new int[] {0, 1}) {
+        //for (int sn = 1; sn < workbook.getNumberOfSheets(); sn++) {
+        for (int sn : new int[] {0, 1, 2}) {
         	XSSFSheet sheet = workbook.getSheetAt(sn);    
 	        for (int r = 0; r <= sheet.getLastRowNum(); r++) {
 	        	XSSFRow row = sheet.getRow(r);
@@ -99,6 +100,7 @@ public class XSSFDataRetriever {
 	        		annotatedSentences.get(sentId).addProposition(propHead);
 	        	} 
 	        	if (!header.startsWith("QA") ||
+	        		row.getCell(1) == null ||
 	        		row.getCell(1).toString().isEmpty()) {
 	        		continue;
 	        	}

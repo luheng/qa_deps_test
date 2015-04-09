@@ -84,6 +84,11 @@ public class VerbInflectionDictionary {
 		return bestId;
 	}
 	
+	public String getBestBaseVerb(String verb) {
+		int bestId = getBestInflectionId(verb);
+		return bestId < 0 ? verb : inflections.get(bestId)[0];
+	}
+	
 	private void countInflections() {
 		inflCount = new int[inflections.size()];
 		Arrays.fill(inflCount, 0);
