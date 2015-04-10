@@ -259,12 +259,13 @@ public class KBestParseRetriever {
 		numTrains = numTests = 0;
 		for (QASample sample : samples) {
 			TIntDoubleHashMap fv = featureExtractor.getFeatures(sample);
+			double label = (sample.isPositiveSample ? 1.0 : -1.0);
 			if (trainIds.contains(sample.sentence.sentenceID)) {
 				trains[numTrains] = getFeatures(fv);
-				trainLabels[numTrains++] = 1.0;
+				trainLabels[numTrains++] = label;
 			} else {
 				tests[numTests] = getFeatures(fv);
-				testLabels[numTests++] = - 1.0;
+				testLabels[numTests++] = label;
 			}
 		}
 		
