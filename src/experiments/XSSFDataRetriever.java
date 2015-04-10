@@ -35,9 +35,7 @@ public class XSSFDataRetriever {
 		//	"odesk/training/odesk_r3_s100_katie.xlsx";
 		//	"odesk/training/FrancinePoh_R6.xlsx";
 		//	"odesk/raw_annotation/odesk_r2_s90_donna.xlsx";
-			"odesk/reviewed_annotation/r2_s100_new_with_samples_dawn.xlsx";
-	
-	private static int[] finishedSheetIds = { 1, 2 };
+			"odesk/reviewed_annotation/odesk_r3_s100_john.xlsx";
 	
 	private static int getHeaderId(String header) {
 		if (!header.contains("_")) {
@@ -51,6 +49,86 @@ public class XSSFDataRetriever {
 			HashMap<Integer, AnnotatedSentence> annotatedSentences)
 					throws IOException {
 		readXSSFAnnotations(filePath, corpus, annotatedSentences, null);
+	}
+	
+	public static void aggregateAnnotations(
+			String[] inputFiles, SRLCorpus corpus) {
+		
+		HashMap<Integer, HashMap<String, AnnotatedSentence>> annotations =
+				new HashMap<Integer, HashMap<String, AnnotatedSentence>>();
+		
+		for (String inputFile : inputFiles) {
+			 XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(new File(inputFile)));
+		         
+			 int unitId = -1, sentId = -1, propHead = -1, totalNumQAs = 0;
+			 boolean hasEmptyAnswer = false;
+			 SRLSentence sent = null;
+			 AnnotatedSentence currSent = null;
+			 ArrayList<QAPair> qaList = new ArrayList<QAPair>();
+			 
+			 for (int sn = 0; sn < workbook.getNumberOfSheets(); sn++) {
+	        	XSSFSheet sheet = workbook.getSheetAt(sn);    
+		        for (int r = 0; r <= sheet.getLastRowNum(); r++) {
+		        	XSSFRow row = sheet.getRow(r);
+		        	if (row == null || row.getLastCellNum() == 0) {
+		        		continue;
+		        	}
+		        	String header = row.getCell(0).getStringCellValue();
+		        	if (header.startsWith("UNIT")) {
+		        		if (unitId > -1 && !qaList.isEmpty()) {
+		        			// Process previous unit.
+		        			currSent.addProposition(propHead);
+		        			for (QAPair qa : qaList) {
+		        				currSent.addQAPair(propHead, qa);
+		        			}
+		        			qaList.clear();
+		        		}
+		        		unitId = getHeaderId(header);
+		        		hasEmptyAnswer = false;
+		        	} else if (header.startsWith("SENT")) {
+		        		if (sentId != getHeaderId(header)) {
+		        			// Encountering a new sentence.
+			        		sentId = getHeaderId(header);
+			        		sent = (SRLSentence) corpus.sentences.get(sentId);
+			        		if (!annotations.containsKey(sentId)) {
+			        			annotations.put(sentId, new HashMap<String, AnnotatedSentence>());
+			        		}
+			        		if (!annotations.get(sentId).containsKey(inputFile)) {
+			        			annotations.get(sentId).put(inputFile, new AnnotatedSentence(sent));
+			        		}
+			        		currSent = annotations.get(sentId).get(inputFile);
+		        		}
+		        	} else if (header.startsWith("TRG")) {
+		        		propHead = getHeaderId(header);
+		        	} 
+		        	if (!header.startsWith("QA") || row.getCell(1) == null ||
+		        			row.getCell(1).toString().isEmpty()) {
+		        		continue;
+		        	}
+		        	String[] question = new String[7];
+		        	for (int c = 1; c <= 7; c++) {
+		        		question[c-1] = row.getCell(c).getStringCellValue();        		
+		        	}
+		        	QAPair qa = new QAPair(sent, propHead, question,
+		        			"" /* answer */, null /* annotation source */);
+		        	for (int c = 9; c <= 13; c++) {
+		        		if (row.getCell(c) == null) {
+		        			continue;
+		        		}
+		        		String ans = row.getCell(c).toString();
+		        		if (!ans.isEmpty()) {
+		        			qa.addAnswer(ans);
+		        		}
+		        	}
+		        	qa.comment = row.getCell(14).getStringCellValue().trim();
+		        	if (!question[0].isEmpty() && !question[3].isEmpty() &&
+		        			!qa.getAnswerString().isEmpty())
+		        		qaList.add(qa);
+		        	}
+		        }
+		        workbook.close();
+	        }
+		}
 	}
 	
 	public static void readXSSFAnnotations(
@@ -274,7 +352,11 @@ public class XSSFDataRetriever {
 				new HashMap<Integer, AnnotatedSentence>();
 				
 		try {
-			readXSSFAnnotations(xlsxFilePath, trainCorpus, annotatedSentences);
+			readXSSFAnnotations(
+					xlsxFilePath,
+					trainCorpus,
+					annotatedSentences,
+					new int[] {0, 1, 2});
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;

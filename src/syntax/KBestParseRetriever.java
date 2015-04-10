@@ -220,10 +220,10 @@ public class KBestParseRetriever {
 			return;
 		}
 
+		//****************** Split train-test **************
 		ArrayList<Integer> sentIds = new ArrayList<Integer>();
 		HashSet<Integer> trainIds = new HashSet<Integer>();
-		double trainTestSplit = 0.7;
-		
+		double trainTestSplit = 0.6;
 		for (int id : annotatedSentences.keySet()) {
 			sentIds.add(id);
 		}
@@ -231,13 +231,11 @@ public class KBestParseRetriever {
 		for (int i = 0; i < sentIds.size() * trainTestSplit; i++) {
 			trainIds.add(sentIds.get(i));
 		}
-		
 		generateTrainingSamples(trainCorpus, annotatedSentences, umap, samples);
 		featureExtractor.extractFeatures(samples);
 		featureExtractor.featureDict.prettyPrint();
 		
 		// ****************** Liblinear *******************		
-		int numFeatures = featureExtractor.numFeatures();
 		int numTrains = 0, numTests = 0;
 		for (QASample sample : samples) {
 			if (trainIds.contains(sample.sentence.sentenceID)) {
@@ -281,6 +279,15 @@ public class KBestParseRetriever {
 		double C = 1.0,  eps = 0.01;
 		Parameter parameter = new Parameter(solver, C, eps);
 		Model model = Linear.train(training, parameter);
+		
+		for (int fid = 0; fid < model.getNrFeature(); fid++) {
+			double fweight = model.getFeatureWeights()[fid + 1];
+			System.out.println(String.format("%s\t%.6f",
+					featureExtractor.featureDict.getString(fid),
+					fweight));
+		}
+
+		// ****************** Save model ****************
 		/*
 		File modelFile = new File("baseline.model");
 		try {
