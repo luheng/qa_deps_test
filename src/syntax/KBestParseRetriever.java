@@ -32,6 +32,7 @@ import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreebankLanguagePack;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.ScoredObject;
+import evaluation.F1Metric;
 import experiments.ExperimentUtils;
 import experiments.XSSFDataRetriever;
 import gnu.trove.map.hash.TIntDoubleHashMap;
@@ -290,9 +291,21 @@ public class KBestParseRetriever {
 		}
 		*/
 		// *************** Testing *******************
+		int numMatched = 0, numPred = 0, numGold = 0;
 		for (int i = 0; i < numTests; i++) {
-			double pred = Linear.predict(model, tests[i]);
-			System.out.println(i + ", " + testLabels[i] + ", " + pred);
+			int pred = (int) Linear.predict(model, tests[i]);
+			int gold = (int) testLabels[i];
+			if (gold > 0 && pred > 0) {
+				numMatched ++;
+			}
+			if (gold > 0) {
+				numGold ++;
+			}
+			if (pred > 0) {
+				numPred ++;
+			}
 		}
+		F1Metric f1 = new F1Metric(numMatched, numGold, numPred);
+		System.out.println(f1.toString());
 	}
 }
