@@ -30,6 +30,7 @@ public class QuestionEncoder {
 				nullPh3 = ph3.isEmpty() || ph3.equals("somewhere");
 		
 		boolean hasInformativePP = false;
+		
 		for (int i = 0; i < sentence.length; i++) {
 			if (sentence.getTokenString(i).equals(pp)) {
 				hasInformativePP = true;

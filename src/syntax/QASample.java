@@ -15,17 +15,19 @@ public class QASample {
 	QAPair qa;
 //	int[] answerSpans;
 	int propHead, answerHead;
+	ArrayList<int[]> answerSpans;
 	SRLSentence sentence;
 	ArrayList<Double> kBestScores;
 	ArrayList<Collection<TypedDependency>> kBestParses;
 	String[] postags;
 	String[] lemmas;
 	
-	boolean isPositiveExample;
+	boolean isPositiveSample;
 	
 	
 	private QASample(QAPair qa,
 			int answerHead,
+			ArrayList<int[]> answerSpans,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
 			String[] postags,
@@ -35,21 +37,24 @@ public class QASample {
 		this.sentence = qa.sentence;
 		this.propHead = qa.propHead;
 		this.answerHead = answerHead;
+		this.answerSpans = answerSpans;
 		this.kBestScores = kBestScores;
 		this.kBestParses = kBestParses;
 		this.postags = postags;
 		this.lemmas = lemmas;
-		this.isPositiveExample = positive;
+		this.isPositiveSample = positive;
 	}
 	
 	public static QASample addPositiveSample(QAPair qa,
 			int answerHead,
+			ArrayList<int[]> answerSpans,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
 			String[] postags,
 			String[] lemmas) {
 		return new QASample(qa,
 				answerHead,
+				answerSpans,
 				kBestScores,
 				kBestParses,
 				postags,
@@ -59,12 +64,14 @@ public class QASample {
 	
 	public static QASample addNegativeSample(QAPair qa,
 			int answerHead,
+			ArrayList<int[]> answerSpans,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
 			String[] postags,
 			String[] lemmas) {
 		return new QASample(qa,
 				answerHead,
+				answerSpans,
 				kBestScores,
 				kBestParses,
 				postags,
@@ -75,12 +82,14 @@ public class QASample {
 	
 	@Override
 	public String toString() {
-		return String.format("%d\t%s\n%d\t%s\n%s\n[%s]\t%s\n%s",
+		return String.format("%s\n%d\t%s\n%d\t%s\n \t[%s]\t%s\n%d\t[%s]\t%s\n%s\t%s",
+				(isPositiveSample ? "[POSITIVE]" : "[NEGATIVE]"),
 				sentence.sentenceID, sentence.getTokensString(),
 				propHead, sentence.getTokenString(propHead),
-				qa.getQuestionString(),
-				sentence.getTokenString(answerHead), qa.getAnswerString(),
-				StringUtils.join("\t", postags));
+				qa.getQuestionLabel(), qa.getQuestionString(),
+				answerHead, sentence.getTokenString(answerHead), qa.getAnswerString(),
+				StringUtils.join("\t", postags),
+				kBestParses.get(0));
 	//			StringUtils.join("\t", lemmas));
 	}
 	
