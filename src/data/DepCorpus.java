@@ -6,28 +6,27 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 
-public class DepCorpus {
-	public String corpusName;
-	public CountDictionary wordDict, posDict, depDict;
-	public ArrayList<DepSentence> sentences;
+public class DepCorpus extends Corpus {
+	public CountDictionary posDict, depDict;
 	
 	public DepCorpus(String corpusName) {
-		this.corpusName = corpusName;
-		wordDict = new CountDictionary();
+		super(corpusName);
 		posDict = new CountDictionary();
 		depDict = new CountDictionary();
-		sentences = new ArrayList<DepSentence>();
 	}
 	
 	// Using the dictionary of the other corpus. i.e. 
 	// testCorpus = new DepCorpus(trainCorpus).
 	public DepCorpus(String corpusName, DepCorpus baseCorpus) {
-		this.corpusName = corpusName;
+		super(corpusName);
 		this.wordDict = baseCorpus.wordDict;
 		this.posDict = baseCorpus.posDict;
 		this.depDict = baseCorpus.depDict;
+	}
+	
+	public DepSentence getSentence(int sentId) {
+		return (DepSentence) sentences.get(sentId);
 	}
 	
 	public void loadUniversalDependencyData(String corpusFilename)

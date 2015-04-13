@@ -88,9 +88,7 @@ public class WiktionaryVerbIdentifier {
 		//for (int i = 0; i < trainCorpus.sentences.size(); i++) {
 		for (int i = 0; i < 100; i++) {
 			SRLSentence sentence = (SRLSentence) trainCorpus.sentences.get(i);
-			ArrayList<Integer> verbs =
-					verbId.extractContentVerbs(trainCorpus.sentences.get(i));
-			
+			ArrayList<Integer> verbs = verbId.extractContentVerbs(sentence);
 			
 			// Validate against gold propositions.
 			boolean[] matched = new boolean[verbs.size()];

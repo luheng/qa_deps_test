@@ -16,12 +16,12 @@ public class VerbInflectionDictionary {
 	//private static String verbInflectionsFilePath =
 	//		"wiktionary/en_verb_inflections.txt";
 	
-	DepCorpus corpus;
+	Corpus corpus;
 	public ArrayList<String[]> inflections;
 	public int[] inflCount;
 	public HashMap<String, ArrayList<Integer>> inflMap;
 	
-	public VerbInflectionDictionary(DepCorpus corpus) {
+	public VerbInflectionDictionary(Corpus corpus) {
 		this.corpus = corpus;
 		inflections = new ArrayList<String[]>();
 		inflMap = new HashMap<String, ArrayList<Integer>>();
@@ -92,7 +92,7 @@ public class VerbInflectionDictionary {
 	private void countInflections() {
 		inflCount = new int[inflections.size()];
 		Arrays.fill(inflCount, 0);
-		for (DepSentence sent : corpus.sentences) {
+		for (Sentence sent : corpus.sentences) {
 			for (int i = 0; i < sent.length; i++) {
 				String w = sent.getTokenString(i);
 				if (inflMap.containsKey(w)) {

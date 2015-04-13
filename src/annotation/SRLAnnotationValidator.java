@@ -158,10 +158,10 @@ public class SRLAnnotationValidator {
 		F1Metric avgF1 = new F1Metric();
 		
 		for (AnnotatedSentence sent : annotatedSentences) {	
-			SRLSentence srlSentence = sent.sentence;
-			
+			SRLSentence srlSentence = (SRLSentence) sent.sentence;
 			int length = srlSentence.length + 1;
 			String[][] goldArcs = srlSentence.getSemanticArcs();
+			
 			int[] goldProps = new int[srlSentence.length];
 			
 			boolean[][] covered = new boolean[length][length];

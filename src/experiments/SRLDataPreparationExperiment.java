@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import annotation.CandidateProposition;
 import data.DepSentence;
 import data.SRLCorpus;
+import data.Sentence;
 
 public class SRLDataPreparationExperiment {
 
@@ -53,7 +54,7 @@ public class SRLDataPreparationExperiment {
 				file.getAbsoluteFile())); 
 		
 		int maxSentenceLength = 0;
-		for (DepSentence sentence : corpus.sentences) {
+		for (Sentence sentence : corpus.sentences) {
 			if (sentence.length > maxSentenceLength) {
 				maxSentenceLength = sentence.length;
 			}
@@ -66,7 +67,7 @@ public class SRLDataPreparationExperiment {
 		for (int i = 0; i < maxNumAnswerSpans; i++) {
 			boolean flag = false;
 			for (int j = 0; j < corpus.sentences.size(); j++) {
-				DepSentence sentence = corpus.sentences.get(j);
+				DepSentence sentence = corpus.getSentence(j);
 				writer.write("\t");
 				while (getNextSpan(sentence, spans[j])) {
 					if (!hasPunctuation(sentence, spans[j]) &&
@@ -86,10 +87,10 @@ public class SRLDataPreparationExperiment {
 	}
 	
 	private static void printAllPropositions() {
-		for (DepSentence sentence : corpus.sentences) {
+		for (Sentence sentence : corpus.sentences) {
 			ArrayList<CandidateProposition> props =
 					InteractiveAnnotationExperiment.getCandidatePropositions(
-							sentence, true /* verb only */);
+							(DepSentence) sentence, true /* verb only */);
 			// Print sentence.
 			System.out.println(String.format("%d\t%s",
 					sentence.sentenceID + 1, sentence.getTokensString()));

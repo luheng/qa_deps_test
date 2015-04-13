@@ -96,7 +96,7 @@ public class XSSFDataRetriever {
 		        		if (sentId != getHeaderId(header)) {
 		        			// Encountering a new sentence.
 			        		sentId = getHeaderId(header);
-			        		sent = (SRLSentence) corpus.sentences.get(sentId);
+			        		sent = corpus.getSentence(sentId);
 			        		if (!annotations.containsKey(sentId)) {
 			        			annotations.put(sentId, new AnnotatedSentence(sent));
 			        			numSentsPerFile ++;
@@ -178,10 +178,6 @@ public class XSSFDataRetriever {
 	        				System.out.println(String.format(
 	        						"Empty unit at:\t%s, UNIT_%05d",
 	        						prevSheetName, unitId));
-	        	/*		} else if (qaPerUnit == 1) {
-	        				System.out.println(String.format(
-	        						"Please double check:\t%s, UNIT_%05d",
-	        						prevSheetName, unitId)); */
 	        			}
 	        			if (hasEmptyAnswer) {
 	        				System.out.println(String.format(
@@ -195,7 +191,7 @@ public class XSSFDataRetriever {
 	        		prevSheetName = sheet.getSheetName();
 	        	} else if (header.startsWith("SENT")) {
 	        		sentId = getHeaderId(header);
-	        		sent = (SRLSentence) corpus.sentences.get(sentId);
+	        		sent = corpus.getSentence(sentId);
 	        		if (!annotatedSentences.containsKey(sentId)) {
 	        			annotatedSentences.put(sentId, new AnnotatedSentence(sent));
 	        		}
@@ -243,16 +239,11 @@ public class XSSFDataRetriever {
         }
         workbook.close();
         
-        
         if (qaPerUnit == 0) {
 			System.out.println(String.format(
 					"Empty unit at:\t%s, UNIT_%05d",
 					prevSheetName, unitId));
-		} /*else if (qaPerUnit == 1) {
-			System.out.println(String.format(
-					"Please double check:\t%s, UNIT_%05d",
-					prevSheetName, unitId)); 
-		} */
+		}
 		if (hasEmptyAnswer) {
 			System.out.println(String.format(
 					"Unanswered question at:\t%s, UNIT_%05d",
@@ -276,7 +267,7 @@ public class XSSFDataRetriever {
 		
 		for (int sid : annotations.keySet()) {
 			AnnotatedSentence annotSent = annotations.get(sid);
-			SRLSentence sent = annotSent.sentence;
+			SRLSentence sent = (SRLSentence) annotSent.sentence;
 			if (annotSent.annotators.size() == 1) {
 				continue;
 			}	
@@ -370,7 +361,7 @@ public class XSSFDataRetriever {
 		int numSentsWritten = 0;
 		for (int sid : sentIds) {
 			AnnotatedSentence annotSent = annotations.get(sid);
-			SRLSentence sent = annotSent.sentence;
+			SRLSentence sent = (SRLSentence) annotSent.sentence;
 			
 			// Filter empty sentences.
 			int[] propIds = getSortedKeys(annotSent.qaLists.keySet());
@@ -426,7 +417,7 @@ public class XSSFDataRetriever {
 		*/
 		for (AnnotatedSentence annotSent : annotatedSentences.values()) {
 			sentCount ++;
-			SRLSentence sentence = annotSent.sentence;
+			SRLSentence sentence = (SRLSentence) annotSent.sentence;
 			String[][] gold = validator.getGoldSRL(sentence);
 			int[][] covered = new int[gold.length][];
 			for (int i = 0; i < gold.length; i++) {
@@ -505,26 +496,23 @@ public class XSSFDataRetriever {
 		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
 		
-		HashMap<Integer, AnnotatedSentence> annotatedSentences =
+		HashMap<Integer, AnnotatedSentence> annotations =
 				new HashMap<Integer, AnnotatedSentence>();
 				
 		try {
 			readXSSFAnnotations(
 					xlsxFilePath,
 					trainCorpus,
-					annotatedSentences);
+					annotations);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
 		}
-
-		// TODO align annotation
 		
 		SRLAnnotationValidator tester = new SRLAnnotationValidator();
-	//	tester.coreArgsOnly = true;
-		tester.computeSRLAccuracy(annotatedSentences.values(), trainCorpus);
+		tester.computeSRLAccuracy(annotations.values(), trainCorpus);
 		tester.ignoreLabels = true;
-		tester.computeSRLAccuracy(annotatedSentences.values(), trainCorpus);
+		tester.computeSRLAccuracy(annotations.values(), trainCorpus);
 		
 	//	debugOutput(trainCorpus, annotatedSentences);
 	}

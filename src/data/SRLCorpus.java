@@ -28,6 +28,10 @@ public class SRLCorpus extends DepCorpus {
 		this.propDict = baseCorpus.propDict;
 	}
 	
+	public SRLSentence getSentence(int sentId) {
+		return (SRLSentence) sentences.get(sentId);
+	}
+	
 	/** The CoNLL 2009 File Format:
 	 *  0: ID
 		1: Form
@@ -65,13 +69,22 @@ public class SRLCorpus extends DepCorpus {
 			if (columns.length < 13) {
 				// Add new sentence
 				int nextSentenceID = sentences.size();
+				SRLSentence sentence = new SRLSentence(tokens.toArray(),
+						  lemmas.toArray(),
+	                      postags.toArray(),
+	                      parents.toArray(),
+	                      deptags.toArray(),
+	                      propositions,
+	                      this, nextSentenceID);
+				sentences.add(sentence);
+				/*
 				sentences.add(new SRLSentence(tokens.toArray(),
 											  lemmas.toArray(),
 						                      postags.toArray(),
 						                      parents.toArray(),
 						                      deptags.toArray(),
 						                      propositions,
-						                      this, nextSentenceID));
+						                      this, nextSentenceID));*/
 				tokens.clear();
 				lemmas.clear();
 				postags.clear();
@@ -130,10 +143,12 @@ public class SRLCorpus extends DepCorpus {
 		}
 		if (tokens.size() > 0) {
 			int nextSentenceID = sentences.size();
-			sentences.add(new DepSentence(tokens.toArray(),
+			sentences.add(new SRLSentence(tokens.toArray(),
+					lemmas.toArray(),
                     postags.toArray(),
                     parents.toArray(),
                     deptags.toArray(),
+                    propositions,
                     this, nextSentenceID));
 		} 
 		reader.close();
@@ -157,10 +172,7 @@ public class SRLCorpus extends DepCorpus {
 		}
 		/* Check for duplicate arguments */
 		for (int i = 0; i < corpus.sentences.size(); i++) {
-		//for (DepSentence s : corpus.sentences) {
-			DepSentence s = corpus.sentences.get(i);
-			SRLSentence sentence = (SRLSentence) s;
-			//System.out.println(sentence.toString());
+			SRLSentence sentence = corpus.getSentence(i);
 			for (Proposition prop : sentence.propositions) {
 				HashMap<String, Integer> types = new HashMap<String, Integer>();
 				for (int j = 0; j < prop.argTypes.size(); j++) {

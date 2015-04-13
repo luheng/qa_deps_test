@@ -285,11 +285,12 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 				  ExperimentUtils.conll2009TrainFilename, "en-srl-train");
 		  
 		  ArrayList<DepSentence> sentences = new ArrayList<DepSentence>();
+		  /*
 		  for (DepSentence sentence : corpus.sentences) {
 			  if (sentence.getTokensString().contains("expected to")) {
 				  sentences.add(sentence);
 			  }
-		  }
+		  }*/
 		  AnnotatorFrame frame = new AnnotatorFrame(sentences);
 		  frame.setVisible(true);
 	  }

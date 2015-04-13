@@ -15,7 +15,7 @@ import annotation.QuestionEncoder;
  *
  */
 public class QAPair {
-	public SRLSentence sentence;
+	public Sentence sentence;
 	public int propHead;
 	public String[] questionWords;
 	public String questionLabel, questionString;
@@ -25,8 +25,8 @@ public class QAPair {
 	public String annotator;
 	public String comment = "";
 	
-	public QAPair(SRLSentence sent, int prop, String[] question,
-							String answer, CrowdFlowerResult cf) { 
+	public QAPair(Sentence sent, int prop, String[] question, String answer,
+			CrowdFlowerResult cf) { 
 		sentence = sent;
 		propHead = prop;
 		questionWords = new String[question.length];
@@ -46,8 +46,8 @@ public class QAPair {
 		}
 	}
 	
-	public QAPair(SRLSentence sent, int prop, String qstr,
-			String answer, CrowdFlowerResult cf) { 
+	public QAPair(Sentence sent, int prop, String qstr, String answer,
+			CrowdFlowerResult cf) { 
 		sentence = sent;
 		propHead = prop;
 		questionWords = null;

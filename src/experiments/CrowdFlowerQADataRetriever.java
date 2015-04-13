@@ -172,7 +172,7 @@ public class CrowdFlowerQADataRetriever {
 			numCollided = 0;
 		for (CrowdFlowerQAResult result : results) {
 			for (int i = 0; i < result.questions.size(); i++) {
-				DepSentence sentence = corpus.sentences.get(result.sentenceId);
+				DepSentence sentence = corpus.getSentence(result.sentenceId);
 				String[] question = result.questions.get(i);
 				String keyStr = String.format("%d_%d_%d_%s",
 						result.sentenceId, result.propEnd - 1,
@@ -213,7 +213,7 @@ public class CrowdFlowerQADataRetriever {
 					new HashMap<String, QAPair>();
 			// Aggregate each worker's results by question label.
 			for (int i = 0; i < result.questions.size(); i++) {
-				DepSentence sentence = corpus.sentences.get(result.sentenceId);
+				DepSentence sentence = corpus.getSentence(result.sentenceId);
 				QAPair qa = new QAPair(
 						(SRLSentence) sentence, propId, result.questions.get(i),
 						"" /* ansewr */, result);
@@ -332,7 +332,7 @@ public class CrowdFlowerQADataRetriever {
 		
 		for (AnnotatedSentence annotSent : annotatedSentences) {
 			sentCount ++;
-			SRLSentence sentence = annotSent.sentence;
+			SRLSentence sentence = (SRLSentence) annotSent.sentence;
 			String[][] gold = validator.getGoldSRL(sentence);
 			int[][] covered = new int[gold.length][];
 			for (int i = 0; i < gold.length; i++) {

@@ -7,6 +7,7 @@ import java.util.List;
 import util.StringUtils;
 import data.QAPair;
 import data.SRLSentence;
+import data.Sentence;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.ScoredObject;
@@ -16,7 +17,7 @@ public class QASample {
 //	int[] answerSpans;
 	int propHead, answerHead;
 	ArrayList<int[]> answerSpans;
-	SRLSentence sentence;
+	Sentence sentence;
 	ArrayList<Double> kBestScores;
 	ArrayList<Collection<TypedDependency>> kBestParses;
 	String[] postags;

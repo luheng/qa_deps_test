@@ -5,36 +5,16 @@ import org.json.JSONObject;
 
 import util.StringUtils;
 
-public class DepSentence {
-	public int[] tokens, postags, parents, deptags;
-	public int length;
+public class DepSentence extends Sentence {
+	public int[] postags, parents, deptags;
 	public DepCorpus corpus;
-	public int sentenceID;
 	
 	public DepSentence(int[] tokens, int[] postags, int[] parents,
 					   int[] deptags, DepCorpus corpus, int sentenceID) {
-		this.tokens = tokens;
+		super(tokens, corpus, sentenceID);
 		this.postags = postags;
 		this.parents = parents;
 		this.deptags = deptags;
-		this.length = tokens.length;
-		this.corpus = corpus;
-		this.sentenceID = sentenceID;
-	}
-	
-	public String getTokenString(int index) {
-		return corpus.wordDict.getString(tokens[index]);
-	}
-	
-	public String getTokenString(int[] span) {
-		String str = "";
-		for (int i = span[0]; i < span[1]; i++) {
-			if (i > span[0]) {
-				str += " ";
-			}
-			str += getTokenString(i);
-		}
-		return str;
 	}
 	
 	public String getPostagString(int index) {
@@ -45,38 +25,12 @@ public class DepSentence {
 		return corpus.depDict.getString(deptags[index]);
 	}
 	
-	public String getTokensString() {
-		return StringUtils.join(" ", corpus.wordDict.getStringArray(tokens));
-	}
-	
-	public String getNumberedTokensString() {
-		return StringUtils.numberedJoin(" ",
-				corpus.wordDict.getStringArray(tokens));
-	}
-	
 	public String getPostagsString() {
 		return StringUtils.join(" ", corpus.posDict.getStringArray(postags));
 	}
 	
 	public String getDeptagString() {
 		return StringUtils.join(" ", corpus.depDict.getStringArray(deptags));
-	}
-	
-	public boolean containsToken(String token) {
-		for (int i = 0; i < length; i++) {
-			if (getTokenString(i).equalsIgnoreCase(token)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	@Override
-	public String toString() {
-		return "ID:\t" + this.sentenceID + "\n" +
-				this.getTokensString() + "\n" +
-				this.getPostagsString() + "\n" +
-				this.getDeptagString();
 	}
 	
 	public JSONObject toJSON() {

@@ -64,7 +64,7 @@ public class ConstrainedParsingExperiment {
 					String[] info = line.split("\t");
 					int sentID = Integer.parseInt(info[0]);
 					AnnotatedDepSentence sentence = new AnnotatedDepSentence(
-							corpus.sentences.get(sentID));
+							corpus.getSentence(sentID));
 					annotatedSentences.add(sentence);
 				} else {
 					String[] info = line.split("###");

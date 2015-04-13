@@ -5,14 +5,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class AnnotatedSentence {
-	public SRLSentence sentence;
+	public Sentence sentence;
 	public HashMap<Integer, ArrayList<QAPair>> qaLists;
 	public HashSet<String> annotators;
 	
-	public AnnotatedSentence(SRLSentence sentence) {
+	public AnnotatedSentence(Sentence sentence) {
 		this.sentence = sentence;
-		qaLists = new HashMap<Integer, ArrayList<QAPair>>();
-		annotators = new HashSet<String>();
+		this.qaLists = new HashMap<Integer, ArrayList<QAPair>>();
+		this.annotators = new HashSet<String>();
 	}
 	
 	public boolean addProposition(int propHead) {

@@ -13,6 +13,7 @@ import data.DepSentence;
 import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
+import data.Sentence;
 
 public class CrowdFlowerPropIdDataPreparation {
 
@@ -37,8 +38,8 @@ public class CrowdFlowerPropIdDataPreparation {
 	
 	private static int[] getNonQuestionSentenceIds() {
 		TIntArrayList ids = new TIntArrayList();
-		for (DepSentence sentence : trainCorpus.sentences) {
-			if (!isQuestion(sentence) && sentence.length >= 10) {
+		for (Sentence sentence : trainCorpus.sentences) {
+			if (!isQuestion((DepSentence) sentence) && sentence.length >= 10) {
 				ids.add(sentence.sentenceID);
 			}
 		}
@@ -54,7 +55,7 @@ public class CrowdFlowerPropIdDataPreparation {
 		for (int i = 0; i < sentenceIds.length; i++) {
 			ArrayList<String> record = new ArrayList<String>();
 			int sid = sentenceIds[i];
-			DepSentence sentence = trainCorpus.sentences.get(sid);
+			DepSentence sentence = trainCorpus.getSentence(sid);
 			record.add(String.valueOf(sid));
 			//record.add(sentence.getNumberedTokensString());
 			record.add(sentence.getTokensString());

@@ -163,7 +163,7 @@ public class CrowdFlowerStage2DataRetriever {
 		
 			int sentLength = sent.length;
 			
-			for (Proposition prop : qaSent.sentence.propositions) {
+			for (Proposition prop : sent.propositions) {
 				int propHead = prop.propID;
 				if (!qaSent.qaLists.containsKey(propHead)) {
 					continue;

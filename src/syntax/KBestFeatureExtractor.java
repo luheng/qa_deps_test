@@ -6,21 +6,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+import data.Corpus;
 import data.CountDictionary;
-import data.SRLCorpus;
-import data.SRLSentence;
+import data.Sentence;
 import data.VerbInflectionDictionary;
 import edu.stanford.nlp.trees.TypedDependency;
 import experiments.ExperimentUtils;
 
 public class KBestFeatureExtractor {
 
-	private SRLCorpus corpus = null;
+	private Corpus corpus = null;
 	private VerbInflectionDictionary inflDict = null;
 	public CountDictionary featureDict = null;
 	public final int minFeatureFreq;
 	
-	public KBestFeatureExtractor(SRLCorpus corpus, int minFeatureFreq) {
+	public KBestFeatureExtractor(Corpus corpus, int minFeatureFreq) {
 		this.corpus = corpus;
 		this.minFeatureFreq = minFeatureFreq;
 		inflDict = ExperimentUtils.loadInflectionDictionary(corpus);
@@ -48,7 +48,7 @@ public class KBestFeatureExtractor {
 		return parents;
 	}
 	
-	private String getToken(SRLSentence sent, int id) {
+	private String getToken(Sentence sent, int id) {
 		return id < 0 ? "ROOT" : sent.getTokenString(id);
 	}
 	
@@ -58,7 +58,7 @@ public class KBestFeatureExtractor {
 		
 		// *************** Information used to extract features **********
 		
-		SRLSentence sent = sample.sentence;
+		Sentence sent = sample.sentence;
 		String[] tokens = new String[sent.length];
 		for (int i = 0; i < sent.length; i++) {
 			tokens[i] = sent.getTokenString(i).toLowerCase();

@@ -9,19 +9,21 @@ public class SRLSentence extends DepSentence {
 	public ArrayList<Proposition> propositions;
 	
 	public SRLSentence(int[] tokens, int[] lemmas, int[] postags, int[] parents,
-					   int[] deptags, ArrayList<Proposition> predicates,
+					   int[] deptags, ArrayList<Proposition> propositions,
 					   SRLCorpus corpus, int sentenceID) {
 		super(tokens, postags, parents, deptags, corpus, sentenceID);
 		this.lemmas = lemmas;
+		// FIXME: this is really hacky, have no idea why this happens.
+		this.corpus = corpus;
 		this.propositions = new ArrayList<Proposition>();
-		for (Proposition prop : predicates) {
+		for (Proposition prop : propositions) {
 			Proposition newProp = prop.clone();
 			newProp.sentence = this;
 			this.propositions.add(newProp);
 		}
 	}
 	
-	public void addPedicate(Proposition prop) {
+	public void addProposition(Proposition prop) {
 		prop.sentence = this;
 		this.propositions.add(prop);
 	}
@@ -29,8 +31,8 @@ public class SRLSentence extends DepSentence {
 	@Override
 	public String toString() {
 		String str = super.toString() + "\n";
-		for (Proposition pred : propositions) {
-			str += pred.toString();
+		for (Proposition prop : propositions) {
+			str += prop.toString();
 		}
 		return str;
 	}

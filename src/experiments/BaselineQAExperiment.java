@@ -1,109 +1,88 @@
 package experiments;
 
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
 
-import annotation.SRLAnnotationValidator;
 import data.AnnotatedSentence;
+import data.Corpus;
 import data.QAPair;
-import data.SRLCorpus;
-import data.SRLSentence;
+import data.Sentence;
+import de.bwaldvogel.liblinear.Model;
 
 public class BaselineQAExperiment {
 
-	private static String[] xssfInputFiles = {
-		//		"odesk/raw_annotation/odesk_r2_s90_breanna_fixed.xlsx",
-				"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx",
-		//		"odesk/raw_annotation/odesk_r3_s100_b02_katie.xlsx",
-		//		"odesk/raw_annotation/odesk_r3_s100_b02_john.xlsx",
-				"odesk/raw_annotation/odesk_r3_s100_breanna_fixed.xlsx",
-				"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx",
-				"odesk/raw_annotation/odesk_r6_p1_s50_francine_fixed.xlsx",
-				"odesk/raw_annotation/odesk_r7_s100_ellen_fixed.xlsx",
-				"odesk/raw_annotation/odesk_r8_s100_ellen_fixed.xlsx",
-				"odesk/raw_annotation/odesk_r10_p1_s50_john_fixed.xlsx"
-		};
-		
-	private static String outputPathPrefix = "data/odesk_s600";
-		
-	private static String qaInputPath = "data/odesk_s600.qa";
-	
-	private static final int randomSeed = 12345;
-	
-	private static void processData(String[] inputPaths,
-			String outputPathPrefix,
-			double splitRatio) {
-		
-		SRLCorpus baseCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "PROPBANK");
-
-		HashMap<Integer, AnnotatedSentence> annotations =
-				new HashMap<Integer, AnnotatedSentence>();
-		
-		try {
-			XSSFDataRetriever.readXSSFAnnotation(
-					xssfInputFiles,
-					baseCorpus,
-					annotations);
-			XSSFDataRetriever.outputAnnotations(
-					outputPathPrefix + ".qa",
-					baseCorpus,
-					annotations);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		// ************* Split train and test ************ 
-		ArrayList<Integer> sentIds = new ArrayList<Integer>();
-		sentIds.addAll(annotations.keySet());
-		Collections.shuffle(sentIds, new Random(randomSeed));
-		int numTrains = (int) (sentIds.size() * splitRatio);
-		HashMap<Integer, AnnotatedSentence>
-				trainSents = new HashMap<Integer, AnnotatedSentence>(),
-				testSents = new HashMap<Integer, AnnotatedSentence>();
-		for (int i = 0; i < sentIds.size(); i++) {
-			int sentId = sentIds.get(i);
-			if (i < numTrains) {
-				trainSents.put(sentId, annotations.get(sentId));
-			} else {
-				testSents.put(sentId, annotations.get(sentId));
-			}
-		}
-		
-		try {
-			XSSFDataRetriever.outputAnnotations(
-					outputPathPrefix + ".train.qa",
-					baseCorpus,
-					trainSents);
-			XSSFDataRetriever.outputAnnotations(
-					outputPathPrefix + ".test.qa",
-					baseCorpus,
-					testSents);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	private static String trainFilePath = "data/odesk_s600.train.qa";
+	private static String testFilePath = "data/odesk_s600.test.qa";
 			
-		System.out.println(String.format("Validating %d sentences.",
-				annotations.size()));
-		SRLAnnotationValidator tester = new SRLAnnotationValidator();
-		tester.computeSRLAccuracy(annotations.values(), baseCorpus);
-		tester.ignoreLabels = true;
-		tester.computeSRLAccuracy(annotations.values(), baseCorpus);
+	private static void loadData(String filePath, Corpus corpus,
+			ArrayList<AnnotatedSentence> annotations) throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(new File(filePath)));
+		
+		String currLine = "";
+		while ((currLine = reader.readLine()) != null) {
+			String[] info = currLine.trim().split("\t");
+			assert (info.length == 2);
+			currLine = reader.readLine();
+			String[] tokens = currLine.trim().split("\\s+");
+			int[] tokenIds = new int[tokens.length];
+			for (int i = 0; i < tokens.length; i++) {
+				tokenIds[i] = corpus.wordDict.addString(tokens[i]);
+			}
+			Sentence sent = new Sentence(tokenIds, corpus, corpus.sentences.size());
+			sent.source = info[0];
+			corpus.sentences.add(sent);
+			int numProps = Integer.parseInt(info[1]);
+			AnnotatedSentence annotSent = new AnnotatedSentence(sent);
+			for (int i = 0; i < numProps; i++) {
+				currLine = reader.readLine();
+				info = currLine.split("\t");
+				int propHead = Integer.parseInt(info[0]);
+				int numQA = Integer.parseInt(info[2]);
+				annotSent.addProposition(propHead);
+				for (int j = 0; j < numQA; j++) {
+					currLine = reader.readLine();
+					info = currLine.split("\t");
+					assert (info.length == 9);
+					String[] question = new String[7];
+					for (int k = 0; k < 7; k++) {
+						question[k] = (info[k].equals("_") ? "" : info[k]);
+					}
+					QAPair qa = new QAPair(sent, propHead, question, "", null);
+					String[] answers = info[8].split("###");
+					for (String answer : answers) {
+						qa.addAnswer(answer);
+					}
+					annotSent.addQAPair(propHead, qa);
+				}
+			}
+			reader.readLine();
+			annotations.add(annotSent);
+		}
+		reader.close();
+		System.out.println(String.format("Read %d sentences from %s.",
+				annotations.size(), filePath));
+	}
+	
+	private static void trainModel(ArrayList<AnnotatedSentence> trains,
+			int cvFolds) {
+		
 	}
 	
 	public static void main(String[] args) {
-		processData(xssfInputFiles, outputPathPrefix, 0.6);
-		//	debugOutput(trainCorpus, annotatedSentences);
+		Corpus corpus = new Corpus("qa-text-corpus");
+		ArrayList<AnnotatedSentence> trains = new ArrayList<AnnotatedSentence>(),
+								     tests = new ArrayList<AnnotatedSentence>();
+		try {
+			loadData(trainFilePath, corpus, trains);
+			loadData(testFilePath, corpus, tests);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		trainModel(trains, 10);
+		
 	}
 }

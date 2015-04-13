@@ -50,6 +50,7 @@ import data.DepSentence;
 import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
+import data.Sentence;
 import data.VerbInflectionDictionary;
 
 public class CrowdFlowerQADataPreparation {
@@ -519,7 +520,7 @@ public class CrowdFlowerQADataPreparation {
         		unitCounter, xlsxFileName));
 	}
 	
-	private static boolean isQuestion(DepSentence sentence) {
+	private static boolean isQuestion(Sentence sentence) {
 		for (int i = 0; i < sentence.length; i++) {
 			String word = sentence.getTokenString(i);
 			if (word.equals("?")) {
@@ -531,7 +532,7 @@ public class CrowdFlowerQADataPreparation {
 	
 	private static int[] getNonQuestionSentenceIds() {
 		TIntArrayList ids = new TIntArrayList();
-		for (DepSentence sentence : trainCorpus.sentences) {
+		for (Sentence sentence : trainCorpus.sentences) {
 			if (sentence.sentenceID > maxSentenceID) {
 				break;
 			}

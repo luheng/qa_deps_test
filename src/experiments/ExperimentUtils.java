@@ -12,6 +12,7 @@ import annotation.DistanceSensitiveQuestionAnswerAligner;
 import annotation.GreedyQuestionAnswerAligner;
 import annotation.AbstractQuestionAnswerAligner;
 import data.AnnotatedDepSentence;
+import data.Corpus;
 import data.DepCorpus;
 import data.QAPairOld;
 import data.SRLCorpus;
@@ -88,8 +89,7 @@ public class ExperimentUtils {
 		return univmap;
 	}
 	
-	public static VerbInflectionDictionary loadInflectionDictionary(
-			SRLCorpus corpus) {
+	public static VerbInflectionDictionary loadInflectionDictionary(Corpus corpus) {
 		VerbInflectionDictionary inflDict = new VerbInflectionDictionary(corpus);
 		try {
 			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
@@ -122,7 +122,7 @@ public class ExperimentUtils {
 					String[] info = line.split("\t");
 					int sentID = Integer.parseInt(info[0]);
 					AnnotatedDepSentence sentence = new AnnotatedDepSentence(
-							corpus.sentences.get(sentID));
+							corpus.getSentence(sentID));
 					annotatedSentences.add(sentence);
 				} else {
 					String[] info = line.split("###");
@@ -168,7 +168,7 @@ public class ExperimentUtils {
 					// Getting sentence info.
 					int sentID = Integer.parseInt(columns.get(0));
 					AnnotatedDepSentence sentence = new AnnotatedDepSentence(
-							corpus.sentences.get(sentID));
+							corpus.getSentence(sentID));
 					annotatedSentences.add(sentence);
 				} else {
 					// Getting numbered QA pair.
@@ -221,7 +221,7 @@ public class ExperimentUtils {
 							break;
 						}
 						AnnotatedDepSentence sentence = new AnnotatedDepSentence(
-							corpus.sentences.get(sentID));
+							corpus.getSentence(sentID));
 						annotatedSentences.add(sentence);
 					} catch (NumberFormatException e) {
 						System.out.println("Error parsing line: " + line);

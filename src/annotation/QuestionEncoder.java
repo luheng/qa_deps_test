@@ -2,6 +2,7 @@ package annotation;
 
 import data.DepSentence;
 import data.SRLSentence;
+import data.Sentence;
 
 /* Encode the question into information we want.
  *  
@@ -14,7 +15,7 @@ public class QuestionEncoder {
 	 * [wh] [aux] [ph1] [trg] [ph2] [pp] [ph3]
 	 * 
 	 */
-	public static String encode(String[] question, DepSentence sentence) {	
+	public static String encode(String[] question, Sentence sentence) {	
 		assert (question.length == 7);
 		
 		String wh  = question[0],

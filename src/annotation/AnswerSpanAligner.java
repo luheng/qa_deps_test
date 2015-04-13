@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import data.DepSentence;
+import data.Sentence;
 
 public class AnswerSpanAligner {
-	public static int[] align(DepSentence sentence, String answer) {
+	public static int[] align(Sentence sentence, String answer) {
 		String[] ansTokens = answer.split("\\s+");
 		String[] sentTokens = sentence.corpus.wordDict.getStringArray(
 				sentence.tokens);

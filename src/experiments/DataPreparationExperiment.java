@@ -40,7 +40,7 @@ public class DataPreparationExperiment {
 	private static void outputJSON(DepCorpus trainCorpus, int[] samples) {
 		ArrayList<JSONObject> jsonSentences = new ArrayList<JSONObject>();
 		for (int id : samples) {
-			DepSentence sentence = trainCorpus.sentences.get(id);
+			DepSentence sentence = trainCorpus.getSentence(id);
 			jsonSentences.add(sentence.toJSON());
 		}
 		JSONObject data = new JSONObject();
@@ -62,7 +62,7 @@ public class DataPreparationExperiment {
 			PrintWriter writer = new PrintWriter(new BufferedWriter(
 					new FileWriter(plainTextFilename)));
 			for (int id : samples) {
-				DepSentence sentence = trainCorpus.sentences.get(id);
+				DepSentence sentence = trainCorpus.getSentence(id);
 				String[] tokens =
 						trainCorpus.wordDict.getStringArray(sentence.tokens); 
 				writer.print(String.format("%d\t%s\n\n", id,

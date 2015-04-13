@@ -86,7 +86,7 @@ public class CrowdFlowerQADataAnalyzer {
 		agreedQAs = new HashMap<Integer,
 				HashMap<Integer, HashMap<String, Integer>>>();
 		for (AnnotatedSentence annotSent : annotatedSentences.values()) {
-			int sentId = annotSent.sentence.sentenceID; 
+			int sentId = ((SRLSentence) annotSent.sentence).sentenceID; 
 			agreedQAs.put(sentId, new HashMap<Integer,
 					HashMap<String, Integer>>());
 			for (int propHead : annotSent.qaLists.keySet()) {
@@ -284,7 +284,7 @@ public class CrowdFlowerQADataAnalyzer {
 			for (int i = 0; i < annotatedSentences.size(); i++) {
 				AnnotatedSentence annotSent = annotatedSentences.get(
 						sentenceIds.get(i));
-				int sentId = annotSent.sentence.sentenceID;
+				int sentId = ((SRLSentence) annotSent.sentence).sentenceID;
 				for (int prop : annotSent.qaLists.keySet()) {
 					ArrayList<QAPair> newQAList =
 							new ArrayList<QAPair>();
@@ -332,7 +332,8 @@ public class CrowdFlowerQADataAnalyzer {
 			if (alignedQALists.get(r).size() == 0) {
 				continue;
 			}
-			SRLSentence sentence = alignedQALists.get(r).get(0).sentence;
+			SRLSentence sentence =
+					(SRLSentence) alignedQALists.get(r).get(0).sentence;
 			String[][] gold = validator.getGoldSRL(sentence);
 			
 			for (QAPair qa : alignedQALists.get(r)) {

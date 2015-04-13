@@ -60,7 +60,7 @@ public class AnnotationAnalysis {
 					String[] info = line.split("\t");
 					int sentID = Integer.parseInt(info[0]);
 					AnnotatedDepSentence sentence = new AnnotatedDepSentence(
-							trainCorpus.sentences.get(sentID));
+							trainCorpus.getSentence(sentID));
 					annotatedSentences.add(sentence);
 				} else {
 					String[] info = line.split("###");

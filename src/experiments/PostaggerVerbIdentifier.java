@@ -87,7 +87,7 @@ public class PostaggerVerbIdentifier {
 		//for (int i = 0; i < 100; i++) {
 			SRLSentence sentence = (SRLSentence) trainCorpus.sentences.get(i);
 			ArrayList<Integer> verbs =
-					verbId.extractContentVerbs(trainCorpus.sentences.get(i));
+					verbId.extractContentVerbs(trainCorpus.getSentence(i));
 			
 			
 			// Validate against gold propositions.
