@@ -13,8 +13,6 @@ public class SRLSentence extends DepSentence {
 					   SRLCorpus corpus, int sentenceID) {
 		super(tokens, postags, parents, deptags, corpus, sentenceID);
 		this.lemmas = lemmas;
-		// FIXME: this is really hacky, have no idea why this happens.
-		this.corpus = corpus;
 		this.propositions = new ArrayList<Proposition>();
 		for (Proposition prop : propositions) {
 			Proposition newProp = prop.clone();

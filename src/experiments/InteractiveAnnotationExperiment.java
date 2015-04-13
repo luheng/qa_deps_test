@@ -38,7 +38,7 @@ public class InteractiveAnnotationExperiment {
 			DepSentence sentence, boolean verbOnly) {
 		// Pre-processing: get auxiliary verb spans.
 		AuxiliaryVerbIdentifier auxVerbIdentifier =
-				new AuxiliaryVerbIdentifier(sentence.corpus);
+				new AuxiliaryVerbIdentifier((DepCorpus) sentence.corpus);
 		int[] verbHeads = new int[sentence.length];
 		auxVerbIdentifier.postprocess(sentence, verbHeads);
 		

@@ -7,8 +7,7 @@ import util.StringUtils;
 
 public class DepSentence extends Sentence {
 	public int[] postags, parents, deptags;
-	public DepCorpus corpus;
-	
+
 	public DepSentence(int[] tokens, int[] postags, int[] parents,
 					   int[] deptags, DepCorpus corpus, int sentenceID) {
 		super(tokens, corpus, sentenceID);
@@ -18,19 +17,19 @@ public class DepSentence extends Sentence {
 	}
 	
 	public String getPostagString(int index) {
-		return corpus.posDict.getString(postags[index]);
+		return ((DepCorpus) corpus).posDict.getString(postags[index]);
 	}
 	
 	public String getDeptagString(int index) {
-		return corpus.depDict.getString(deptags[index]);
+		return ((DepCorpus) corpus).depDict.getString(deptags[index]);
 	}
 	
 	public String getPostagsString() {
-		return StringUtils.join(" ", corpus.posDict.getStringArray(postags));
+		return StringUtils.join(" ", ((DepCorpus) corpus).posDict.getStringArray(postags));
 	}
 	
 	public String getDeptagString() {
-		return StringUtils.join(" ", corpus.depDict.getStringArray(deptags));
+		return StringUtils.join(" ", ((DepCorpus) corpus).depDict.getStringArray(deptags));
 	}
 	
 	public JSONObject toJSON() {
@@ -39,8 +38,8 @@ public class DepSentence extends Sentence {
 			jsonSent.put("sentenceID", String.format("%s_%d", corpus.corpusName,
 					            				     sentenceID));
 			jsonSent.put("tokens", corpus.wordDict.getStringArray(tokens));
-			jsonSent.put("postags", corpus.posDict.getStringArray(postags));
-			jsonSent.put("deptags", corpus.depDict.getStringArray(deptags));
+			jsonSent.put("postags", ((DepCorpus) corpus).posDict.getStringArray(postags));
+			jsonSent.put("deptags", ((DepCorpus) corpus).depDict.getStringArray(deptags));
 			jsonSent.put("parents", parents);
 		} catch (JSONException e) {
 			e.printStackTrace();

@@ -7,6 +7,7 @@ import scorer.UniversalGrammarScorer;
 import util.LatticeUtils;
 import util.StringUtils;
 import data.AnnotatedDepSentence;
+import data.DepCorpus;
 import data.DepSentence;
 import decoding.Decoder;
 import decoding.QADecoder;
@@ -27,7 +28,7 @@ public class DualDecompositionOptimizer {
 		// Use scorers.
 		DistanceScorer distScorer = new DistanceScorer();
 		UniversalGrammarScorer ugScorer =
-				new UniversalGrammarScorer(instances.get(0).depSentence.corpus);
+				new UniversalGrammarScorer((DepCorpus) instances.get(0).depSentence.corpus);
 		
 		for (AnnotatedDepSentence sentence : instances) {
 			int length = sentence.depSentence.length + 1;

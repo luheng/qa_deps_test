@@ -36,7 +36,7 @@ public class CombinedScorerExperiment {
 									 double ugWeight,
 									 boolean printAnalysis) {
 		DepSentence depSentence = sentence.depSentence;
-		trainCorpus = depSentence.corpus;
+		trainCorpus = (DepCorpus) depSentence.corpus;
 		int length = depSentence.length + 1;
 		
 		DistanceScorer distScorer = new DistanceScorer();
