@@ -1,8 +1,5 @@
 package experiments;
 
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -30,15 +27,15 @@ public class BaselineQADataProcessor {
 				"odesk/raw_annotation/odesk_r3_s100_breanna_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r6_p1_s50_francine_fixed.xlsx",
+				"odesk/raw_annotation/odesk_r6_p2_s50_tracy_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r7_s100_ellen_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r8_s100_ellen_fixed.xlsx",
+				"odesk/raw_annotation/odesk_r9_p2_s50_katie_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r10_p1_s50_john_fixed.xlsx"
 		};
 		
-	private static String outputPathPrefix = "data/odesk_s600";
+	private static String outputPathPrefix = "data/odesk_s700";
 		
-	private static String qaInputPath = "data/odesk_s600.qa";
-	
 	private static final int randomSeed = 12345;
 	
 	private static void processData(String[] inputPaths,

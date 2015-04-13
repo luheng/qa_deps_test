@@ -2,10 +2,15 @@ package experiments;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -28,8 +33,11 @@ import evaluation.F1Metric;
 
 public class BaselineQAExperiment {
 
-	private static String trainFilePath = "data/odesk_s600.train.qa";
-	private static String testFilePath = "data/odesk_s600.test.qa";
+	private static String trainFilePath = "data/odesk_s700.train.qa";
+	private static String testFilePath = "data/odesk_s700.test.qa";
+	
+	private static String trainSamplesPath = "odesk_s700.train.qaSamples";
+	private static String testSamplesPath = "odesk_s700.test.qaSamples";
 	
 	private static void loadData(String filePath, Corpus corpus,
 			ArrayList<AnnotatedSentence> annotations) throws IOException {
@@ -104,6 +112,7 @@ public class BaselineQAExperiment {
 		training.x = features;
 		training.y = labels;
 		
+		// L2-regularized logistic regression (primal) - l2r_lr
 		SolverType solver = SolverType.L2R_LR;
 		double C = 1.0,  eps = 0.01;
 		Parameter parameter = new Parameter(solver, C, eps);
@@ -136,7 +145,9 @@ public class BaselineQAExperiment {
 		ArrayList<AnnotatedSentence> trains = new ArrayList<AnnotatedSentence>(),
 								     tests = new ArrayList<AnnotatedSentence>();
 		ArrayList<QASample> trainSamples = new ArrayList<QASample>(),
-						    testSamples = new ArrayList<QASample>();
+						    testSamples = new ArrayList<QASample>(),
+						    allSamples = new ArrayList<QASample>();
+		
 		Feature[][] trainFeats, testFeats;
 		double[] trainLabels, testLabels;
 		
@@ -153,18 +164,55 @@ public class BaselineQAExperiment {
 		KBestParseRetriever.generateTrainingSamples(corpus, tests, umap,
 				kBest, testSamples);
 		
+		// Cache qaSamples to file because parsing is slow
+		/*
+		ObjectOutputStream out;
+		try {
+			out = new ObjectOutputStream(new FileOutputStream(trainSamplesPath));
+			out.writeObject(trainSamples);
+			out.flush();
+			out.close();
+			out = new ObjectOutputStream(new FileOutputStream(testSamplesPath));
+			out.writeObject(testSamples);
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		*/
 		KBestFeatureExtractor featureExtractor =
 				new KBestFeatureExtractor(corpus, 3);
+		allSamples.addAll(trainSamples);
+		allSamples.addAll(testSamples);
+		featureExtractor.extractFeatures(allSamples);
 		
-		trainFeats = new Feature[trains.size()][];
-		testFeats = new Feature[tests.size()][];
-		trainLabels = new double[trains.size()];
-		testLabels = new double[tests.size()];
+		trainFeats = new Feature[trainSamples.size()][];
+		testFeats = new Feature[testSamples.size()][];
+		trainLabels = new double[trainSamples.size()];
+		testLabels = new double[testSamples.size()];
 		
 		extractFeatures(trainSamples, featureExtractor, trainFeats, trainLabels);
 		extractFeatures(testSamples, featureExtractor, testFeats, testLabels);
 		
 		Model model = train(trainFeats, trainLabels, featureExtractor.numFeatures());
+		System.out.println("Training accuracy:\t");
 		predictAndEvaluate(testFeats, testLabels, model);
+		System.out.println("Testing accuracy:\t");
+		predictAndEvaluate(testFeats, testLabels, model);
+		
+		try {
+			System.setOut(new PrintStream(new BufferedOutputStream(
+					new FileOutputStream("feature_weights.csv"))));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		for (int fid = 0; fid < model.getNrFeature(); fid++) {
+			double fweight = model.getFeatureWeights()[fid + 1];
+			System.out.println(String.format("%s,%.6f",
+					featureExtractor.featureDict.getString(fid),
+					fweight));
+		}
+
 	}
 }

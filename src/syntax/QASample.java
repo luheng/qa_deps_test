@@ -80,6 +80,9 @@ public class QASample {
 				false /* is a positive sample or not*/);
 	}
 	
+	// TODO: Save and Load from data
+	
+	
 	
 	@Override
 	public String toString() {

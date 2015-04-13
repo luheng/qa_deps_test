@@ -40,8 +40,9 @@ public class XSSFDataRetriever {
 		//	"odesk/training/FrancinePoh_R6.xlsx";
 		//	"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx";
 		//	"odesk/reviewed_annotation/odesk_r3_s100_john.xlsx";
-		//	"odesk/raw_annotation/odesk_r9_p2_s50_katie.xlsx";
-			"odesk/raw_annotation/odesk_r10_p1_s50_john_fixed.xlsx";
+			"odesk/raw_annotation/odesk_r9_p2_s50_katie.xlsx";
+		//	"odesk/raw_annotation/odesk_r6_p2_s50_tracy_fixed.xlsx";
+
 	
 	private static int getHeaderId(String header) {
 		if (!header.contains("_")) {
