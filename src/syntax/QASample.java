@@ -23,7 +23,7 @@ public class QASample {
 	String[] postags;
 	String[] lemmas;
 	
-	boolean isPositiveSample;
+	public boolean isPositiveSample;
 	
 	
 	private QASample(QAPair qa,

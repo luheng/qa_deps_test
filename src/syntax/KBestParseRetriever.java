@@ -11,6 +11,7 @@ import java.util.List;
 
 import util.StringUtils;
 import data.AnnotatedSentence;
+import data.Corpus;
 import data.QAPair;
 import data.SRLCorpus;
 import data.UniversalPostagMap;
@@ -40,8 +41,6 @@ import gnu.trove.set.hash.TIntHashSet;
 
 public class KBestParseRetriever {
 
-	private static int kBest = 10;
-	
 	// Input: [1, 1, 1, 0, 0, 1, 1]
 	// Output: [1, 1, 1, 0, 0, 2, 2] , each number represents a different span
 	private static void getAnswerSpans(int[] qaFlags, int[] answerFlags,
@@ -66,22 +65,24 @@ public class KBestParseRetriever {
 		}
 	}
 	
-	private static void generateTrainingSamples(
-			SRLCorpus corpus,
-			HashMap<Integer, AnnotatedSentence> annotatedSentences,
+	public static void generateTrainingSamples(
+			Corpus corpus,
+			Collection<AnnotatedSentence> annotations,
 			UniversalPostagMap umap,
+			int kBest,
 			ArrayList<QASample> trainingSamples) {
 		LexicalizedParser lp = LexicalizedParser.loadModel(
 				"edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz",
                 "-maxLength", "80",
                 "-retainTmpSubcategories",
-                "-printPCFGkBest", String.valueOf(kBest));
+                "-printPCFGkBest", String.valueOf(kBest),
+                "-maxLength", "100");
 		
 		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
 		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
 
 		int cnt = 0, numPosSamples = 0, numNegSamples = 0;
-		for (AnnotatedSentence sent : annotatedSentences.values()) {
+		for (AnnotatedSentence sent : annotations) {
 			//System.out.println(sent.sentence.getTokensString());
 			String[] tokens = sent.sentence.getTokensString().split("\\s+");
 			LexicalizedParserQuery lpq = (LexicalizedParserQuery) lp.parserQuery();
@@ -121,7 +122,13 @@ public class KBestParseRetriever {
 					*/
 				}
 			}
-
+			
+			// debug
+			/*
+			System.out.println(sent.sentence.getTokensString());
+			System.out.println(StringUtils.join(" ", postags));
+			System.out.println(StringUtils.join(" ", univPostags));
+			*/
 			for (int propHead : sent.qaLists.keySet()) {
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					int[] answerFlags = new int[qa.answerFlags.length];
@@ -131,7 +138,8 @@ public class KBestParseRetriever {
 					// Get answer spans.
 					getAnswerSpans(qa.answerFlags, answerFlags, answerSpans);
 					
-					/*********** debug ************
+					// *********** debug ************
+					/*
 					System.out.println(StringUtils.intArrayToString("\t", qa.answerFlags));
 					System.out.println(StringUtils.intArrayToString("\t", answerFlags));
 					System.out.println(qa.getAnswerString());
@@ -176,7 +184,9 @@ public class KBestParseRetriever {
 					}
 				}
 			}
-			cnt++;
+			if (++cnt % 10 == 0) {
+				System.out.println(String.format("Processed %d sentences", cnt));
+			}
 		}
 		
 		/*
@@ -231,7 +241,7 @@ public class KBestParseRetriever {
 		for (int i = 0; i < sentIds.size() * trainTestSplit; i++) {
 			trainIds.add(sentIds.get(i));
 		}
-		generateTrainingSamples(trainCorpus, annotatedSentences, umap, samples);
+		generateTrainingSamples(trainCorpus, annotatedSentences.values(), umap, 10, samples);
 		featureExtractor.extractFeatures(samples);
 		featureExtractor.featureDict.prettyPrint();
 		
