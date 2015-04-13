@@ -2,6 +2,7 @@ package data;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import util.StringUtils;
 import annotation.AnswerSpanAligner;
@@ -21,6 +22,7 @@ public class QAPair {
 	public int[] answerFlags;
 	public ArrayList<String> answers;
 	public ArrayList<CrowdFlowerResult> cfAnnotationSources;
+	public String annotator;
 	public String comment = "";
 	
 	public QAPair(SRLSentence sent, int prop, String[] question,
@@ -117,6 +119,17 @@ public class QAPair {
 			return "";
 		}
 		return StringUtils.join(" ", questionWords) + "?";
+	}
+	
+	public String getPaddedQuestionString() {
+		if (questionWords == null) {
+			return "";
+		}
+		String qstr = "";
+		for (String qw : questionWords) {
+			qstr += (qw.isEmpty() ? "_" : qw.trim()) + "\t";
+		}
+		return qstr + "?";
 	}
 	
 	public String toString() {
