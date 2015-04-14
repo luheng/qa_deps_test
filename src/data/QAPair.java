@@ -14,7 +14,9 @@ import annotation.QuestionEncoder;
  * @author luheng
  *
  */
-public class QAPair {
+public class QAPair implements java.io.Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	public Sentence sentence;
 	public int propHead;
 	public String[] questionWords;

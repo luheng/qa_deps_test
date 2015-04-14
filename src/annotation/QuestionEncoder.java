@@ -8,6 +8,17 @@ import data.Sentence;
  *  
  */
 public class QuestionEncoder {
+	
+	
+
+	public static String encode(String[] question, Sentence sentence) {
+		String[] tokens = new String[sentence.length];
+		for (int i = 0; i < tokens.length; i++) {
+			tokens[i] = sentence.getTokenString(i);
+		}
+		return encode(question, tokens);
+	}
+	
 	/**
 	 * 
 	 * @param question 
@@ -15,7 +26,7 @@ public class QuestionEncoder {
 	 * [wh] [aux] [ph1] [trg] [ph2] [pp] [ph3]
 	 * 
 	 */
-	public static String encode(String[] question, Sentence sentence) {	
+	public static String encode(String[] question, String[] tokens) {	
 		assert (question.length == 7);
 		
 		String wh  = question[0],
@@ -32,8 +43,8 @@ public class QuestionEncoder {
 		
 		boolean hasInformativePP = false;
 		
-		for (int i = 0; i < sentence.length; i++) {
-			if (sentence.getTokenString(i).equals(pp)) {
+		for (String tok : tokens) {
+			if (tok.toLowerCase().equals(pp)) {
 				hasInformativePP = true;
 				break;
 			}
@@ -94,7 +105,7 @@ public class QuestionEncoder {
 		//System.out.println(label + "\n");
 		return label;
 	}
-	
+		
 	private static boolean isPassiveVoice(String aux, String trg) {
 		if (!trg.endsWith("ing") && (
 				trg.startsWith("have been") ||
@@ -119,4 +130,6 @@ public class QuestionEncoder {
 		return wh.equalsIgnoreCase("who") || wh.equalsIgnoreCase("what") ||
 			   wh.equalsIgnoreCase("whom");		
 	}
+
+
 }

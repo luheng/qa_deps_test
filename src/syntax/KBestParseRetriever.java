@@ -168,15 +168,21 @@ public class KBestParseRetriever {
 						if (answerHeads.contains(idx)) {
 							trainingSamples.add(
 								QASample.addPositiveSample(
-									qa, idx, answerSpans,
+									qa.sentence, propHead,
+									qa.questionWords, idx,
 									kBestScores, kBestParses,
 									postags, lemmas));
 							numPosSamples ++;
 						} else if (!univPostags[idx].equals(".") &&
 								idx != propHead) {
+							// FIXME: need to know what comes from annotation and
+							// what does not ...
+							// When creating negative examples, we shouldn't use
+							// the answer spans ...
 							trainingSamples.add(
 									QASample.addNegativeSample(
-										qa, idx, answerSpans,
+										qa.sentence, propHead,
+										qa.questionWords, idx,
 										kBestScores, kBestParses,
 										postags, lemmas));
 							numNegSamples ++;
@@ -248,7 +254,7 @@ public class KBestParseRetriever {
 		// ****************** Liblinear *******************		
 		int numTrains = 0, numTests = 0;
 		for (QASample sample : samples) {
-			if (trainIds.contains(sample.sentence.sentenceID)) {
+			if (trainIds.contains(sample.sourceSentenceId)) {
 				numTrains ++;
 			} else {
 				numTests ++;
@@ -269,7 +275,7 @@ public class KBestParseRetriever {
 		for (QASample sample : samples) {
 			TIntDoubleHashMap fv = featureExtractor.getFeatures(sample);
 			double label = (sample.isPositiveSample ? 1.0 : -1.0);
-			if (trainIds.contains(sample.sentence.sentenceID)) {
+			if (trainIds.contains(sample.sourceSentenceId)) {
 				trains[numTrains] = getFeatures(fv);
 				trainLabels[numTrains++] = label;
 			} else {

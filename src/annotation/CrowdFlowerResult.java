@@ -5,8 +5,9 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-public class CrowdFlowerResult {
-
+public class CrowdFlowerResult implements java.io.Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	// CrowdFlower specific information.
 	public int cfUnitId, cfWorkerId;
 	public String cfChannel, cfCountry, cfRegion;

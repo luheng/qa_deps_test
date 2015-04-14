@@ -2,22 +2,17 @@ package syntax;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import util.StringUtils;
-import data.QAPair;
-import data.SRLSentence;
 import data.Sentence;
-import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TypedDependency;
-import edu.stanford.nlp.util.ScoredObject;
 
-public class QASample {
-	QAPair qa;
-//	int[] answerSpans;
+public class QASample implements java.io.Serializable {
+	private static final long serialVersionUID = 1L;
+	
+	int sourceSentenceId;
+	String[] tokens;
+	String[] question;
 	int propHead, answerHead;
-	ArrayList<int[]> answerSpans;
-	Sentence sentence;
 	ArrayList<Double> kBestScores;
 	ArrayList<Collection<TypedDependency>> kBestParses;
 	String[] postags;
@@ -25,20 +20,24 @@ public class QASample {
 	
 	public boolean isPositiveSample;
 	
-	
-	private QASample(QAPair qa,
+	private QASample(
+			Sentence sentence,
+			int propHead,
+			String[] question,
 			int answerHead,
-			ArrayList<int[]> answerSpans,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
 			String[] postags,
 			String[] lemmas,
 			boolean positive) {
-		this.qa = qa;
-		this.sentence = qa.sentence;
-		this.propHead = qa.propHead;
+		this.sourceSentenceId = sentence.sentenceID;
+		this.tokens = new String[sentence.length];
+		for (int i = 0; i < sentence.length; i++) {
+			this.tokens[i] = sentence.getTokenString(i);
+		}
+		this.propHead = propHead;
+		this.question = question;
 		this.answerHead = answerHead;
-		this.answerSpans = answerSpans;
 		this.kBestScores = kBestScores;
 		this.kBestParses = kBestParses;
 		this.postags = postags;
@@ -46,16 +45,19 @@ public class QASample {
 		this.isPositiveSample = positive;
 	}
 	
-	public static QASample addPositiveSample(QAPair qa,
+	public static QASample addPositiveSample(Sentence sentence,
+			int propHead,
+			String[] question,
 			int answerHead,
-			ArrayList<int[]> answerSpans,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
 			String[] postags,
 			String[] lemmas) {
-		return new QASample(qa,
+		return new QASample(
+				sentence,
+				propHead,
+				question,
 				answerHead,
-				answerSpans,
 				kBestScores,
 				kBestParses,
 				postags,
@@ -63,38 +65,32 @@ public class QASample {
 				true /* is a positive sample or not */);
 	}
 	
-	public static QASample addNegativeSample(QAPair qa,
+	public static QASample addNegativeSample(Sentence sentence,
+			int propHead,
+			String[] question,
 			int answerHead,
-			ArrayList<int[]> answerSpans,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
 			String[] postags,
 			String[] lemmas) {
-		return new QASample(qa,
+		return new QASample(
+				sentence,
+				propHead,
+				question,
 				answerHead,
-				answerSpans,
 				kBestScores,
 				kBestParses,
 				postags,
 				lemmas,
-				false /* is a positive sample or not*/);
+				false /* is a positive sample or not */);
 	}
 	
 	// TODO: Save and Load from data
 	
-	
-	
 	@Override
 	public String toString() {
-		return String.format("%s\n%d\t%s\n%d\t%s\n \t[%s]\t%s\n%d\t[%s]\t%s\n%s\t%s",
-				(isPositiveSample ? "[POSITIVE]" : "[NEGATIVE]"),
-				sentence.sentenceID, sentence.getTokensString(),
-				propHead, sentence.getTokenString(propHead),
-				qa.getQuestionLabel(), qa.getQuestionString(),
-				answerHead, sentence.getTokenString(answerHead), qa.getAnswerString(),
-				StringUtils.join("\t", postags),
-				kBestParses.get(0));
-	//			StringUtils.join("\t", lemmas));
+		// TODO:
+		return "";
 	}
 	
 }

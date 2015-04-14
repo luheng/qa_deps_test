@@ -2,12 +2,15 @@ package data;
 
 import util.StringUtils;
 
-public class Sentence {
+public class Sentence implements java.io.Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	public int[] tokens;
 	public int length;
 	public int sentenceID;
-	public Corpus corpus;
 	public String source;
+	
+	public transient Corpus corpus;
 	
 	public Sentence(int[] tokens, Corpus corpus, int sentenceID) {
 		this.tokens = tokens;
