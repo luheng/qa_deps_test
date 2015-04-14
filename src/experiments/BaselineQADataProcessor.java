@@ -1,21 +1,14 @@
 package experiments;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Random;
 
 import annotation.SRLAnnotationValidator;
 import data.AnnotatedSentence;
-import data.QAPair;
 import data.SRLCorpus;
-import data.SRLSentence;
 
 public class BaselineQADataProcessor {
 
@@ -26,6 +19,7 @@ public class BaselineQADataProcessor {
 		//		"odesk/raw_annotation/odesk_r3_s100_b02_john.xlsx",
 				"odesk/raw_annotation/odesk_r3_s100_breanna_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx",
+				"odesk/raw_annotation/odesk_r5_p1_s50_breanna_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r6_p1_s50_francine_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r6_p2_s50_tracy_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r7_s100_ellen_fixed.xlsx",
@@ -34,7 +28,7 @@ public class BaselineQADataProcessor {
 				"odesk/raw_annotation/odesk_r10_p1_s50_john_fixed.xlsx"
 		};
 		
-	private static String outputPathPrefix = "data/odesk_s700";
+	private static String outputPathPrefix = "data/odesk_s750";
 		
 	private static final int randomSeed = 12345;
 	

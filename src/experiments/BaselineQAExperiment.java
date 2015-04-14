@@ -112,22 +112,18 @@ public class BaselineQAExperiment {
 	}
 	
 	private static Model train(Feature[][] features, double[] labels,
-			int numFeatures) {
+			int numFeatures, LiblinearHyperParameters par) {
 		Problem training = new Problem();
 		training.l = features.length;
 		training.n = numFeatures;
 		training.x = features;
 		training.y = labels;
-		
-		// L2-regularized logistic regression (primal) - l2r_lr
-		SolverType solver = SolverType.L2R_LR;
-		double C = 1.0,  eps = 0.01;
-		Parameter parameter = new Parameter(solver, C, eps);
+		Parameter parameter = new Parameter(par.solvertType, par.C, par.eps);
 		return Linear.train(training, parameter);
 	}
 	
-	private static F1Metric predictAndEvaluate(Feature[][] features, double[] labels,
-			Model model) {
+	private static F1Metric predictAndEvaluate(Feature[][] features,
+			double[] labels, Model model) {
 		int numMatched = 0, numPred = 0, numGold = 0;
 		for (int i = 0; i < features.length; i++) {
 			int pred = (int) Linear.predict(model, features[i]);
@@ -145,8 +141,8 @@ public class BaselineQAExperiment {
 		return new F1Metric(numMatched, numGold, numPred);
 	}
 	
-	private static void crossValidate(Feature[][] features, double[] labels,
-			int numFeatures, int cvFolds) {
+	private static double[] crossValidate(Feature[][] features, double[] labels,
+			int numFeatures, int cvFolds, LiblinearHyperParameters par) {
 		ArrayList<Integer> shuffledIds = new ArrayList<Integer>();
 		for (int i = 0; i < features.length; i++) {
 			shuffledIds.add(i);
@@ -158,7 +154,7 @@ public class BaselineQAExperiment {
 		Feature[][] cvValidates = new Feature[foldSize][];
 		double[] cvTrainLabels = new double[sampleSize - foldSize];
 		double[] cvValidateLabels = new double[foldSize];
-
+		double avgPrec = .0, avgRecall = .0, avgF1 = .0;
 		for (int i = 0; i < cvFolds; i++) {
 			int numTrains = 0, numValidates = 0;
 			for (int j = 0; j < sampleSize; j++) {
@@ -170,15 +166,23 @@ public class BaselineQAExperiment {
 					cvTrainLabels[numTrains++] = labels[j];
 				}
 			}
-			Model model = train(cvTrains, cvTrainLabels, numFeatures);
-			F1Metric f1 = predictAndEvaluate(cvValidates, cvValidateLabels, model);
+			Model model = train(cvTrains, cvTrainLabels, numFeatures, par);
+			F1Metric f1 = predictAndEvaluate(cvValidates, cvValidateLabels,
+					model);
 			System.out.println(String.format("Using %d training and %d dev samples.",
 					cvTrains.length, cvValidates.length));
 			System.out.println(String.format("Cross validation fold %d:\t %s",
 					i, f1.toString()));
+			avgPrec += f1.precision();
+			avgRecall += f1.recall();
+			avgF1 += f1.f1();
 		}
+		return new double[] {avgPrec / cvFolds,
+							 avgRecall / cvFolds,
+							 avgF1 / cvFolds};
 	}
 	
+	@SuppressWarnings("unused")
 	private static void generateAndSaveQASamples(
 			ArrayList<AnnotatedSentence> trains,
 			ArrayList<AnnotatedSentence> tests,
@@ -257,14 +261,16 @@ public class BaselineQAExperiment {
 		
 		//generateAndSaveQASamples(trains, tests, trainSamples, testSamples);
 		loadQASamples(trainSamples, testSamples);
-		System.out.println(String.format("Start processing %d training and %d test samples.",
-				trainSamples.size(), testSamples.size()));
+		System.out.println(String.format(
+				"Start processing %d training and %d test samples.",
+					trainSamples.size(), testSamples.size()));
 
 		KBestFeatureExtractor featureExtractor =
 				new KBestFeatureExtractor(corpus, minFeatureFreq);
 		allSamples.addAll(trainSamples);
 		allSamples.addAll(testSamples);
 		featureExtractor.extractFeatures(allSamples);
+		int numFeatures = featureExtractor.numFeatures();
 		
 		trainFeats = new Feature[trainSamples.size()][];
 		testFeats = new Feature[testSamples.size()][];
@@ -274,14 +280,38 @@ public class BaselineQAExperiment {
 		extractFeatures(trainSamples, featureExtractor, trainFeats, trainLabels);
 		extractFeatures(testSamples, featureExtractor, testFeats, testLabels);
 		
-		crossValidate(trainFeats, trainLabels, featureExtractor.numFeatures(), cvFolds);
+		ArrayList<LiblinearHyperParameters> cvPars =
+				new ArrayList<LiblinearHyperParameters>();
+		LiblinearHyperParameters bestPar = null;
+		ArrayList<double[]> cvResults = new ArrayList<double[]>();
+		double bestF1 = .0;
 		
-		Model model = train(trainFeats, trainLabels, featureExtractor.numFeatures());
+		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-3));
+		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-3));
+		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-3));
+		
+		for (LiblinearHyperParameters par : cvPars) {
+			double[] res = crossValidate(trainFeats, trainLabels, numFeatures,
+					cvFolds, par);
+			cvResults.add(res);
+			
+		}
+		for (int i = 0; i < cvResults.size(); i++) {
+			double[] res = cvResults.get(i);
+			System.out.println(String.format("%.3f\t%.3f\t%.3f\n", res[0],
+					res[1], res[2]));
+			if (res[2] > bestF1) {
+				bestF1 = res[2];
+				bestPar = cvPars.get(i);
+			}
+		}
+		
+		Model model = train(trainFeats, trainLabels, numFeatures, bestPar);
 		F1Metric f1 = predictAndEvaluate(trainFeats, trainLabels, model);
 		System.out.println("Training accuracy:\t" + f1.toString());
 		f1 = predictAndEvaluate(testFeats, testLabels, model);
 		System.out.println("Testing accuracy:\t" + f1.toString());
-
+		
 		
 		try {
 			System.setOut(new PrintStream(new BufferedOutputStream(
@@ -289,13 +319,13 @@ public class BaselineQAExperiment {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		
+		/*
 		for (int fid = 0; fid < model.getNrFeature(); fid++) {
 			double fweight = model.getFeatureWeights()[fid + 1];
 			System.out.println(String.format("%s\t%.6f",
 					featureExtractor.featureDict.getString(fid),
 					fweight));
 		}
-
+		*/
 	}
 }

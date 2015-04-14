@@ -100,12 +100,16 @@ public class QuestionEncoder {
 		if (aux.contains("not") || aux.contains("n\'t")) {
 			label += "_n";
 		}
-		
 		//System.out.println(StringUtils.join(" ", question));
 		//System.out.println(label + "\n");
 		return label;
 	}
-		
+	
+	public static boolean isPassiveVoice(String[] question) {
+		return isPassiveVoice(question[1].toLowerCase(),
+				question[3].toLowerCase());
+	}
+	
 	private static boolean isPassiveVoice(String aux, String trg) {
 		if (!trg.endsWith("ing") && (
 				trg.startsWith("have been") ||
