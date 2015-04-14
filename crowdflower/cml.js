@@ -51,14 +51,17 @@ require(['jquery-noconflict','bootstrap-modal','bootstrap-tooltip','bootstrap-po
   $('.cml-aslot').on('change', function (event) {
    var slot_name = parseSlotName(event.srcElement.name);
    var astr = "";
+   console.log($("." + slot_name));
    $("." + slot_name).each(function() {
-     if (astr.length == 0) {
-       astr += " - ";
-     } else {
-       astr += " / ";
+     if ($(this).val().length > 0) {
+       if (astr.length == 0) {
+         astr += " - ";
+       } else {
+         astr += " / ";
+       }
+       astr += $(this).val();
      }
-      astr += $(this).val();
-    });
+   });
    //var astr = " - " + $("." + slot_name).val();
    $("#show_" + slot_name).html("<span>" + astr + "</span>");
   });

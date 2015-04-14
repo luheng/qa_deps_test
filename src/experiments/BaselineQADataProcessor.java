@@ -25,10 +25,11 @@ public class BaselineQADataProcessor {
 				"odesk/raw_annotation/odesk_r7_s100_ellen_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r8_s100_ellen_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r9_p2_s50_katie_fixed.xlsx",
-				"odesk/raw_annotation/odesk_r10_p1_s50_john_fixed.xlsx"
+				"odesk/raw_annotation/odesk_r10_p1_s50_john_fixed.xlsx",
+				"odesk/raw_annotation/odesk_r10_p2_s50_sarah_fixed.xlsx"
 		};
 		
-	private static String outputPathPrefix = "data/odesk_s750";
+	private static String outputPathPrefix = "data/odesk_s800";
 		
 	private static final int randomSeed = 12345;
 	

@@ -37,11 +37,11 @@ import evaluation.F1Metric;
 
 public class BaselineQAExperiment {
 
-	private static String trainFilePath = "data/odesk_s700.train.qa";
-	private static String testFilePath = "data/odesk_s700.test.qa";
+	private static String trainFilePath = "data/odesk_s800.train.qa";
+	private static String testFilePath = "data/odesk_s800.test.qa";
 	
-	private static String trainSamplesPath = "odesk_s700_5best.train.qaSamples";
-	private static String testSamplesPath = "odesk_s700_5best.test.qaSamples";
+	private static String trainSamplesPath = "odesk_s800_10best.train.qaSamples";
+	private static String testSamplesPath = "odesk_s800_10best.test.qaSamples";
 	
 	private static final int randomSeed = 12345;
 	
@@ -118,7 +118,7 @@ public class BaselineQAExperiment {
 		training.n = numFeatures;
 		training.x = features;
 		training.y = labels;
-		Parameter parameter = new Parameter(par.solvertType, par.C, par.eps);
+		Parameter parameter = new Parameter(par.solverType, par.C, par.eps);
 		return Linear.train(training, parameter);
 	}
 	
@@ -186,12 +186,12 @@ public class BaselineQAExperiment {
 	private static void generateAndSaveQASamples(
 			ArrayList<AnnotatedSentence> trains,
 			ArrayList<AnnotatedSentence> tests,
+			int kBest,
 			ArrayList<QASample> trainSamples,
 			ArrayList<QASample> testSamples) {
 		Corpus corpus = trains.get(0).sentence.corpus;
 		UniversalPostagMap umap = ExperimentUtils.loadPostagMap();
 		
-		int kBest = 5;
 		KBestParseRetriever.generateTrainingSamples(corpus, trains, umap,
 				kBest, trainSamples);
 		KBestParseRetriever.generateTrainingSamples(corpus, tests, umap,
@@ -250,7 +250,7 @@ public class BaselineQAExperiment {
 		
 		Feature[][] trainFeats, testFeats;
 		double[] trainLabels, testLabels;
-		int cvFolds = 5, minFeatureFreq = 5;
+		int cvFolds = 5, minFeatureFreq = 5, kBest = 10;
 
 		try { 
 			loadData(trainFilePath, corpus, trains);
@@ -259,7 +259,7 @@ public class BaselineQAExperiment {
 			e.printStackTrace();	
 		}
 		
-		//generateAndSaveQASamples(trains, tests, trainSamples, testSamples);
+		//generateAndSaveQASamples(trains, tests, kBest, trainSamples, testSamples);
 		loadQASamples(trainSamples, testSamples);
 		System.out.println(String.format(
 				"Start processing %d training and %d test samples.",
@@ -289,17 +289,20 @@ public class BaselineQAExperiment {
 		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-3));
 		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-3));
 		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-3));
+		cvPars.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-3));
+		//cvPars.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVC, 0.1, 1e-3));
+		//cvPars.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVR, 0.1, 1e-3));
 		
 		for (LiblinearHyperParameters par : cvPars) {
 			double[] res = crossValidate(trainFeats, trainLabels, numFeatures,
 					cvFolds, par);
 			cvResults.add(res);
-			
 		}
+		
 		for (int i = 0; i < cvResults.size(); i++) {
 			double[] res = cvResults.get(i);
-			System.out.println(String.format("%.3f\t%.3f\t%.3f\n", res[0],
-					res[1], res[2]));
+			System.out.println(String.format("%s\t%.3f\t%.3f\t%.3f\n",
+					cvPars.get(i).toString(), res[0], res[1], res[2]));
 			if (res[2] > bestF1) {
 				bestF1 = res[2];
 				bestPar = cvPars.get(i);

@@ -6,8 +6,9 @@ We want to teach the computer to understand human language. To do this, we need 
 ### Process
 You will be presented with a sentence and a target phrase (most likely a verb) that occurs in the sentence. For example, given the sentence "Pat built a robot." and the target phrase "built", your job is to:
 
-* <b>Step 1:</b>&nbsp; Write a question using the template we provide. Your question should be answerable given only the information the sentence provides. For example, "Who built something?" is answerable, while "When is something built" is not.
-* <b>Step 2:</b>&nbsp; Answer that question using only words from the original sentence.  For example, "Pat". When there is more than one correct answer, try to list them all.
+* <b>Step 1:</b>&nbsp; Read the sentence carefully, and make sure you understand its full meaning.
+* <b>Step 2:</b>&nbsp; Write a question using the template we provide. Your question should be answerable given only the information the sentence provides. For example, "Who built something?" is answerable, while "When is something built" is not.
+* <b>Step 3:</b>&nbsp; Answer that question using only words from the original sentence.  For example, "Pat". When there is more than one correct answer, try to list them all.
 
 To collect questions that computers can easily understand, we provide a template with seven 
 drop-down boxes, as shown below:
@@ -16,7 +17,7 @@ drop-down boxes, as shown below:
 <tr><th>WH *</th>   <td>Question words (wh-words).</td> <td>who, what, where ...</td></tr>
 <tr><th>AUX</th>  <td>Auxiliary verbs</td>           <td>is, was, have, had, could, won't ...</td></tr>
 <tr><th>PH1</th>  <td>Place-holding words</td>       <td>something, someone</td></tr>
-<tr><th>TRG *</th>  <td>Some form of the target word. </td> <td> (if original word is built) builds, build, built, being built</td></tr> 
+<tr><th>TRG *</th>  <td>Some form of the target word. </td> <td> (if original word is built) builds, build, built, be built</td></tr> 
 <tr><th>PH2</th>  <td>Same as PH1</td>  <td> </td> </tr>
 <tr><th>PP</th>   <td>Prepositions</td> <td>to, from, by, with, ... </td> </tr>
 <tr><th>PH3</th>  <td>Same as PH1 and PH2, with additional options such as "do something"</td>  <td> </td> </tr>
@@ -24,7 +25,7 @@ drop-down boxes, as shown below:
 \*: WH and TRG are required drop-down boxes. The rest can be left empty when appropriate.
 
 Very importantly, we want you to write down as many questions and answers as possible. For example, for the same sentence "Pat built a robot." and the same target phrase "built", we can also ask "What was built" and answer "A robot".
-You can write up to 10 questions. There are usually 2 to 5 different questions that can be asked depending on how much information the original sentence provides. 
+You can write up to 8 questions. There are usually 2 to 5 different questions that can be asked depending on how much information the original sentence provides. 
 
 ### Examples
 Here are some examples that can help you better understand the task. In each example, the target phrase is the highlighted word(s) in the sentence.
@@ -73,6 +74,7 @@ Example 4: &nbsp; <b> The robot <mark>moved</mark> from the garage to the kitche
 <tr><td>Where</td> <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td>to</td>   <td> </td>   <td>?</td> <td>The kitchen</td>   </tr>
 <tr><td>Why</td>   <td>did</td> <td>something</td> <td>move</td>  <td> </td>   <td> </td>    <td> </td>   <td>?</td> <td>Because it was programmed to do so</td> </tr>
 </table>
+
 
 <br>
 
@@ -144,6 +146,10 @@ Example 10: &nbsp; <b> Newspaper reported that Pat have n't actually <mark>built
 
 ### Tips
 <h4 style="color:#8cc63e;"><strong>Do This</strong></h4>
+* Please make sure you understand the full meaning of the sentence before writing questions and answers.
+<br>
+For example, "Pat made a plan to build a robot next month", it's OK to ask "When will someone build something?"
+but NOT OK to ask "When did someone make something?" because the sentence doesn't tell you that.
 * Please make sure the questions you asked are grammatical and understandable.
 * Trust your understanding of the language! :)
 * Feedback is highly appreciated!

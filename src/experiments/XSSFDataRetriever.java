@@ -37,7 +37,7 @@ public class XSSFDataRetriever {
 		//	"odesk/training/FrancinePoh_R6.xlsx";
 		//	"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx";
 		//	"odesk/reviewed_annotation/odesk_r3_s100_john.xlsx";
-			"odesk/raw_annotation/odesk_r5_p1_s50_breanna_fixed.xlsx";
+			"odesk/raw_annotation/odesk_r10_p2_s50_sarah_fixed.xlsx";
 		//	"odesk/raw_annotation/odesk_r6_p2_s50_tracy_fixed.xlsx";
 
 	
@@ -110,7 +110,12 @@ public class XSSFDataRetriever {
 		        	}
 		        	String[] question = new String[7];
 		        	for (int c = 1; c <= 7; c++) {
-		        		question[c-1] = row.getCell(c).getStringCellValue();        		
+		        		if (row.getCell(c) == null) {
+		        			question[c-1] = "";
+		        			continue;
+		        		} else {
+		        			question[c-1] = row.getCell(c).getStringCellValue();        		
+		        		}
 		        	}
 		        	QAPair qa = new QAPair(sent, propHead, question,
 		        			"" /* answer */,
@@ -125,7 +130,9 @@ public class XSSFDataRetriever {
 		        			qa.addAnswer(ans);
 		        		}
 		        	}
-		        	qa.comment = row.getCell(14).getStringCellValue().trim();
+		        	if (row.getCell(14) != null) {
+		        		qa.comment = row.getCell(14).getStringCellValue().trim();
+		        	}
 		        	if (!question[0].isEmpty() && !question[3].isEmpty() &&
 		        			!qa.getAnswerString().isEmpty()) {
 		        		qaList.add(qa);
@@ -202,10 +209,14 @@ public class XSSFDataRetriever {
 	        		row.getCell(1).toString().isEmpty()) {
 	        		continue;
 	        	}
-	        	//System.out.println(unitId + ", " + row.getCell(0).toString() + ", " + row.getLastCellNum());
 	        	String[] question = new String[7];
 	        	for (int c = 1; c <= 7; c++) {
-	        		question[c-1] = row.getCell(c).getStringCellValue();        		
+	        		if (row.getCell(c) == null) {
+	        			question[c-1] = "";
+	        			continue;
+	        		} else {
+	        			question[c-1] = row.getCell(c).getStringCellValue();        		
+	        		}
 	        	}
 	        	QAPair qa = new QAPair(sent, propHead, question,
 	        			"" /* answer */, null /* cf source */);
@@ -223,7 +234,9 @@ public class XSSFDataRetriever {
 	        			}
 	        		}
 	        	}
-	        	qa.comment = row.getCell(14).getStringCellValue().trim();
+	        	if (row.getCell(14) != null) {
+	        		qa.comment = row.getCell(14).getStringCellValue().trim();
+	        	}
 	        	if (ansPerQuestion == 0) {
 	        		hasEmptyAnswer = true;
 	        		continue;

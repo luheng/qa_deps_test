@@ -35,6 +35,7 @@ label {
 
 .cml-aslot {
   margin: 0 2 2px;
+  width: 650px;
 }
 
 .cml-aslot > label.legend {
@@ -43,15 +44,11 @@ label {
 
 .cml-ffqslot {
   margin: 0 2 2px;
-  width: 400px;
+  width: 600px;
 }
 
 .cml-chk-inline {
   display:inline-block;
-}
-
-.answer_text {
-  width: 200px;
 }
 
 .cml .legend, label {
@@ -65,8 +62,15 @@ label {
   line-height: 105%;
 }
 
+/************** Fixing dropdown box size **************/
+select, .uneditable-input {
+  width: 100%;
+}
+
+/************** Fixing answer box size ***************/
 .cml .cml_field input[type="text"] {
   padding: 4 0 2px;
+  max-width: 600px;
 }
 
 #sent_box {
