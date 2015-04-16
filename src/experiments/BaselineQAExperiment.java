@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 
-import syntax.KBestFeatureExtractor;
+import syntax.AnswerIdFeatureExtractor;
 import syntax.KBestParseRetriever;
 import syntax.QASample;
 import data.AnnotatedSentence;
@@ -40,8 +40,8 @@ public class BaselineQAExperiment {
 	private static String trainFilePath = "data/odesk_s800.train.qa";
 	private static String testFilePath = "data/odesk_s800.test.qa";
 	
-	private static String trainSamplesPath = "odesk_s800_10best.train.qaSamples";
-	private static String testSamplesPath = "odesk_s800_10best.test.qaSamples";
+	private static String trainSamplesPath = "odesk_s800_20best.train.qaSamples";
+	private static String testSamplesPath = "odesk_s800_20best.test.qaSamples";
 	
 	private static final int randomSeed = 12345;
 	
@@ -95,7 +95,7 @@ public class BaselineQAExperiment {
 	}
 	
 	private static void extractFeatures(ArrayList<QASample> samples,
-			KBestFeatureExtractor featureExtractor,
+			AnswerIdFeatureExtractor featureExtractor,
 			Feature[][] features, double[] labels) {
 		for (int i = 0; i < samples.size(); i++) {
 			QASample sample = samples.get(i);
@@ -250,7 +250,7 @@ public class BaselineQAExperiment {
 		
 		Feature[][] trainFeats, testFeats;
 		double[] trainLabels, testLabels;
-		int cvFolds = 5, minFeatureFreq = 5, kBest = 10;
+		int cvFolds = 5, minFeatureFreq = 5, kBest = 20;
 
 		try { 
 			loadData(trainFilePath, corpus, trains);
@@ -259,14 +259,17 @@ public class BaselineQAExperiment {
 			e.printStackTrace();	
 		}
 		
-		//generateAndSaveQASamples(trains, tests, kBest, trainSamples, testSamples);
-		loadQASamples(trainSamples, testSamples);
+	//	generateAndSaveQASamples(trains, tests, kBest, trainSamples, testSamples);
+		if (trainSamples.size() == 0) {
+			loadQASamples(trainSamples, testSamples);
+		}
+		
 		System.out.println(String.format(
 				"Start processing %d training and %d test samples.",
 					trainSamples.size(), testSamples.size()));
 
-		KBestFeatureExtractor featureExtractor =
-				new KBestFeatureExtractor(corpus, minFeatureFreq);
+		AnswerIdFeatureExtractor featureExtractor =
+				new AnswerIdFeatureExtractor(corpus, kBest, minFeatureFreq);
 		allSamples.addAll(trainSamples);
 		allSamples.addAll(testSamples);
 		featureExtractor.extractFeatures(allSamples);
@@ -286,10 +289,10 @@ public class BaselineQAExperiment {
 		ArrayList<double[]> cvResults = new ArrayList<double[]>();
 		double bestF1 = .0;
 		
-		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-3));
-		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-3));
-		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-3));
-		cvPars.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-3));
+		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
+		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
+		cvPars.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
+		//cvPars.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-2));
 		//cvPars.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVC, 0.1, 1e-3));
 		//cvPars.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVR, 0.1, 1e-3));
 		
@@ -322,13 +325,10 @@ public class BaselineQAExperiment {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		/*
 		for (int fid = 0; fid < model.getNrFeature(); fid++) {
 			double fweight = model.getFeatureWeights()[fid + 1];
 			System.out.println(String.format("%s\t%.6f",
-					featureExtractor.featureDict.getString(fid),
-					fweight));
+					featureExtractor.featureDict.getString(fid), fweight));
 		}
-		*/
 	}
 }

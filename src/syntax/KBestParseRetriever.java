@@ -223,8 +223,8 @@ public class KBestParseRetriever {
 		HashMap<Integer, AnnotatedSentence> annotatedSentences =
 				new HashMap<Integer, AnnotatedSentence>();
 		ArrayList<QASample> samples = new ArrayList<QASample>();
-		KBestFeatureExtractor featureExtractor =
-				new KBestFeatureExtractor(trainCorpus, 3 /* min feature count */);
+		AnswerIdFeatureExtractor featureExtractor =
+				new AnswerIdFeatureExtractor(trainCorpus, 10, 3 /* min feature count */);
 		
 		try {
 			XSSFDataRetriever.readXSSFAnnotations(xlsxFilePath,

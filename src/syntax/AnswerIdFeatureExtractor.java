@@ -14,15 +14,17 @@ import data.VerbInflectionDictionary;
 import edu.stanford.nlp.trees.TypedDependency;
 import experiments.ExperimentUtils;
 
-public class KBestFeatureExtractor {
+public class AnswerIdFeatureExtractor {
 	@SuppressWarnings("unused")
 	private Corpus corpus = null;
 	private VerbInflectionDictionary inflDict = null;
 	public CountDictionary featureDict = null;
-	public final int minFeatureFreq;
+	public final int numBestParses, minFeatureFreq;
 	
-	public KBestFeatureExtractor(Corpus corpus, int minFeatureFreq) {
+	public AnswerIdFeatureExtractor(Corpus corpus, int numBestParses,
+			int minFeatureFreq) {
 		this.corpus = corpus;
+		this.numBestParses = numBestParses;
 		this.minFeatureFreq = minFeatureFreq;
 		inflDict = ExperimentUtils.loadInflectionDictionary(corpus);
 	}
@@ -121,18 +123,30 @@ public class KBestFeatureExtractor {
 		String wh = question[0].toLowerCase();
 		String qlabel = QuestionEncoder.encode(question, tokens).toLowerCase();
 		String qvoice = (QuestionEncoder.isPassiveVoice(question) ? "Psv" : "Aktv");
+		int kBest = Math.min(numBestParses, sample.kBestParses.size());
 		
 		// ***************** Proposition features ********************		
 		
 		// Proposition word and lemma, conditioned question and question label
-		fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PTOK_WH=" + prop + "_" + wh, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM_WH=" + plemma + "_" + wh, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PTOK_QL=" + prop + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM_QL=" + plemma + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PTOK_QV=" + prop + "_" + qvoice, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM_QV=" + plemma + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PTOK_ATOK=" + prop + "_" + answer, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PTOK_APOS=" + prop + "_" + apos, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_ATOK=" + plemma + "_" + answer, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_APOS=" + plemma + "_" + apos, acceptNew), 1, 1);
+
+		fv.adjustOrPutValue(fdict.addString("PTOK_ATOK_WH=" + prop + "_" + answer + "_" + wh, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PTOK_APOS_WH=" + prop + "_" + apos + "_" + wh, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_ATOK_WH=" + plemma + "_" + answer + "_" + wh, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_APOS_WH=" + plemma + "_" + apos + "_" + wh, acceptNew), 1, 1);
+
+		fv.adjustOrPutValue(fdict.addString("PTOK_ATOK_QL=" + prop + "_" + answer + "_" + qlabel, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PTOK_APOS_QL=" + prop + "_" + apos + "_" + qlabel, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_ATOK_QL=" + plemma + "_" + answer + "_" + qlabel, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_APOS_QL=" + plemma + "_" + apos + "_" + qlabel, acceptNew), 1, 1);
+
+		fv.adjustOrPutValue(fdict.addString("PTOK_ATOK_QV=" + prop + "_" + answer + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PTOK_APOS_QV=" + prop + "_" + apos + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_ATOK_QV=" + plemma + "_" + answer + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_APOS_QV=" + plemma + "_" + apos + "_" + qvoice, acceptNew), 1, 1);
 		
 		// Voice of proposition verb.
 		String pvoice = "Aktv";
@@ -142,13 +156,18 @@ public class KBestFeatureExtractor {
 				break;
 			}
 		}
-		fv.adjustOrPutValue(fdict.addString("PV=" + pvoice, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PV_WH=" + pvoice + "_" + wh, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PV_QL=" + pvoice + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PV_QV=" + pvoice + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_ATOK=" + pvoice + "_" + answer, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_APOS=" + pvoice + "_" + apos, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_ATOK_WH=" + pvoice + "_" + answer + "_" + wh, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_APOS_WH=" + pvoice + "_" + apos + "_" + wh, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_ATOK_QL=" + pvoice + "_" + answer + "_" + qlabel, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_APOS_QL=" + pvoice + "_" + apos + "_" + qlabel, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_ATOK_QV=" + pvoice + "_" + answer + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_APOS_QV=" + pvoice + "_" + apos + "_" + qvoice, acceptNew), 1, 1);
 		
 		// Parents and parent edge labels of proposition in kbest parses.
-		for (int i = 0; i < sample.kBestParses.size(); i++) {
+		/*
+		for (int i = 0; i < kBest; i++) {
 			Collection<TypedDependency> deps = sample.kBestParses.get(i);			
 			for (TypedDependency dep : lookupParentsByChild(deps, propId)) {
 				String relStr = dep.reln().toString();
@@ -173,7 +192,7 @@ public class KBestFeatureExtractor {
 				}
 			}
 		}
-		
+		*/
 		
 		//*******************  Argument features **********************
 		
@@ -188,11 +207,9 @@ public class KBestFeatureExtractor {
 		fv.adjustOrPutValue(fdict.addString("ATOK_QV=" + answer + "_" + qvoice, acceptNew), 1, 1);
 		
 		// ****************** Argument syntactic context ************************
-		
-		// Parents and parent edge labels of answer head in kbest parses.
-		// Leftmost and rightmost children of answer head.
-		for (int i = 0; i < sample.kBestParses.size(); i++) {
+		for (int i = 0; i < kBest; i++) {
 			Collection<TypedDependency> deps = sample.kBestParses.get(i);
+			// Parents and parent edge labels of answer head in kbest parses.
 			for (TypedDependency dep : lookupParentsByChild(deps, answerId)) {
 				String relStr = dep.reln().toString();
 				String govTok = dep.gov().word();
@@ -228,6 +245,7 @@ public class KBestFeatureExtractor {
 					fv.adjustOrPutValue(fdict.addString("PisPr(A)_QV=" + relStr + "_" + qvoice, acceptNew), 1, 1);
 				}
 			}
+			// Leftmost and rightmost children of answer head.
 			int leftMostChild = length, rightMostChild = -1;
 			for (TypedDependency dep : lookupChildrenByParent(deps, answerId)) {
 				int depId = dep.dep().index() - 1;
@@ -288,7 +306,7 @@ public class KBestFeatureExtractor {
 		fv.adjustOrPutValue(fdict.addString("RelPos_QV=" + relPos + "_" + qvoice, acceptNew), 1, 1);
 		
 		// Syntactic path between proposition and argument
-		for (int i = 0; i < sample.kBestParses.size(); i++) {
+		for (int i = 0; i < kBest; i++) {
 			Collection<TypedDependency> deps = sample.kBestParses.get(i);
 			ArrayList<TypedDependency> depPath = lookupDepPath(deps, answerId, propId);
 			String rels = getRelPathString(depPath, answerId);
