@@ -5,50 +5,55 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import annotation.AuxiliaryVerbIdentifier;
+import data.Corpus;
 import data.DepSentence;
 import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;
+import data.Sentence;
 import data.UniversalPostagMap;
 import edu.stanford.nlp.tagger.maxent.MaxentTagger;
 import evaluation.F1Metric;
 
-public class PostaggerVerbIdentifier {	
-	private MaxentTagger tagger = null;
-	private AuxiliaryVerbIdentifier auxDict = null;
+public class PosTaggerVerbIdentifier {	
+	private ArrayList<MaxentTagger> taggers = null;
 	private UniversalPostagMap univPos = null;
 	
-	public PostaggerVerbIdentifier(SRLCorpus corpus) {
-		tagger = new MaxentTagger("libs/english-left3words-distsim.tagger");
+	public PosTaggerVerbIdentifier(Corpus corpus) {
+		taggers = new ArrayList<MaxentTagger>();
+		taggers.add(new MaxentTagger("libs/english-left3words-distsim.tagger"));
+		taggers.add(new MaxentTagger("libs/english-bidirectional-distsim.tagger"));
 		univPos = new UniversalPostagMap();
 		try {
 			univPos.loadFromFile("/Users/luheng/data/CONLL-x/univmap/en-ptb.map");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		auxDict = new AuxiliaryVerbIdentifier(corpus);
 	}
 	
-	public ArrayList<Integer> extractContentVerbs(DepSentence sentence) {
+	public ArrayList<Integer> extractContentVerbs(Sentence sentence) {
 		int length = sentence.length;
 		boolean[] isVerb = new boolean[length];
 		boolean[] isAux = new boolean[length];
 		Arrays.fill(isVerb, false);
 		Arrays.fill(isAux, false);
-		String tagged = tagger.tagTokenizedString(sentence.getTokensString());
-		String[] tags = tagged.split(" ");
+
+		for (MaxentTagger tagger : taggers) {
+			String[] tags = tagger.tagTokenizedString(sentence.getTokensString())
+					.split(" ");
 	
-		for (int i = 0; i < length; i++) {
-			//String token = sentence.getTokenString(i);
-			String tag = tags[i].split("_")[1];
-			if (univPos.getUnivPostag(tag).equals("VERB")) {
-				isVerb[i] = true;
-			}
-			// This function, specifically, does not use pos-tag information.
-			if (auxDict.isAuxiliaryVerb(sentence,i)) {
-				isAux[i] = true;
+			for (int i = 0; i < length; i++) {
+				String tag = tags[i].split("_")[1];
+				if (univPos.getUnivPostag(tag).equals("VERB")) {
+					isVerb[i] = true;
+				}
+				// This function, specifically, does not use pos-tag information.
+				if (AuxiliaryVerbIdentifier.isAuxiliaryVerb(sentence,i)) {
+					isAux[i] = true;
+				}
 			}
 		}
+		// FIXME ...
 		ArrayList<Integer> verbs = new ArrayList<Integer>();
 		for (int i = 0; i < length; i++) {
 			// Simple auxverb test.
@@ -79,8 +84,8 @@ public class PostaggerVerbIdentifier {
 		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
 				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
 	
-		PostaggerVerbIdentifier verbId =
-				new PostaggerVerbIdentifier(trainCorpus);
+		PosTaggerVerbIdentifier verbId =
+				new PosTaggerVerbIdentifier(trainCorpus);
 		
 		F1Metric avgAcc = new F1Metric();
 		for (int i = 0; i < trainCorpus.sentences.size(); i++) {

@@ -52,6 +52,16 @@ public class Sentence implements java.io.Serializable {
 				corpus.wordDict.getStringArray(tokens));
 	}
 	
+	public boolean containsQuestion() {
+		for (int i = 0; i < length; i++) {
+			String word = getTokenString(i);
+			if (word.equals("?")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		return "ID:\t" + this.sentenceID + "\n" +

@@ -522,23 +522,13 @@ public class CrowdFlowerQADataPreparation {
         		unitCounter, xlsxFileName));
 	}
 	
-	private static boolean isQuestion(Sentence sentence) {
-		for (int i = 0; i < sentence.length; i++) {
-			String word = sentence.getTokenString(i);
-			if (word.equals("?")) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	private static int[] getNonQuestionSentenceIds() {
 		TIntArrayList ids = new TIntArrayList();
 		for (Sentence sentence : trainCorpus.sentences) {
 			if (sentence.sentenceID > maxSentenceID) {
 				break;
 			}
-			if (!isQuestion(sentence) && sentence.length >= 10) {
+			if (sentence.containsQuestion() && sentence.length >= 10) {
 				ids.add(sentence.sentenceID);
 			}
 		}

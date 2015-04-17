@@ -6,9 +6,10 @@ import java.util.HashSet;
 import util.StringUtils;
 import data.DepCorpus;
 import data.DepSentence;
+import data.Sentence;
 
 public class AuxiliaryVerbIdentifier {
-	private final String[] enAuxiliaryVerbs = {
+	private static final String[] enAuxiliaryVerbs = {
 			"be",
 			"being",
 			"am",
@@ -30,6 +31,7 @@ public class AuxiliaryVerbIdentifier {
 			"did",
 			"done",
 			"have",
+			"having",
 			"\'ve",
 			"has",
 			"had",
@@ -47,23 +49,16 @@ public class AuxiliaryVerbIdentifier {
 		//	"is going to"
 	};
 	
-	private HashSet<String> identityVerbs;
+	private HashSet<String> copulaVerbs;
 	
 	private int verbPosID, advPosID;
-	private HashSet<Integer> enAuxiliaryVerbSet;
+	private static HashSet<String> enAuxiliaryVerbSet;
 	
 	public AuxiliaryVerbIdentifier(DepCorpus corpus) {
-		enAuxiliaryVerbSet = new HashSet<Integer>();
-		for (String verb : enAuxiliaryVerbs) {
-			int verbID = corpus.wordDict.lookupString(verb);
-			if (verbID != -1) {
-				enAuxiliaryVerbSet.add(verbID);
-			}
-		}
 		verbPosID = corpus.posDict.lookupString("VERB");
 		advPosID = corpus.posDict.lookupString("ADV");
-		identityVerbs = StringUtils.asSet("be", "being", "am", "\'m", "is",
-				"\'s", "are", "\'re", "was", "were", "been");
+		copulaVerbs = StringUtils.asSet("be", "being", "am", "\'m", "is",
+				"\'s", "are", "\'re", "was", "were", "been", "being");
 	}
 	
 	public boolean ignoreVerbForSRL(DepSentence sentence, int idx) {
@@ -83,7 +78,7 @@ public class AuxiliaryVerbIdentifier {
 			return true;
 		}
 		// "Stand alone auxiliary verbs"
-		return identityVerbs.contains(token);
+		return copulaVerbs.contains(token);
 	}
 	
 	/**
@@ -130,18 +125,25 @@ public class AuxiliaryVerbIdentifier {
 		return id < sentence.length && sentence.postags[id] == verbPosID;
 	}
 	
-	public boolean isAuxiliaryVerb(DepSentence sentence, int id) {
-		return id < sentence.length &&
-			   enAuxiliaryVerbSet.contains(sentence.tokens[id]);
+	public static boolean isAuxiliaryVerb(Sentence sentence, int id) {
+		if (enAuxiliaryVerbSet == null) {
+			enAuxiliaryVerbSet = new HashSet<String>();
+			for (String verb : enAuxiliaryVerbs) {
+				enAuxiliaryVerbSet.add(verb);
+			}
+		}
+		return id < sentence.length && enAuxiliaryVerbSet.contains(
+				   sentence.getTokenString(id).toLowerCase());
 	}
 	
-	public boolean isNegationWord(DepSentence sentence, int id) {
+	public boolean isNegationWord(Sentence sentence, int id) {
 		if(id < sentence.length) {
 			String tok = sentence.getTokenString(id);
 			return tok.equalsIgnoreCase("n\'t") || tok.equalsIgnoreCase("not");
 		}
 		return false;
 	}
+	
 	public boolean isModifierWord(DepSentence sentence, int id) {
 		return id < sentence.length && sentence.postags[id] == advPosID; 
 	}

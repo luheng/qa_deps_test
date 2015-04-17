@@ -34,10 +34,9 @@ public class XSSFDataRetriever {
 		//	"odesk/training/r2_s100_new_with_samples donna_20150404.xlsx";
 		//	"odesk/raw_annotation/odesk_r6_p1_s50_francine_fixed.xlsx";
 		//	"odesk/training/odesk_r3_s100_katie.xlsx";
-		//	"odesk/training/FrancinePoh_R6.xlsx";
 		//	"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx";
 		//	"odesk/reviewed_annotation/odesk_r3_s100_john.xlsx";
-			"odesk/raw_annotation/odesk_r10_p2_s50_sarah_fixed.xlsx";
+			"odesk/raw_annotation/odesk_r11_p2_s50_john_fixed.xlsx";
 		//	"odesk/raw_annotation/odesk_r6_p2_s50_tracy_fixed.xlsx";
 
 	

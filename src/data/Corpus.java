@@ -16,5 +16,4 @@ public class Corpus {
 	public Sentence getSentence(int sentId) {
 		return sentences.get(sentId);
 	}
-	
 }
