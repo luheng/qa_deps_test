@@ -36,7 +36,7 @@ public class XSSFDataRetriever {
 		//	"odesk/training/odesk_r3_s100_katie.xlsx";
 		//	"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx";
 		//	"odesk/reviewed_annotation/odesk_r3_s100_john.xlsx";
-			"odesk/raw_annotation/odesk_r11_p2_s50_john_fixed.xlsx";
+			"odesk/raw_annotation/odesk_r11_p1_s50_katie_fixed.xlsx";
 		//	"odesk/raw_annotation/odesk_r6_p2_s50_tracy_fixed.xlsx";
 
 	
