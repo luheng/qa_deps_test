@@ -51,7 +51,7 @@ public class WikipediaCorpus extends Corpus {
 			for (int fid = 0; fid < maxNumFilesPerDir; fid ++) {
 				String fname = String.format("%s/%s%02d",
 						dir.getAbsolutePath(), wikiFilePrefix, fid);
-				System.out.println(String.format("Processing %d ...", fname));
+				System.out.println(String.format("Processing %s ...", fname));
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(new FileInputStream(fname), "UTF8"));
 				
