@@ -1,10 +1,9 @@
 package data;
 
 import edu.stanford.nlp.ling.HasWord;
-import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.process.DocumentPreprocessor;
-import edu.stanford.nlp.process.PTBTokenizer;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -16,33 +15,128 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.StringReader;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import annotation.PTBTokens;
 
 public class WikipediaCorpus extends Corpus {
 
-	HashMap<Integer, WikipediaDocInfo> wikiInfo;
+	public HashMap<Integer, WikipediaDocInfo> wikiInfo;
+	public ArrayList<Integer> docIds, paragraphIds;
+	
 	private static final String wikiFilePrefix = "wiki_";
 	private static final int maxNumFilesPerDir = 100;
 	
+	private static final int minSentenceLength = 10;
+	private static final int maxSentenceLength = 100;
+	private static final int maxNumSentences = 1000;
+	private static final int maxAllowedNesting = 1;
+	private static final int maxAllowedBrackets = 2;
+	private static final int randomSeed = 123456;
+	private static final double sampleRate = 0.0005;
+	
+	private static HashMap<String, String> bracketMap;
+	static {
+		bracketMap = new HashMap<String, String>();
+		bracketMap.put("(", ")");
+		bracketMap.put("[", "]");
+		bracketMap.put("{", "}");
+		bracketMap.put("``", "''");
+		bracketMap.put("`", "'");
+	}
+	
 	public WikipediaCorpus(String corpusName) {
 		super(corpusName);
+		wikiInfo = new HashMap<Integer, WikipediaDocInfo>();
+		docIds = new ArrayList<Integer>();
+		paragraphIds = new ArrayList<Integer>();
 	}
-/*
-	private boolean containsNonEnglishCharacters(String str) {
-		return !str.matches("^[\u0000-\u0080]+$");
+	
+	private boolean preTest(String str) {
+		//return !str.matches("^[\u0000-\u0080]+$");
+		// Only keeping paragraphs:
+		// 1). Contains English character only.
+		// 2). Starts with an uppercase letter or the character ".
+		return str.matches("^[\"A-Z][\u0000-\u0080]+$");
+//		return str.matches("^[\"A-Z][\u0000-\u0080&&[^\\(\\)\\{\\}\\[\\]]]+$");
 	}
-*/
+	
+	private String removeEmptyBrackets(String str) {
+		String ret = str;
+		for (int i = 0; i < 10; i++) {			
+			String ret1 = ret.replaceAll("``[^`']*''", "")
+					.replaceAll("\\([^\\(\\)]*\\)", "")
+					.replaceAll("\\[[^\\[\\]]*\\]", "")
+					.replaceAll("\\{[^\\{\\}]*\\}", "");
+			if (ret1.equals(ret)) {
+				break;
+			}
+		//	System.out.println(ret + "\n" + ret1 + "\n");
+			ret = ret1;
+		}
+		return ret;
+	}
+
+	private boolean bracketingChecker(Sentence sentence) {
+		TObjectIntHashMap<String> stack = new TObjectIntHashMap<String>();
+		int numNesting = 0, maxNumNesting = 0, numBrackets = 0;
+		for (int i = 0; i < sentence.length; i++) {
+			String token = sentence.getTokenString(i);
+			if (bracketMap.keySet().contains(token)) {
+				stack.adjustOrPutValue(bracketMap.get(token), 1, 1);
+				maxNumNesting = Math.max(maxNumNesting, ++numNesting);
+			} else if (bracketMap.values().contains(token)) {
+				stack.adjustOrPutValue(token, -1, -1);
+				if (stack.get(token) < 0) {
+					// Unmatched brackets.
+					return false;
+				} else if (stack.get(token) == 0) {
+					++ numBrackets;
+				}
+				-- numNesting;
+			}
+		}
+		return (maxNumNesting <= maxAllowedNesting) &&
+				(numBrackets <= maxAllowedBrackets);
+	}
+	
+	private boolean postTest(Sentence sentence) {
+		// TODO: remove sentences with non-matching brackets, 
+		// quotations, and those did not end with a punctuation.
+
+		if (sentence.length < minSentenceLength ||
+			sentence.length > maxSentenceLength ||
+			sentence.containsQuestion()) {
+			return false;
+		}
+		if (!bracketingChecker(sentence)) {
+			return false;
+		}
+		String lastToken = sentence.getTokenString(sentence.length - 1);
+		if (!lastToken.equals(".") && !lastToken.equals("!") &&
+			!lastToken.equals("''")) {
+			return false;
+		}
+		return true;
+	}
+	
+	// TODO: sample by paragraph rather than sentences.
+	private boolean sampled(Random random) {
+		return random.nextDouble() < sampleRate;
+	}
 	
 	public void loadWikipediaData(String baseFilePath)
 			throws NullPointerException, IOException {		
-		int totalNumSentences = 0;
+		int totalNumSentences = 0, totalNumDocs = 0;
 
 		File file = new File(baseFilePath);
+		BufferedReader reader = null;
+		WikipediaDocInfo docInfo = null;
+		Random random = new Random(randomSeed);
+		
 		for (String dirPath : file.list()) {
 			File dir = new File(baseFilePath + "/" + dirPath);
 			if (!dir.isDirectory()) {
@@ -51,9 +145,18 @@ public class WikipediaCorpus extends Corpus {
 			for (int fid = 0; fid < maxNumFilesPerDir; fid ++) {
 				String fname = String.format("%s/%s%02d",
 						dir.getAbsolutePath(), wikiFilePrefix, fid);
-				System.out.println(String.format("Processing %s ...", fname));
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(new FileInputStream(fname), "UTF8"));
+				if (fid == 99) {
+					System.out.println(String.format(
+							"Processing %s ... current # sentences: %d",
+								fname, sentences.size()));
+				}
+				try {
+					reader = new BufferedReader(new InputStreamReader(
+							new FileInputStream(fname), "UTF8"));
+				} catch (FileNotFoundException e) {
+				//	e.printStackTrace();
+					continue;
+				}
 				
 				String currLine = null;
 				int docId = -1, paragraphId = -1;
@@ -62,21 +165,28 @@ public class WikipediaCorpus extends Corpus {
 						continue;
 					}
 					if (currLine.startsWith("<doc id=")) {
-						// TODO: parse info from:
-						// <doc id="358" url="http://en.wikipedia.org/wiki?curid=358" title="Algeria">
+						totalNumDocs ++;
+						if (!(docInfo == null)) {
+							docInfo.sentIdSpan[1] = sentences.size();
+							wikiInfo.put(docInfo.docId, docInfo);
+						}
+						docInfo = new WikipediaDocInfo(currLine);
+						docInfo.sentIdSpan[0] = sentences.size();
+						docId = docInfo.docId;
 						paragraphId = 0;
 						continue;
 					}
 					paragraphId ++;
-					// Only keeping paragraphs:
-					// 1). Contains English character only.
-					// 2). Starts with an uppercase letter or the character ".
-					if (!currLine.matches("^[\"A-Z][\u0000-\u0080]+$")) {
-					//	System.out.println(currLine);
+				
+					if (!preTest(currLine)) {
 						continue;
 					}
-					currLine = currLine.replace("( )", "").replace("{ }", "")
-							.replace("[ ]", "");
+					
+					currLine = removeEmptyBrackets(currLine);
+					
+					if (!sampled(random)) {
+						continue;
+					}
 
 					DocumentPreprocessor dp = new DocumentPreprocessor(
 							new StringReader(currLine));
@@ -91,33 +201,36 @@ public class WikipediaCorpus extends Corpus {
 							tokenIds.add(wordDict.addString(token));
 						}
 						int sentId = sentences.size();
-						Sentence sentence = new Sentence(tokenIds.toArray(), this, sentId);
-						// TODO: remove sentences with non-matching brackets, 
-						// quotations, and those did not end with a punctuation.
-						if (tokenIds.size() < 10 || tokenIds.size() > 100 ||
-							sentence.containsQuestion()) {
-							continue;
+						Sentence sentence = new Sentence(tokenIds.toArray(),
+								this, sentId);
+						if (postTest(sentence)) {
+							sentences.add(sentence);
+							docIds.add(docId);
+							paragraphIds.add(paragraphId);
 						}
-						
-						sentences.add(sentence);
-			//			System.out.println(paragraphId + "\t" + sentence.getTokensString());
 					}
 				}
 				reader.close();
+				if (sentences.size() > maxNumSentences) {
+					break;
+				}
 			}
 		}
-		/*
+		
+		System.out.println(String.format("Processed %d documents.",
+				totalNumDocs));
+		System.out.println(String.format("Read %d sentences, kept %d.",
+				totalNumSentences, sentences.size()));
 		try {
 			System.setOut(new PrintStream(new BufferedOutputStream(
-					new FileOutputStream("wiki-AA.txt"))));
+					new FileOutputStream("wiki_sampled.txt"))));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		*/
-
 		
-		System.out.println(String.format("Read %d sentences, kept %d.",
-				totalNumSentences, sentences.size()));
+		for (int i = 0; i < sentences.size(); i++) {
+			System.out.println(docIds.get(i) + "\t" + paragraphIds.get(i) + "\t" 
+					+ sentences.get(i).getTokensString());
+		}
 	}
-	
 }

@@ -37,11 +37,11 @@ import evaluation.F1Metric;
 
 public class BaselineQAExperiment {
 
-	private static String trainFilePath = "data/odesk_s800.train.qa";
-	private static String testFilePath = "data/odesk_s800.test.qa";
+	private static String trainFilePath = "data/odesk_s1200.train.qa";
+	private static String testFilePath = "data/odesk_s1200.test.qa";
 	
-	private static String trainSamplesPath = "odesk_s800_20best.train.qaSamples";
-	private static String testSamplesPath = "odesk_s800_20best.test.qaSamples";
+	private static String trainSamplesPath = "odesk_s1200_20best.train.qaSamples";
+	private static String testSamplesPath = "odesk_s1200_20best.test.qaSamples";
 	
 	private static final int randomSeed = 12345;
 	
@@ -259,7 +259,7 @@ public class BaselineQAExperiment {
 			e.printStackTrace();	
 		}
 		
-	//	generateAndSaveQASamples(trains, tests, kBest, trainSamples, testSamples);
+		generateAndSaveQASamples(trains, tests, kBest, trainSamples, testSamples);
 		if (trainSamples.size() == 0) {
 			loadQASamples(trainSamples, testSamples);
 		}
