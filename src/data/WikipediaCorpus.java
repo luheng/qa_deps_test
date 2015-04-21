@@ -5,15 +5,12 @@ import edu.stanford.nlp.process.DocumentPreprocessor;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,18 +22,18 @@ import annotation.PTBTokens;
 public class WikipediaCorpus extends Corpus {
 
 	public HashMap<Integer, WikipediaDocInfo> wikiInfo;
-	public ArrayList<Integer> docIds, paragraphIds;
+	public ArrayList<Integer> docIds, paragraphIds, sentenceIds;
 	
 	private static final String wikiFilePrefix = "wiki_";
 	private static final int maxNumFilesPerDir = 100;
 	
-	private static final int minSentenceLength = 10;
-	private static final int maxSentenceLength = 100;
-	private static final int maxNumSentences = 1000;
-	private static final int maxAllowedNesting = 1;
-	private static final int maxAllowedBrackets = 2;
-	private static final int randomSeed = 123456;
-	private static final double sampleRate = 0.0005;
+	public int minSentenceLength = 10;
+	public int maxSentenceLength = 60;
+	public int maxNumSentences = 3000;
+	public int maxAllowedNesting = 1;
+	public int maxAllowedBrackets = 5;
+	public int randomSeed = 123456;
+	public double sampleRate = 0.0005;
 	
 	private static HashMap<String, String> bracketMap;
 	static {
@@ -53,6 +50,7 @@ public class WikipediaCorpus extends Corpus {
 		wikiInfo = new HashMap<Integer, WikipediaDocInfo>();
 		docIds = new ArrayList<Integer>();
 		paragraphIds = new ArrayList<Integer>();
+		sentenceIds = new ArrayList<Integer>();
 	}
 	
 	private boolean preTest(String str) {
@@ -104,9 +102,6 @@ public class WikipediaCorpus extends Corpus {
 	}
 	
 	private boolean postTest(Sentence sentence) {
-		// TODO: remove sentences with non-matching brackets, 
-		// quotations, and those did not end with a punctuation.
-
 		if (sentence.length < minSentenceLength ||
 			sentence.length > maxSentenceLength ||
 			sentence.containsQuestion()) {
@@ -122,8 +117,7 @@ public class WikipediaCorpus extends Corpus {
 		}
 		return true;
 	}
-	
-	// TODO: sample by paragraph rather than sentences.
+
 	private boolean sampled(Random random) {
 		return random.nextDouble() < sampleRate;
 	}
@@ -159,7 +153,7 @@ public class WikipediaCorpus extends Corpus {
 				}
 				
 				String currLine = null;
-				int docId = -1, paragraphId = -1;
+				int docId = -1, paragraphId = -1, sentenceId = -1;
 				while ((currLine = reader.readLine()) != null) {
 					if (currLine.isEmpty() || currLine.startsWith("</doc>")) {
 						continue;
@@ -173,10 +167,12 @@ public class WikipediaCorpus extends Corpus {
 						docInfo = new WikipediaDocInfo(currLine);
 						docInfo.sentIdSpan[0] = sentences.size();
 						docId = docInfo.docId;
-						paragraphId = 0;
+						paragraphId = -1;
 						continue;
 					}
+					
 					paragraphId ++;
+					sentenceId = -1;
 				
 					if (!preTest(currLine)) {
 						continue;
@@ -191,6 +187,7 @@ public class WikipediaCorpus extends Corpus {
 					DocumentPreprocessor dp = new DocumentPreprocessor(
 							new StringReader(currLine));
 					for (List<HasWord> rawSentence : dp) {
+						sentenceId ++;
 						totalNumSentences ++;
 						TIntArrayList tokenIds = new TIntArrayList();
 						for (HasWord word : rawSentence) {
@@ -207,6 +204,7 @@ public class WikipediaCorpus extends Corpus {
 							sentences.add(sentence);
 							docIds.add(docId);
 							paragraphIds.add(paragraphId);
+							sentenceIds.add(sentenceId);
 						}
 					}
 				}
@@ -221,6 +219,7 @@ public class WikipediaCorpus extends Corpus {
 				totalNumDocs));
 		System.out.println(String.format("Read %d sentences, kept %d.",
 				totalNumSentences, sentences.size()));
+		/*
 		try {
 			System.setOut(new PrintStream(new BufferedOutputStream(
 					new FileOutputStream("wiki_sampled.txt"))));
@@ -232,5 +231,7 @@ public class WikipediaCorpus extends Corpus {
 			System.out.println(docIds.get(i) + "\t" + paragraphIds.get(i) + "\t" 
 					+ sentences.get(i).getTokensString());
 		}
+		*/
 	}
+	
 }

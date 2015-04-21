@@ -36,7 +36,7 @@ public class XSSFDataRetriever {
 		//	"odesk/training/odesk_r3_s100_katie.xlsx";
 		//	"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx";
 		//	"odesk/reviewed_annotation/odesk_r3_s100_john.xlsx";
-			"odesk/raw_annotation/odesk_r15_p1_s50_sarah_fixed.xlsx";
+			"odesk/raw_annotation/odesk_r15_p2_s50_john_fixed.xlsx";
 		//	"odesk/raw_annotation/odesk_r6_p2_s50_tracy_fixed.xlsx";
 
 	
@@ -75,7 +75,8 @@ public class XSSFDataRetriever {
 				XSSFSheet sheet = workbook.getSheetAt(sn);
 				for (int r = 0; r <= sheet.getLastRowNum(); r++) {
 					XSSFRow row = sheet.getRow(r);
-		        	if (row == null || row.getLastCellNum() == 0) {
+		        	if (row == null || row.getLastCellNum() == 0 ||
+		        		row.getCell(0) == null) {
 		        		continue;
 		        	}
 		        	String header = row.getCell(0).getStringCellValue();
@@ -172,7 +173,8 @@ public class XSSFDataRetriever {
         	XSSFSheet sheet = workbook.getSheetAt(sn);    
 	        for (int r = 0; r <= sheet.getLastRowNum(); r++) {
 	        	XSSFRow row = sheet.getRow(r);
-	        	if (row == null || row.getLastCellNum() == 0) {
+	        	if (row == null || row.getLastCellNum() == 0 ||
+	        		row.getCell(0) == null) {
 	        		continue;
 	        	}
 	        	String header = row.getCell(0).getStringCellValue();

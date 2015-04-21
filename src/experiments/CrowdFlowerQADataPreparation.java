@@ -156,13 +156,13 @@ public class CrowdFlowerQADataPreparation {
 		opSet.add("have " + inflections[4]);
 		opSet.add("have been " + inflections[4]);
 
-		if (usePresentParticiple) {
+//		if (usePresentParticiple) {
 			opSet.add("being " + inflections[4]);
 			opSet.add(inflections[2]);
 			opSet.add("be " + inflections[2]);
 			opSet.add("been " + inflections[2]);
 			opSet.add("have been " + inflections[2]);
-		}
+//		}
 		for (String op : opSet) {
 			options.add(op);
 		}

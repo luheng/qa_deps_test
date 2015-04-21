@@ -28,6 +28,10 @@ public class Proposition {
 		this.numArgs = 0;
 	}
 	
+	public Proposition(int[] span) {
+		this.span = new int[] {span[0], span[1]};
+	}
+	
 	public void setPropositionSpan(int spanStart, int spanEnd) {
 		this.span[0] = spanStart;
 		this.span[1] = spanEnd;

@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 import annotation.AuxiliaryVerbIdentifier;
 import data.Corpus;
-import data.DepSentence;
 import data.Proposition;
 import data.SRLCorpus;
 import data.SRLSentence;

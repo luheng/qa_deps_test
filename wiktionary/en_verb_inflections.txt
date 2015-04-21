@@ -1320,6 +1320,7 @@ avulse	avulses	avulsing	avulsed	avulsed
 await	awaits	awaiting	awaited	awaited
 awake	awakes	awaking	awoke	awoken
 awaken	awakens	awakening	awoke	awoken
+awaken	awakens	awakening	awakened	awakened
 award	awards	awarding	awarded	awarded
 awarn	awarns	awarning	awarned	awarned
 awe	awes	awing	awed	awed
@@ -2910,7 +2911,7 @@ canalise	canalises	canalising	canalised	canalised
 canalize	canalizes	canalizing	canalized	canalized
 canary	canaries	canarying	canaried	canaried
 cancan	cancans	cancanning	cancanned	cancanned
-cancel	cancels	cancelling	cancelled	cancelled
+cancel	cancels	canceling	canceled	canceled
 cancelier	canceliers	canceliering	canceliered	canceliered
 cancell	cancells	cancelling	cancelled	cancelled
 cancerate	cancerates	cancerating	cancerated	cancerated
@@ -14840,7 +14841,7 @@ protract	protracts	protracting	protracted	protracted
 protrude	protrudes	protruding	protruded	protruded
 protuberate	protuberates	protuberating	protuberated	protuberated
 provant	provants	provanting	provanted	provanted
-prove	proves	proving	proved	proved
+prove	proves	proving	proved	proven
 proverb	proverbs	proverbing	proverbed	proverbed
 proverbialize	proverbializes	proverbializing	proverbialized	proverbialized
 provide	provides	providing	provided	provided
@@ -21801,7 +21802,7 @@ worrit	worrits	worriting	worrited	worrited
 worry	worries	worrying	worried	worried
 worse	worses	worsing	worsed	worsed
 worsen	worsens	worsening	worsened	worsened
-worship	worships	worshipping	worshipped	worshipped
+worship	worships	worshiping	worshiped	worshiped
 worst	worsts	worsting	worsted	worsted
 worth	worths	worthing	worth	worth
 worthen	worthens	worthening	worthened	worthened
