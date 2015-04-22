@@ -2,7 +2,6 @@ package data;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 
 import util.StringUtils;
 import annotation.AnswerSpanAligner;
@@ -18,7 +17,7 @@ public class QAPair implements java.io.Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	public Sentence sentence;
-	public int propHead;
+	public int propHead, questionId;
 	public String[] questionWords;
 	public String questionLabel, questionString;
 	public int[] answerFlags;
@@ -71,6 +70,12 @@ public class QAPair implements java.io.Serializable {
 		}
 	}
 	
+	public QAPair(Sentence sent, int propHead, int questionId,
+			String[] question) {
+		this(sent, propHead, question, "", null);
+		this.questionId = questionId;
+	}
+
 	/** return false if answer is not aligned */
 	public boolean addAnswer(String answer) {
 		if (answer.isEmpty()) {

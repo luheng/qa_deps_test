@@ -50,7 +50,6 @@ public class BaselineQADataProcessor {
 
 		HashMap<Integer, AnnotatedSentence> annotations =
 				new HashMap<Integer, AnnotatedSentence>();
-		
 		try {
 			XSSFDataRetriever.readXSSFAnnotation(
 					xssfInputFiles,

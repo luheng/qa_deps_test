@@ -1,4 +1,4 @@
-package syntax;
+package learning;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
 

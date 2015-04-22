@@ -1,4 +1,4 @@
-package syntax;
+package learning;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,20 +9,21 @@ import edu.stanford.nlp.trees.TypedDependency;
 public class QASample implements java.io.Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	int sourceSentenceId;
-	String[] tokens;
-	String[] question;
-	int propHead, answerHead;
-	ArrayList<Double> kBestScores;
-	ArrayList<Collection<TypedDependency>> kBestParses;
-	String[] postags;
-	String[] lemmas;
+	public int sentenceId, questionId;
+	public String[] tokens;
+	public String[] question;
+	public int propHead, answerHead;
+	public ArrayList<Double> kBestScores;
+	public ArrayList<Collection<TypedDependency>> kBestParses;
+	public String[] postags;
+	public String[] lemmas;
 	
 	public boolean isPositiveSample;
 	
 	private QASample(
 			Sentence sentence,
 			int propHead,
+			int questionId,
 			String[] question,
 			int answerHead,
 			ArrayList<Double> kBestScores,
@@ -30,12 +31,13 @@ public class QASample implements java.io.Serializable {
 			String[] postags,
 			String[] lemmas,
 			boolean positive) {
-		this.sourceSentenceId = sentence.sentenceID;
+		this.sentenceId = sentence.sentenceID;
 		this.tokens = new String[sentence.length];
 		for (int i = 0; i < sentence.length; i++) {
 			this.tokens[i] = sentence.getTokenString(i);
 		}
 		this.propHead = propHead;
+		this.questionId = questionId;
 		this.question = question;
 		this.answerHead = answerHead;
 		this.kBestScores = kBestScores;
@@ -47,6 +49,7 @@ public class QASample implements java.io.Serializable {
 	
 	public static QASample addPositiveSample(Sentence sentence,
 			int propHead,
+			int questionId,
 			String[] question,
 			int answerHead,
 			ArrayList<Double> kBestScores,
@@ -56,6 +59,7 @@ public class QASample implements java.io.Serializable {
 		return new QASample(
 				sentence,
 				propHead,
+				questionId,
 				question,
 				answerHead,
 				kBestScores,
@@ -67,6 +71,7 @@ public class QASample implements java.io.Serializable {
 	
 	public static QASample addNegativeSample(Sentence sentence,
 			int propHead,
+			int questionId,
 			String[] question,
 			int answerHead,
 			ArrayList<Double> kBestScores,
@@ -75,6 +80,7 @@ public class QASample implements java.io.Serializable {
 			String[] lemmas) {
 		return new QASample(
 				sentence,
+				questionId,
 				propHead,
 				question,
 				answerHead,
