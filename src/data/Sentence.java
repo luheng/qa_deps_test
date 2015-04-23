@@ -18,7 +18,7 @@ public class Sentence implements java.io.Serializable {
 		this.corpus = corpus;
 		this.sentenceID = sentenceID;
 	}
-	
+
 	public String getTokensString() {
 		return StringUtils.join(" ", corpus.wordDict.getStringArray(tokens));
 	}

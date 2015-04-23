@@ -13,7 +13,7 @@ public class AnswerIdEvaluator {
 		int length = predScores.length;
 		int[] binaryPred = new int[length];
 		int[] kbestPred = new int[eval.kBest];
-		Arrays.fill(binaryPred, 0);
+		Arrays.fill(binaryPred, -1);
 		Arrays.fill(kbestPred, -1);
 		
 		for (int i = 0; i < length; i++) {
@@ -39,14 +39,23 @@ public class AnswerIdEvaluator {
 		}
 		
 		F1Metric result = new F1Metric();
-		for (int i = 0; i < length; i++) {
-			if (goldAnswerHeads[i] == 1) {
-				result.numGold ++;
+		if (eval.evalHead()) {
+			for (int i = 0; i < length; i++) {
+				if (goldAnswerHeads[i] > 0) {
+					result.numGold ++;
+				}			
+			}
+		} else {
+			for (int i = 0; i < length; i++) {
+				if (goldAnswerFlags[i] > 0 &&
+					(i == 0 || goldAnswerFlags[i - 1] < 1)) {
+					result.numGold ++;
+				}			
 			}			
 		}
 		if (eval.evalBinary()) {
 			for (int i = 0; i < length; i++) {
-				if (binaryPred[i] == 1) {
+				if (binaryPred[i] > 0) {
 					result.numProposed ++;
 					if ((eval.evalHead() && goldAnswerHeads[i] > 0) ||
 						(!eval.evalHead() && goldAnswerFlags[i] > 0)) {
@@ -66,9 +75,9 @@ public class AnswerIdEvaluator {
 			}
 		}
 		if (!eval.evalMulti()) {
-			result.numGold = Math.max(result.numGold, 1);
-			result.numProposed = Math.max(result.numProposed, 1);
-			result.numMatched = Math.max(result.numMatched, 1);
+			result.numGold = Math.min(result.numGold, 1);
+			result.numProposed = Math.min(result.numProposed, 1);
+			result.numMatched = Math.min(result.numMatched, 1);
 		}
 		return result;
 	}

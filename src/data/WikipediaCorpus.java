@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -59,7 +60,6 @@ public class WikipediaCorpus extends Corpus {
 		// 1). Contains English character only.
 		// 2). Starts with an uppercase letter or the character ".
 		return str.matches("^[\"A-Z][\u0000-\u0080]+$");
-//		return str.matches("^[\"A-Z][\u0000-\u0080&&[^\\(\\)\\{\\}\\[\\]]]+$");
 	}
 	
 	private String removeEmptyBrackets(String str) {
@@ -72,7 +72,6 @@ public class WikipediaCorpus extends Corpus {
 			if (ret1.equals(ret)) {
 				break;
 			}
-		//	System.out.println(ret + "\n" + ret1 + "\n");
 			ret = ret1;
 		}
 		return ret;
@@ -122,7 +121,7 @@ public class WikipediaCorpus extends Corpus {
 		return random.nextDouble() < sampleRate;
 	}
 	
-	public void loadWikipediaData(String baseFilePath)
+	public void sampleFromWikipedia(String baseFilePath)
 			throws NullPointerException, IOException {		
 		int totalNumSentences = 0, totalNumDocs = 0;
 
@@ -234,4 +233,30 @@ public class WikipediaCorpus extends Corpus {
 		*/
 	}
 	
+	public void loadFromWikiMetaFile(String filePath) throws IOException {
+		BufferedReader reader = new BufferedReader(
+				new FileReader(new File(filePath)));
+		String currLine = "";
+		while ((currLine = reader.readLine()) != null) {
+			String[] info = currLine.split("\t");
+			int docId = Integer.parseInt(info[0]);
+			String docTitle = info[1].trim();
+			int paraId = Integer.parseInt(info[2]);
+			int sentInPara = Integer.parseInt(info[3]);
+			String[] tokens = info[4].split("\\s+");
+			int[] tokenIds = new int[tokens.length];
+			for (int i = 0; i < tokens.length; i++) {
+				tokenIds[i] = wordDict.addString(tokens[i]);
+			}
+			int sentId = sentences.size();
+			sentences.add(new Sentence(tokenIds, this, sentId));
+			docIds.add(docId);
+			paragraphIds.add(paraId);
+			sentenceIds.add(sentInPara);
+			// TODO: Wiki doc info.
+		}
+		reader.close();
+		System.out.println(String.format("Read %d sentences from %s",
+				sentences.size(), filePath));
+	}
 }

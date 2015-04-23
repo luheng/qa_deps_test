@@ -36,6 +36,9 @@ public class QASample implements java.io.Serializable {
 		for (int i = 0; i < sentence.length; i++) {
 			this.tokens[i] = sentence.getTokenString(i);
 		}
+		if (propHead < 0) {
+			System.out.println(sentence.sentenceID);
+		}
 		this.propHead = propHead;
 		this.questionId = questionId;
 		this.question = question;
@@ -80,8 +83,8 @@ public class QASample implements java.io.Serializable {
 			String[] lemmas) {
 		return new QASample(
 				sentence,
-				questionId,
 				propHead,
+				questionId,
 				question,
 				answerHead,
 				kBestScores,

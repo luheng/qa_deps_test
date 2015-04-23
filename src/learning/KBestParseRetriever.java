@@ -73,21 +73,21 @@ public class KBestParseRetriever {
 				}
 			}
 		}
-		
+		// Generate all samples for the question.
 		ArrayList<QASample> samples = new ArrayList<QASample>();
 		for (int idx = 0; idx < qa.sentence.length; idx++) {
 			if (answerHeads.contains(idx)) {
 				samples.add(
 					QASample.addPositiveSample(
-						qa.sentence, qa.propHead, qa.questionId,
+						qa.sentence, qa.propHead, -1,
 						qa.questionWords, idx,
 						kBestScores, kBestParses,
 						postags, lemmas));
-			} else if (!univPostags[idx].equals(".") &&
-					idx != qa.propHead) {
+			} //else if (!univPostags[idx].equals(".") && idx != qa.propHead) {
+				else if (idx != qa.propHead) {
 				samples.add(
 					QASample.addNegativeSample(
-							qa.sentence, qa.propHead, qa.questionId,
+							qa.sentence, qa.propHead, -1,
 							qa.questionWords, idx,
 							kBestScores, kBestParses,
 							postags, lemmas));

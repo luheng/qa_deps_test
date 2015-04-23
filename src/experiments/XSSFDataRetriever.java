@@ -1,5 +1,7 @@
 package experiments;
 
+import gnu.trove.list.array.TIntArrayList;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,10 +21,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import util.LatticeUtils;
 import annotation.SRLAnnotationValidator;
 import data.AnnotatedSentence;
+import data.Corpus;
 import data.Proposition;
 import data.QAPair;
 import data.SRLCorpus;
-import data.SRLSentence;	
+import data.SRLSentence;
+import data.Sentence;
 
 public class XSSFDataRetriever {
 
@@ -48,25 +52,27 @@ public class XSSFDataRetriever {
 	}
 	
 	public static void readXSSFAnnotations(
-			String filePath, SRLCorpus corpus,
+			String filePath, Corpus corpus,
 			HashMap<Integer, AnnotatedSentence> annotatedSentences)
 					throws IOException {
 		readXSSFAnnotations(filePath, corpus, annotatedSentences, null);
 	}
 	
 	public static void readXSSFAnnotation(
-			String[] inputFiles, SRLCorpus corpus,
+			String[] inputFiles,
+			Corpus corpus,
 			HashMap<Integer, AnnotatedSentence> annotations)
 					throws FileNotFoundException, IOException {
 		// Map sentence ids to a set of AnnotatedSentence
 		assert (annotations != null);
+		HashMap<Integer, Integer> sentIdMap = new HashMap<Integer, Integer>();
 		
 		for (String inputFile : inputFiles) {
 			XSSFWorkbook workbook = new XSSFWorkbook(
 					new FileInputStream(new File(inputFile)));
 		         
 			int unitId = -1, sentId = -1, propHead = -1;
-			SRLSentence sent = null;
+			Sentence sent = null;
 			AnnotatedSentence currSent = null;
 			ArrayList<QAPair> qaList = new ArrayList<QAPair>();
 			
@@ -94,6 +100,23 @@ public class XSSFDataRetriever {
 		        		if (sentId != getHeaderId(header)) {
 		        			// Encountering a new sentence.
 			        		sentId = getHeaderId(header);
+			        		// A hacky way to process Wikipedia data.
+			        		if (corpus.sentences.size() <= sentId) {
+			        			if (sentIdMap.containsKey(sentId)) {
+			        				sentId = sentIdMap.get(sentId);
+			        			} else {
+			        				String sentStr = row.getCell(1).toString().trim();
+			        				TIntArrayList tids = new TIntArrayList();
+			        				for (String token : sentStr.split("\\s+")) {
+			        					tids.add(corpus.wordDict.addString(token));
+			        				}
+				        			int newSentId = corpus.sentences.size();
+				        			sentIdMap.put(sentId, newSentId);
+				        			sentId = newSentId;
+				        			corpus.sentences.add(new Sentence(tids.toArray(),
+				        					corpus, sentId));
+			        			}
+			        		}
 			        		sent = corpus.getSentence(sentId);
 			        		if (!annotations.containsKey(sentId)) {
 			        			annotations.put(sentId, new AnnotatedSentence(sent));
@@ -147,10 +170,9 @@ public class XSSFDataRetriever {
 	}
 	
 	public static void readXSSFAnnotations(
-			String filePath, SRLCorpus corpus,
+			String filePath, Corpus corpus,
 			HashMap<Integer, AnnotatedSentence> annotatedSentences,
-			int[] sheetIds)
-					throws IOException {
+			int[] sheetIds) throws IOException {
 		assert (annotatedSentences != null);
 		
         XSSFWorkbook workbook =
@@ -160,7 +182,7 @@ public class XSSFDataRetriever {
         	qaPerUnit = 0;
         boolean hasEmptyAnswer = false;
         String prevSheetName = "";
-        SRLSentence sent = null;
+        Sentence sent = null;
         
         if (sheetIds == null) {
         	sheetIds = new int[workbook.getNumberOfSheets()];
@@ -197,9 +219,20 @@ public class XSSFDataRetriever {
 	        		prevSheetName = sheet.getSheetName();
 	        	} else if (header.startsWith("SENT")) {
 	        		sentId = getHeaderId(header);
+	        		if (corpus.sentences.size() <= sentId) {
+		        		String sentStr = row.getCell(1).toString().trim();
+	        			TIntArrayList tids = new TIntArrayList();
+	        			for (String token : sentStr.split("\\s+")) {
+	        				tids.add(corpus.wordDict.addString(token));
+	        			}
+	        			sentId = corpus.sentences.size();
+	        			corpus.sentences.add(
+	        					new Sentence(tids.toArray(), corpus, sentId));
+	        		}
 	        		sent = corpus.getSentence(sentId);
 	        		if (!annotatedSentences.containsKey(sentId)) {
-	        			annotatedSentences.put(sentId, new AnnotatedSentence(sent));
+	        			annotatedSentences.put(
+	        					sentId, new AnnotatedSentence(sent));
 	        		}
 	        	} else if (header.startsWith("TRG")) {
 	        		propHead = getHeaderId(header);
@@ -268,7 +301,7 @@ public class XSSFDataRetriever {
 	}
 	
 	public static void aggregateAnnotations(
-			SRLCorpus corpus, HashMap<Integer, AnnotatedSentence> annotations) {
+			Corpus corpus, HashMap<Integer, AnnotatedSentence> annotations) {
 		
 		System.out.println(String.format("Processing %d sentences.", annotations.size()));
 		double avgAgreement = .0;
@@ -279,7 +312,7 @@ public class XSSFDataRetriever {
 		
 		for (int sid : annotations.keySet()) {
 			AnnotatedSentence annotSent = annotations.get(sid);
-			SRLSentence sent = (SRLSentence) annotSent.sentence;
+			Sentence sent = (Sentence) annotSent.sentence;
 			if (annotSent.annotators.size() == 1) {
 				continue;
 			}	
@@ -363,7 +396,7 @@ public class XSSFDataRetriever {
  	}
 	
 	public static void outputAnnotations(String outputPath,
-			SRLCorpus baseCorpus,
+			Corpus baseCorpus,
 			HashMap<Integer, AnnotatedSentence> annotations) throws IOException {
 		// Get sentence ids and sort.
 		int[] sentIds = getSortedKeys(annotations.keySet());
@@ -373,7 +406,7 @@ public class XSSFDataRetriever {
 		int numSentsWritten = 0;
 		for (int sid : sentIds) {
 			AnnotatedSentence annotSent = annotations.get(sid);
-			SRLSentence sent = (SRLSentence) annotSent.sentence;
+			Sentence sent = annotSent.sentence;
 			
 			// Filter empty sentences.
 			int[] propIds = getSortedKeys(annotSent.qaLists.keySet());

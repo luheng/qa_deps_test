@@ -24,9 +24,7 @@ public class AnswerIdDataset {
 	ArrayList<AnnotatedSentence> sentences;
 	ArrayList<QAPair> questions;
 	ArrayList<QASample> samples;
-	
 	int[][] answerFlags, answerHeads;
-	
 	Feature[][] features;
 	double[] labels;
 	
@@ -120,7 +118,14 @@ public class AnswerIdDataset {
 				sample.questionId = i;
 				samples.add(sample);
 			}
-		}		
+			if (i % 100 == 99) {
+				System.out.println(String.format(
+						"Processed %d QAs, %d still left.",
+						i + 1, questions.size() - i - 1));
+			}
+		}
+		System.out.println(String.format("Generated %d samples.",
+				samples.size()));
 	}
 	
 	public void loadSamples(String filePath)
@@ -134,23 +139,22 @@ public class AnswerIdDataset {
 			samples.add((QASample) objs.get(i));
 		}
 		istream.close();
-		
+		System.out.println(String.format("Loaded %d samples from %s.",
+				samples.size(), filePath));
 	}
 	
 	public void extractFeaturesAndLabels(
 			AnswerIdFeatureExtractor featureExtractor) {
-		int numFeatures = featureExtractor.numFeatures(),
-			numSamples = samples.size(),
+		int numSamples = samples.size(),
 			numQuestions = questions.size();
-			
-		features = new Feature[numFeatures][];
+		features = new Feature[numSamples][];
 		labels = new double[numSamples];
 		answerFlags = new int[numQuestions][];
 		answerHeads = new int[numQuestions][];
 		for (int i = 0; i < numQuestions; i++) {
 			answerFlags[i] = questions.get(i).answerFlags;
 			answerHeads[i] = new int[answerFlags.length];
-			Arrays.fill(answerHeads, -1);
+			Arrays.fill(answerHeads[i], -1);
 		}			
 		for (int i = 0; i < numSamples; i++) {
 			QASample sample = samples.get(i);
@@ -165,6 +169,12 @@ public class AnswerIdDataset {
 			int label = (sample.isPositiveSample ? 1 : -1);
 			labels[i] = label;
 			answerHeads[sample.questionId][sample.answerHead] = label;
+			
+			if (i % 10000 == 9999) {
+				System.out.println(String.format(
+						"Extracted features for %d samples, %d still left.",
+						i + 1, numSamples - i - 1));
+			}
 		}
 
 	}

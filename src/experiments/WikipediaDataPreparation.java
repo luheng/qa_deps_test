@@ -69,7 +69,7 @@ public class WikipediaDataPreparation {
 		try {
 			wikiCorpus.maxNumSentences = 3000;
 			wikiCorpus.sampleRate = 0.0001;
-			wikiCorpus.loadWikipediaData(inputPath);
+			wikiCorpus.sampleFromWikipedia(inputPath);
 			inflDict = new VerbInflectionDictionary(wikiCorpus);
 			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
 		} catch (NullPointerException | IOException e) {
@@ -90,7 +90,7 @@ public class WikipediaDataPreparation {
 		int numFiles = sentences.size()  / numSentsPerFile - 1;
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(
-					"odesk_wiki/odesk_wiki1.meta.txt"))); 
+					"odesk_wiki/odesk_wiki1.meta_new.txt"))); 
 			for (int i = 0; i < numFiles; i++) {
 				currSents.clear();
 				currProps.clear();
@@ -106,15 +106,15 @@ public class WikipediaDataPreparation {
 					// props.add(new Proposition(new int[] {-1, -1}));
 					currProps.add(props);
 				}
-				XSSFOutputHelper.outputXlsx(currSents, currProps, inflDict,
-						String.format("odesk_wiki/odesk_wiki1_r%03d.xlsx", i));
+//				XSSFOutputHelper.outputXlsx(currSents, currProps, inflDict,
+//						String.format("odesk_wiki/odesk_wiki1_r%03d.xlsx", i));
 				for (Sentence sent : currSents) {
 					int docId = wikiCorpus.docIds.get(sent.sentenceID);
 					int paraId = wikiCorpus.paragraphIds.get(sent.sentenceID);
 					int sentId = wikiCorpus.sentenceIds.get(sent.sentenceID);
 					String docTitle = wikiCorpus.wikiInfo.get(docId).title;
-					writer.write(String.format("%d\t%s\t%d\t%d\t%s\n",
-							docId, docTitle, paraId, sentId,
+					writer.write(String.format("%d\t%d\t%s\t%d\t%d\t%s\n",
+							sent.sentenceID, docId, docTitle, paraId, sentId,
 							sent.getTokensString()));
 				}
 			}

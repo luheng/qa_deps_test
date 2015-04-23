@@ -18,6 +18,7 @@ import data.QAPairOld;
 import data.SRLCorpus;
 import data.UniversalPostagMap;
 import data.VerbInflectionDictionary;
+import data.WikipediaCorpus;
 
 public class ExperimentUtils {
 
@@ -45,6 +46,9 @@ public class ExperimentUtils {
 	
 	public static final String wikipediaFilePath =
 			"/Users/luheng/data/Wikipedia/AA";
+	
+	public static final String wikipediaMetaFilePath =
+			"odesk_wiki/odesk_wiki1.meta.txt";
 	
 	public static final String enUnivPostagFilename =
 			"/Users/luheng/data/CONLL-x/univmap/en-ptb.map";
@@ -77,6 +81,17 @@ public class ExperimentUtils {
 									 univmap,
 									 true /* load gold syntax info */);	
 		} catch (NumberFormatException | IOException e) {
+			e.printStackTrace();
+		}
+		return corpus;
+	}
+	
+	public static WikipediaCorpus loadWikiCorpus(String corpusPath,
+			String corpusName) {
+		WikipediaCorpus corpus = new WikipediaCorpus(corpusName);
+		try {
+			corpus.loadFromWikiMetaFile(corpusPath);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return corpus;

@@ -1,16 +1,9 @@
 package experiments;
 
-import gnu.trove.map.hash.TIntDoubleHashMap;
-
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -24,13 +17,9 @@ import learning.AnswerIdDataset;
 import learning.AnswerIdFeatureExtractor;
 import learning.KBestParseRetriever;
 import learning.QASample;
-import data.AnnotatedSentence;
 import data.Corpus;
 import data.QAPair;
-import data.Sentence;
-import data.UniversalPostagMap;
 import de.bwaldvogel.liblinear.Feature;
-import de.bwaldvogel.liblinear.FeatureNode;
 import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
@@ -46,13 +35,15 @@ public class BaselineQAExperiment {
 	private String trainFilePath = "data/odesk_s1250.train.qa";
 	private String testFilePath = "data/odesk_s1250.test.qa";
 	
+	private String oodFilePath = "data/odesk_wiki1.qa";
+	
 	private String trainSamplesPath = "odesk_s1250_20best.train.qaSamples";
-	private String testSamplesPath = "odesk_s1250_20best.test.qaSamples";
+//	private String testSamplesPath = "odesk_s1250_20best.test.qaSamples";
 	
 	private final int randomSeed = 12345;
-	private int cvFolds = 5, minFeatureFreq = 5, kBest = 20;
+	private int cvFolds = 5, minFeatureFreq = 10, kBest = 10;
 	
-	private EvaluationType evalType = EvaluationType.BinarySpan;
+	private EvaluationType evalType = EvaluationType.BinaryMultiHead;
 	private double evalThreshold = 0;
 	private int evalKBest = 1;
 	
@@ -60,20 +51,26 @@ public class BaselineQAExperiment {
 	private AnswerIdFeatureExtractor featureExtractor;
 	private AnswerIdEvaluationParameters evalPrm;
 	
-	private AnswerIdDataset trains, tests;
+	private AnswerIdDataset trainSets;
+	private HashMap<String, AnswerIdDataset> testSets;
 	
 	
 	public BaselineQAExperiment(boolean generateSamples) {
 		baseCorpus = new Corpus("qa-exp-corpus");
-		trains = new AnswerIdDataset(baseCorpus);
-		tests = new AnswerIdDataset(baseCorpus);
+		trainSets = new AnswerIdDataset(baseCorpus);
+		testSets = new HashMap<String, AnswerIdDataset>();
+		testSets.put("prop-test", new AnswerIdDataset(baseCorpus));
+		testSets.put("wiki1", new AnswerIdDataset(baseCorpus));
+		
+		//tests = new AnswerIdDataset(baseCorpus);
 		evalPrm = new AnswerIdEvaluationParameters(evalType, evalKBest,
 				evalThreshold);
 	
 		// ********** Load QA Data ********************
 		try {
-			trains.loadData(trainFilePath);
-			tests.loadData(testFilePath);
+			trainSets.loadData(trainFilePath);
+			testSets.get("prop-test").loadData(testFilePath);
+			testSets.get("wiki1").loadData(oodFilePath);
 		} catch (IOException e) {
 			e.printStackTrace();	
 		}
@@ -81,28 +78,34 @@ public class BaselineQAExperiment {
 		// *********** Generate training/test samples **********
 		if (generateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
-			trains.generateSamples(syntaxHelper);
-			tests.generateSamples(syntaxHelper);
+			trainSets.generateSamples(syntaxHelper);
+			for (AnswerIdDataset ds : testSets.values()) {
+				ds.generateSamples(syntaxHelper);
+			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;
 			try {
 				ostream = new ObjectOutputStream(
 						new FileOutputStream(trainSamplesPath));
-				ostream.writeObject(trains.getSamples());
+				ostream.writeObject(trainSets.getSamples());
 				ostream.flush();
 				ostream.close();
-				ostream = new ObjectOutputStream(
-						new FileOutputStream(testSamplesPath));
-				ostream.writeObject(trains.getSamples());
-				ostream.flush();
-				ostream.close();
+				for (String dsName : testSets.keySet()) {
+					ostream = new ObjectOutputStream(
+							new FileOutputStream(dsName + ".qaSamples"));
+					ostream.writeObject(testSets.get(dsName).getSamples());
+					ostream.flush();
+					ostream.close();
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		} else {
 			try {
-				trains.loadSamples(trainSamplesPath);
-				tests.loadSamples(testSamplesPath);
+				trainSets.loadSamples(trainSamplesPath);
+				for (String dsName : testSets.keySet()) {
+					testSets.get(dsName).loadSamples(dsName + ".qaSamples");
+				}
 			} catch (ClassNotFoundException | IOException e) {
 				e.printStackTrace();
 			}
@@ -110,13 +113,17 @@ public class BaselineQAExperiment {
 		
 		// ********** Extract features ***************
 		ArrayList<QASample> allSamples = new ArrayList<QASample>();
-		allSamples.addAll(trains.getSamples());
-		allSamples.addAll(tests.getSamples());
+		allSamples.addAll(trainSets.getSamples());
+		for (AnswerIdDataset ds : testSets.values()) {
+			allSamples.addAll(ds.getSamples());
+		}
 		featureExtractor = new AnswerIdFeatureExtractor(baseCorpus, kBest,
 				minFeatureFreq);
 		featureExtractor.extractFeatures(allSamples);
-		trains.extractFeaturesAndLabels(featureExtractor);
-		tests.extractFeaturesAndLabels(featureExtractor);
+		trainSets.extractFeaturesAndLabels(featureExtractor);
+		for (AnswerIdDataset ds : testSets.values()) {
+			ds.extractFeaturesAndLabels(featureExtractor);
+		}
 	}
 	
 	public LiblinearHyperParameters runCrossValidation(
@@ -126,7 +133,8 @@ public class BaselineQAExperiment {
 		LiblinearHyperParameters bestPrm = null;
 		
 		for (LiblinearHyperParameters prm : cvPrms) {
-			double[] res = crossValidate(trains, cvFolds, prm);
+			System.out.println(prm.toString());
+			double[] res = crossValidate(trainSets, cvFolds, prm);
 			cvResults.add(res);
 		}
 		for (int i = 0; i < cvResults.size(); i++) {
@@ -144,14 +152,32 @@ public class BaselineQAExperiment {
 	public void trainAndPredict(LiblinearHyperParameters prm) {
 		int numFeatures = featureExtractor.numFeatures();
 		Model model = train(
-				trains.getFeatures(),
-				trains.getLabels(),
+				trainSets.getFeatures(),
+				trainSets.getLabels(),
 				numFeatures, prm);
-		
-		F1Metric f1 = predictAndEvaluate(trains, model);
+		F1Metric f1 = predictAndEvaluate(trainSets, model);
 		System.out.println("Training accuracy:\t" + f1.toString());
-		f1 = predictAndEvaluate(tests, model);
-		System.out.println("Testing accuracy:\t" + f1.toString());		
+		for (String dsName : testSets.keySet()) {
+			AnswerIdDataset ds = testSets.get(dsName);
+			f1 = predictAndEvaluate(ds, model);
+			F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(), 
+					ds.getLabels(), model);
+			System.out.println(String.format("Testing accuracy on %s: %s",
+					dsName, f1.toString()));		
+			System.out.println("Old f1:\t" + oldF1.toString());
+		}
+		
+		try {
+			System.setOut(new PrintStream(new BufferedOutputStream(
+					new FileOutputStream("feature_weights.tsv"))));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		for (int fid = 0; fid < model.getNrFeature(); fid++) {
+			double fweight = model.getFeatureWeights()[fid + 1];
+			System.out.println(String.format("%s\t%.6f",
+					featureExtractor.featureDict.getString(fid), fweight));
+		}
 	}
 	
 	// FIXME: Use a FileWriter ....
@@ -181,110 +207,165 @@ public class BaselineQAExperiment {
 	}
 	
 	private F1Metric predictAndEvaluate(AnswerIdDataset ds, Model model) {
+		return predictAndEvaluate(ds.getSamples(), ds.getFeatures(), ds, model);
+	}
+	
+	private F1Metric predictAndEvaluateOld(Feature[][] features,
+			double[] labels, Model model) {
+		int numMatched = 0, numPred = 0, numGold = 0;
+		for (int i = 0; i < features.length; i++) {
+			int pred = (int) Linear.predict(model, features[i]);
+			int gold = (int) labels[i];
+			if (gold > 0 && pred > 0) {
+				numMatched ++;
+			}
+			if (gold > 0) {
+				numGold ++;
+			}
+			if (pred > 0) {
+				numPred ++;
+			}
+		}
+		return new F1Metric(numMatched, numGold, numPred);
+	}
+	
+	private F1Metric predictAndEvaluate(
+			ArrayList<QASample> samples,
+			Feature[][] features,
+			AnswerIdDataset ds,
+			Model model) {
+		int[][] answerFlags = ds.getAnswerFlags();
+		int[][] answerHeads = ds.getAnswerHeads();
+		ArrayList<QAPair> questions = ds.getQuestions();
+		
 		F1Metric totalF1 = new F1Metric();
-		int numQuestions = ds.getQuestions().size();
+		int numQuestions = answerFlags.length;
+		HashSet<Integer> evalQIds = new HashSet<Integer>();
 		double[][] predScores = new double[numQuestions][];
 		for (int i = 0; i < numQuestions; i++) {
-			predScores[i] = new double[ds.getQuestions().get(i).sentence.length];
-			Arrays.fill(predScores, -1.0);
+			predScores[i] = new double[answerFlags[i].length];
+			Arrays.fill(predScores[i], -2.0);
 		}
-		for (int i = 0; i < ds.getSamples().size(); i++) {
-			QASample sample = ds.getSamples().get(i);
-			predScores[sample.questionId][sample.answerHead] =
-					Linear.predict(model, ds.getFeatures()[i]);
+		for (int i = 0; i < samples.size(); i++) {
+			QASample sample = samples.get(i);
+			int qid = sample.questionId;
+			predScores[qid][sample.answerHead] =
+					Linear.predict(model, features[i]);
+			evalQIds.add(qid);
 		}
+		
 		for (int i = 0; i < numQuestions; i++) {
+			if (!evalQIds.contains(i)) {
+				continue;
+			}
+			
 			F1Metric f1 = AnswerIdEvaluator.evaluate(predScores[i],
-					ds.getAnswerFlags()[i],
-					ds.getAnswerHeads()[i],
+					answerFlags[i],
+					answerHeads[i],
 					evalPrm);
 			totalF1.add(f1);
+			
+			if (samples.size() > 120000) {
+				QAPair qa = questions.get(i);
+				System.out.println(qa.sentence.getTokensString());
+				System.out.print(qa.getQuestionString() + "\t" +
+								 qa.getQuestionLabel() + "\t" +
+								 qa.getAnswerString());
+				int length = qa.sentence.length;
+				System.out.print("\nAFLG:\t");
+				for (int j = 0; j < length; j++) {
+					System.out.print(String.format("%s(%d)\t", 
+							qa.sentence.getTokenString(j), answerFlags[i][j]));
+				}
+				System.out.print("\nAHED:\t");
+				for (int j = 0; j < length; j++) {
+					System.out.print(String.format("%s(%d)\t", 
+							qa.sentence.getTokenString(j), answerHeads[i][j]));
+				}
+				System.out.print("\nPSCR:\t");
+				for (int j = 0; j < length; j++) {
+					System.out.print(String.format("%s(%.0f)\t", 
+							qa.sentence.getTokenString(j), predScores[i][j]));
+				}
+				System.out.println("\n" + f1.toString());
+			}			
 		}
 		return totalF1;
 	}
 	
 	private double[] crossValidate(AnswerIdDataset ds, int cvFolds,
 			LiblinearHyperParameters prm) {
-		// Split by questions
-		ArrayList<Integer> shuffledIds = new ArrayList<Integer>();
-		ArrayList<ArrayList<Integer>> sampleIds =
-				new ArrayList<ArrayList<Integer>>();
+		ArrayList<Integer> shuffledIds = new ArrayList<Integer>();		
 		for (int i = 0; i < ds.getQuestions().size(); i++) {
 			shuffledIds.add(i);
-			sampleIds.add(new ArrayList<Integer>());
 		}
 		Collections.shuffle(shuffledIds, new Random(randomSeed));
 		int sampleSize = shuffledIds.size();
 		int foldSize = sampleSize / cvFolds;
 	
 		double avgPrec = .0, avgRecall = .0, avgF1 = .0;
-		for (int i = 0; i < cvFolds; i++) {
-			HashSet<Integer> trainQIds = new HashSet<Integer>();
-			HashSet<Integer> valQIds = new HashSet<Integer>();
+		for (int c = 0; c < cvFolds; c++) {
+			System.out.println("cv: " + c);
 			
-			for (int j = 0; j < sampleSize; i++) {
+			HashSet<Integer> trnQIds = new HashSet<Integer>();
+			HashSet<Integer> valQIds = new HashSet<Integer>();
+			ArrayList<QASample> trnSamples = new ArrayList<QASample>();
+			ArrayList<QASample> valSamples = new ArrayList<QASample>();
+			
+			for (int j = 0; j < sampleSize; j++) {
 				int qid = shuffledIds.get(j);
-				sampleIds.get(qid).clear();
-				if (j < foldSize * i || j >= foldSize * (i + 1)) {
-					trainQIds.add(qid);
+				if (j < foldSize * c || j >= foldSize * (c + 1)) {
+					trnQIds.add(qid);
 				} else {
 					valQIds.add(qid);
 				}
 			}
-			int numAll = ds.getSamples().size(),
-				trnCnt = 0, valCnt = 0;
-		
+			System.out.println(String.format(
+					"%d questions in training, %d in validation",
+					trnQIds.size(), valQIds.size()));
+			
+
 			for (int j = 0; j < ds.getSamples().size(); j++) {
 				QASample sample = ds.getSamples().get(j);
-				if (trainQIds.contains(sample.questionId)) {
-					trnCnt ++;
+				if (trnQIds.contains(sample.questionId)) {
+					trnSamples.add(sample);
+				} else {
+					valSamples.add(sample);
 				}
 			}
-			Feature[][] trnFeats = new Feature[trnCnt][];		
-			Feature[][] valFeats = new Feature[numAll - trnCnt][];
-			double[] trnLabels = new double[trnCnt];
-			double[] valLabels = new double[numAll - trnCnt];
-			int[] trnHeads = new int[trnCnt];
-			int[] valHeads = new int[numAll - trnCnt];
+			Feature[][] trnFeats = new Feature[trnSamples.size()][];		
+			Feature[][] valFeats = new Feature[valSamples.size()][];
+			double[] trnLabels = new double[trnSamples.size()];
+			double[] valLabels = new double[valSamples.size()];
 			
-			trnCnt = 0;
+			int trnCnt = 0, valCnt = 0;
+			
 			for (int j = 0; j < ds.getSamples().size(); j++) {
 				QASample sample = ds.getSamples().get(j);
 				int qid = sample.questionId;
-				if (trainQIds.contains(qid)) {
-					sampleIds.get(qid).add(trnCnt);
-					trnHeads[trnCnt] = sample.answerHead;
+				if (trnQIds.contains(qid)) {
 					trnFeats[trnCnt] = ds.getFeatures()[j];
 					trnLabels[trnCnt++] = ds.getLabels()[j];
 				} else {
-					sampleIds.get(qid).add(valCnt);
-					valHeads[valCnt] = sample.answerHead;
 					valFeats[valCnt] = ds.getFeatures()[j];
 					valLabels[valCnt++] = ds.getLabels()[j];
 				}
 			}
+			System.out.println(String.format(
+					"%d samples in training, %d in validation",
+					trnCnt, valCnt));
+			
 			Model model = train(trnFeats, trnLabels,
 					featureExtractor.numFeatures(), prm);
-			F1Metric cvF1 = new F1Metric();
-			// Predict and eval
-			for (int qid : valQIds) {
-				QAPair qa = ds.getQuestions().get(qid);
-				double[] predScores = new double[qa.sentence.length];
-				Arrays.fill(predScores, -1.0);
-				for (int sid : sampleIds.get(qid)) {
-					predScores[valHeads[sid]] =
-						Linear.predict(model, valFeats[i]);
-				}
-				F1Metric f1 = AnswerIdEvaluator.evaluate(
-						predScores,
-						ds.getAnswerFlags()[qid],
-						ds.getAnswerHeads()[qid],
-						evalPrm);
-				cvF1.add(f1);
-			}
-			avgPrec += cvF1.precision();
-			avgRecall += cvF1.recall();
-			avgF1 += cvF1.f1();
+			F1Metric trnF1 = predictAndEvaluate(
+					trnSamples, trnFeats, ds, model);
+			F1Metric valF1 = predictAndEvaluate(
+					valSamples, valFeats, ds, model);
+			avgPrec += valF1.precision();
+			avgRecall += valF1.recall();
+			avgF1 += valF1.f1();
+			System.out.println(trnF1.toString());
+			System.out.println(valF1.toString());
 		}
 		return new double[] {avgPrec / cvFolds,
 							 avgRecall / cvFolds,

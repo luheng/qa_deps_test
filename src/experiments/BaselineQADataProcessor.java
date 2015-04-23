@@ -8,11 +8,13 @@ import java.util.Random;
 
 import annotation.SRLAnnotationValidator;
 import data.AnnotatedSentence;
+import data.Corpus;
 import data.SRLCorpus;
+import data.WikipediaCorpus;
 
 public class BaselineQADataProcessor {
 
-	private static String[] xssfInputFiles = {
+	private static String[] kXssfInputFiles = {
 		//		"odesk/raw_annotation/odesk_r2_s90_breanna_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx",
 		//		"odesk/raw_annotation/odesk_r3_s100_b02_katie.xlsx",
@@ -36,23 +38,29 @@ public class BaselineQADataProcessor {
 				"odesk/raw_annotation/odesk_r15_p1_s50_sarah_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r15_p2_s50_john_fixed.xlsx",
 		};
+	
+	private static String[] kWikifInputFiles = {
+		"odesk_wiki/raw_annotation/odesk_wiki1_r002_breanna.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r003_breanna.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r004_sarah.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r008_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r009_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r010_ellen.xlsx",
+		};
 		
-	private static String outputPathPrefix = "data/odesk_s1250";
+	private static String kOutputPathPrefix = "data/odesk_wiki1";
 		
 	private static final int randomSeed = 12345;
 	
-	private static void processData(String[] inputPaths,
+	private static void processData(String[] inputFiles,
 			String outputPathPrefix,
+			Corpus baseCorpus,
 			double splitRatio) {
-		
-		SRLCorpus baseCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "PROPBANK");
-
 		HashMap<Integer, AnnotatedSentence> annotations =
 				new HashMap<Integer, AnnotatedSentence>();
 		try {
 			XSSFDataRetriever.readXSSFAnnotation(
-					xssfInputFiles,
+					inputFiles,
 					baseCorpus,
 					annotations);
 			XSSFDataRetriever.outputAnnotations(
@@ -92,17 +100,30 @@ public class BaselineQADataProcessor {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-			
-		System.out.println(String.format("Validating %d sentences.",
+
+		System.out.println(String.format("Read %d sentences.",
 				annotations.size()));
-		SRLAnnotationValidator tester = new SRLAnnotationValidator();
-		tester.computeSRLAccuracy(annotations.values(), baseCorpus);
-		tester.ignoreLabels = true;
-		tester.computeSRLAccuracy(annotations.values(), baseCorpus);
+		if (SRLCorpus.class.isInstance(baseCorpus)) {
+			System.out.println(String.format("Validating %d sentences.",
+					annotations.size()));
+			SRLAnnotationValidator tester = new SRLAnnotationValidator();
+			tester.computeSRLAccuracy(annotations.values(),
+					(SRLCorpus) baseCorpus);
+			tester.ignoreLabels = true;
+			tester.computeSRLAccuracy(annotations.values(),
+					(SRLCorpus) baseCorpus);
+		}
 	}
 	
+	
 	public static void main(String[] args) {
-		processData(xssfInputFiles, outputPathPrefix, 0.6);
+		// SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus(
+		//		ExperimentUtils.conll2009TrainFilename, "PROPBANK");
+		WikipediaCorpus wikiCorpus = new WikipediaCorpus("WIKI1");
+		
+		//processData(xssfInputFiles, outputPathPrefix, srlCorpus, 0.6);
+		processData(kWikifInputFiles, kOutputPathPrefix, wikiCorpus, 0.6);
+		
 		//	debugOutput(trainCorpus, annotatedSentences);
 	}
 }
