@@ -1,8 +1,11 @@
 package experiments;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
@@ -40,10 +43,13 @@ public class BaselineQAExperiment {
 	private String trainSamplesPath = "odesk_s1250_20best.train.qaSamples";
 //	private String testSamplesPath = "odesk_s1250_20best.test.qaSamples";
 	
-	private final int randomSeed = 12345;
-	private int cvFolds = 5, minFeatureFreq = 10, kBest = 10;
+	private String featureOutputPath = "feature_weights.tsv";
 	
-	private EvaluationType evalType = EvaluationType.BinaryMultiHead;
+	private final int randomSeed = 12345;
+	private int cvFolds = 5, minFeatureFreq = 5, kBest = 20;
+	
+	private EvaluationType evalType = EvaluationType.BinaryHead;
+	
 	private double evalThreshold = 0;
 	private int evalKBest = 1;
 	
@@ -167,17 +173,19 @@ public class BaselineQAExperiment {
 			System.out.println("Old f1:\t" + oldF1.toString());
 		}
 		
+		BufferedWriter writer = null;
 		try {
-			System.setOut(new PrintStream(new BufferedOutputStream(
-					new FileOutputStream("feature_weights.tsv"))));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			writer = new BufferedWriter(
+					new FileWriter(new File(featureOutputPath)));
+			for (int fid = 0; fid < model.getNrFeature(); fid++) {
+				double fweight = model.getFeatureWeights()[fid + 1];
+				writer.write(String.format("%s\t%.6f\n",
+						featureExtractor.featureDict.getString(fid), fweight));
+			}
+			writer.close();
+		} catch (IOException e) {
 		}
-		for (int fid = 0; fid < model.getNrFeature(); fid++) {
-			double fweight = model.getFeatureWeights()[fid + 1];
-			System.out.println(String.format("%s\t%.6f",
-					featureExtractor.featureDict.getString(fid), fweight));
-		}
+		
 	}
 	
 	// FIXME: Use a FileWriter ....
@@ -253,7 +261,8 @@ public class BaselineQAExperiment {
 					Linear.predict(model, features[i]);
 			evalQIds.add(qid);
 		}
-		
+		System.out.println(String.format("Evaluating %d questions.",
+				evalQIds.size()));
 		for (int i = 0; i < numQuestions; i++) {
 			if (!evalQIds.contains(i)) {
 				continue;
@@ -265,7 +274,7 @@ public class BaselineQAExperiment {
 					evalPrm);
 			totalF1.add(f1);
 			
-			if (samples.size() > 120000) {
+		/*	if (samples.size() == 54175) {
 				QAPair qa = questions.get(i);
 				System.out.println(qa.sentence.getTokensString());
 				System.out.print(qa.getQuestionString() + "\t" +
@@ -288,7 +297,8 @@ public class BaselineQAExperiment {
 							qa.sentence.getTokenString(j), predScores[i][j]));
 				}
 				System.out.println("\n" + f1.toString());
-			}			
+			}
+		*/
 		}
 		return totalF1;
 	}
@@ -374,7 +384,7 @@ public class BaselineQAExperiment {
 	
 	public static void main(String[] args) {
 		BaselineQAExperiment exp = new BaselineQAExperiment(
-				true /* generate sampels */);
+				false /* generate sampels */);
 		
 		ArrayList<LiblinearHyperParameters> cvPrms =
 				new ArrayList<LiblinearHyperParameters>();
@@ -382,9 +392,9 @@ public class BaselineQAExperiment {
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
-		//cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-2));
-		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVC, 0.1, 1e-3));
-		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVR, 0.1, 1e-3));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVC, 0.1, 1e-3));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVR, 0.1, 1e-3));
 		
 		LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
 		exp.trainAndPredict(bestPar);

@@ -106,15 +106,9 @@ public class XSSFDataRetriever {
 			        				sentId = sentIdMap.get(sentId);
 			        			} else {
 			        				String sentStr = row.getCell(1).toString().trim();
-			        				TIntArrayList tids = new TIntArrayList();
-			        				for (String token : sentStr.split("\\s+")) {
-			        					tids.add(corpus.wordDict.addString(token));
-			        				}
-				        			int newSentId = corpus.sentences.size();
-				        			sentIdMap.put(sentId, newSentId);
-				        			sentId = newSentId;
-				        			corpus.sentences.add(new Sentence(tids.toArray(),
-				        					corpus, sentId));
+			        				sent = corpus.addNewSentence(sentStr);
+				        			sentIdMap.put(sentId, sent.sentenceID);
+				        			sentId = sent.sentenceID;
 			        			}
 			        		}
 			        		sent = corpus.getSentence(sentId);

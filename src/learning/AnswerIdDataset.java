@@ -20,7 +20,6 @@ import de.bwaldvogel.liblinear.FeatureNode;
 
 public class AnswerIdDataset {
 	Corpus corpus;
-
 	ArrayList<AnnotatedSentence> sentences;
 	ArrayList<QAPair> questions;
 	ArrayList<QASample> samples;
@@ -68,15 +67,8 @@ public class AnswerIdDataset {
 			String[] info = currLine.trim().split("\t");
 			assert (info.length == 2);
 			currLine = reader.readLine();
-			String[] tokens = currLine.trim().split("\\s+");
-			int[] tokenIds = new int[tokens.length];
-			for (int i = 0; i < tokens.length; i++) {
-				tokenIds[i] = corpus.wordDict.addString(tokens[i]);
-			}
-			Sentence sent = new Sentence(
-					tokenIds, corpus, corpus.sentences.size());
+			Sentence sent = corpus.addNewSentence(currLine);
 			sent.source = info[0];
-			corpus.sentences.add(sent);
 			int numProps = Integer.parseInt(info[1]);
 			AnnotatedSentence annotSent = new AnnotatedSentence(sent);
 			for (int i = 0; i < numProps; i++) {
