@@ -166,7 +166,6 @@ public class AnswerIdFeatureExtractor {
 		fv.adjustOrPutValue(fdict.addString("PV_APOS_QV=" + pvoice + "_" + apos + "_" + qvoice, acceptNew), 1, 1);
 		
 		// Parents and parent edge labels of proposition in kbest parses.
-		/*
 		for (int i = 0; i < kBest; i++) {
 			Collection<TypedDependency> deps = sample.kBestParses.get(i);			
 			for (TypedDependency dep : lookupParentsByChild(deps, propId)) {
@@ -192,7 +191,6 @@ public class AnswerIdFeatureExtractor {
 				}
 			}
 		}
-		*/
 		
 		//*******************  Argument features **********************
 		
@@ -294,7 +292,7 @@ public class AnswerIdFeatureExtractor {
 
 			}
 		}
-		
+
 		// TODO: left and right siblings of answer (word and pos)
 		
 		// **************** Proposition-Argument relation *******************

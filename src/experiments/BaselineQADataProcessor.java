@@ -40,12 +40,16 @@ public class BaselineQADataProcessor {
 		};
 	
 	private static String[] kWikifInputFiles = {
+		"odesk_wiki/raw_annotation/odesk_wiki1_r000_katie.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r002_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r003_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r004_sarah.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r006_tracy.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r007_tracy.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r008_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r009_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r010_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r011_maria.xlsx",
 		};
 		
 	private static String kOutputPathPrefix = "data/odesk_wiki1";

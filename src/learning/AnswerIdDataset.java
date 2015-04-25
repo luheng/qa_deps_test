@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import data.AnnotatedSentence;
 import data.Corpus;
@@ -56,6 +57,14 @@ public class AnswerIdDataset {
 	
 	public int[][] getAnswerHeads() {
 		return answerHeads;
+	}
+	
+	public HashSet<Integer> getSentenceIds() {
+		HashSet<Integer> sentIds = new HashSet<Integer>();
+		for (QAPair qa : questions) {
+			sentIds.add(qa.sentence.sentenceID);
+		}
+		return sentIds;
 	}
 
 	
@@ -105,7 +114,8 @@ public class AnswerIdDataset {
 	public void generateSamples(KBestParseRetriever syntaxHelper) {
 		for (int i = 0; i < questions.size(); i++) {
 			ArrayList<QASample> newSamples =
-					syntaxHelper.generateSamplesGivenQuestion(questions.get(i));
+					syntaxHelper.generateSamplesGivenQuestion(
+							questions.get(i), i);
 			for (QASample sample : newSamples) {
 				sample.questionId = i;
 				samples.add(sample);

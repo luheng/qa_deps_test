@@ -46,7 +46,7 @@ public class BaselineQAExperiment {
 	private String featureOutputPath = "feature_weights.tsv";
 	
 	private final int randomSeed = 12345;
-	private int cvFolds = 5, minFeatureFreq = 5, kBest = 20;
+	private int cvFolds = 10, minFeatureFreq = 5, kBest = 20;
 	
 	private EvaluationType evalType = EvaluationType.BinaryHead;
 	
@@ -57,24 +57,23 @@ public class BaselineQAExperiment {
 	private AnswerIdFeatureExtractor featureExtractor;
 	private AnswerIdEvaluationParameters evalPrm;
 	
-	private AnswerIdDataset trainSets;
+	private AnswerIdDataset trainSet;
 	private HashMap<String, AnswerIdDataset> testSets;
 	
 	
 	public BaselineQAExperiment(boolean generateSamples) {
 		baseCorpus = new Corpus("qa-exp-corpus");
-		trainSets = new AnswerIdDataset(baseCorpus);
+		trainSet = new AnswerIdDataset(baseCorpus);
 		testSets = new HashMap<String, AnswerIdDataset>();
 		testSets.put("prop-test", new AnswerIdDataset(baseCorpus));
 		testSets.put("wiki1", new AnswerIdDataset(baseCorpus));
 		
-		//tests = new AnswerIdDataset(baseCorpus);
 		evalPrm = new AnswerIdEvaluationParameters(evalType, evalKBest,
 				evalThreshold);
 	
 		// ********** Load QA Data ********************
 		try {
-			trainSets.loadData(trainFilePath);
+			trainSet.loadData(trainFilePath);
 			testSets.get("prop-test").loadData(testFilePath);
 			testSets.get("wiki1").loadData(oodFilePath);
 		} catch (IOException e) {
@@ -84,7 +83,7 @@ public class BaselineQAExperiment {
 		// *********** Generate training/test samples **********
 		if (generateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
-			trainSets.generateSamples(syntaxHelper);
+			trainSet.generateSamples(syntaxHelper);
 			for (AnswerIdDataset ds : testSets.values()) {
 				ds.generateSamples(syntaxHelper);
 			}
@@ -93,7 +92,7 @@ public class BaselineQAExperiment {
 			try {
 				ostream = new ObjectOutputStream(
 						new FileOutputStream(trainSamplesPath));
-				ostream.writeObject(trainSets.getSamples());
+				ostream.writeObject(trainSet.getSamples());
 				ostream.flush();
 				ostream.close();
 				for (String dsName : testSets.keySet()) {
@@ -108,7 +107,7 @@ public class BaselineQAExperiment {
 			}
 		} else {
 			try {
-				trainSets.loadSamples(trainSamplesPath);
+				trainSet.loadSamples(trainSamplesPath);
 				for (String dsName : testSets.keySet()) {
 					testSets.get(dsName).loadSamples(dsName + ".qaSamples");
 				}
@@ -117,18 +116,44 @@ public class BaselineQAExperiment {
 			}
 		}
 		
+		sanityCheck1();
+		
 		// ********** Extract features ***************
 		ArrayList<QASample> allSamples = new ArrayList<QASample>();
-		allSamples.addAll(trainSets.getSamples());
+		allSamples.addAll(trainSet.getSamples());
 		for (AnswerIdDataset ds : testSets.values()) {
 			allSamples.addAll(ds.getSamples());
 		}
 		featureExtractor = new AnswerIdFeatureExtractor(baseCorpus, kBest,
 				minFeatureFreq);
 		featureExtractor.extractFeatures(allSamples);
-		trainSets.extractFeaturesAndLabels(featureExtractor);
+		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (AnswerIdDataset ds : testSets.values()) {
 			ds.extractFeaturesAndLabels(featureExtractor);
+		}
+	}
+	
+	public void sanityCheck1() {
+		// 1. Different datasets should have disjoint sentence Ids.
+		System.out.println("======= Sanity Check1: Sentence Overlap =======");
+		int overlap = 0;
+		HashSet<Integer> sids = trainSet.getSentenceIds();
+		for (AnswerIdDataset ds : testSets.values()) {
+			HashSet<Integer> sids2 = ds.getSentenceIds();
+			for (int sid : sids2) {
+				if (sids.contains(sid)) {
+					System.out.println("Overlap!!\t" + sid);
+					overlap++;
+				}
+				sids.add(sid);
+			}
+		}
+		if (overlap == 0) {
+			System.out.println("======= Sanity Check1 Passed: No Overlap =======");
+		} else {
+			System.out.println(
+					String.format("Sanity Check1 Failed with %d overlapping sentences.",
+					overlap));
 		}
 	}
 	
@@ -140,7 +165,7 @@ public class BaselineQAExperiment {
 		
 		for (LiblinearHyperParameters prm : cvPrms) {
 			System.out.println(prm.toString());
-			double[] res = crossValidate(trainSets, cvFolds, prm);
+			double[] res = crossValidate(trainSet, cvFolds, prm);
 			cvResults.add(res);
 		}
 		for (int i = 0; i < cvResults.size(); i++) {
@@ -158,10 +183,10 @@ public class BaselineQAExperiment {
 	public void trainAndPredict(LiblinearHyperParameters prm) {
 		int numFeatures = featureExtractor.numFeatures();
 		Model model = train(
-				trainSets.getFeatures(),
-				trainSets.getLabels(),
+				trainSet.getFeatures(),
+				trainSet.getLabels(),
 				numFeatures, prm);
-		F1Metric f1 = predictAndEvaluate(trainSets, model);
+		F1Metric f1 = predictAndEvaluate(trainSet, model);
 		System.out.println("Training accuracy:\t" + f1.toString());
 		for (String dsName : testSets.keySet()) {
 			AnswerIdDataset ds = testSets.get(dsName);
@@ -268,13 +293,14 @@ public class BaselineQAExperiment {
 				continue;
 			}
 			
-			F1Metric f1 = AnswerIdEvaluator.evaluate(predScores[i],
+			F1Metric f1 = AnswerIdEvaluator.evaluate(
+					predScores[i],
 					answerFlags[i],
 					answerHeads[i],
 					evalPrm);
 			totalF1.add(f1);
 			
-		/*	if (samples.size() == 54175) {
+			if (samples.size() == 63467) {
 				QAPair qa = questions.get(i);
 				System.out.println(qa.sentence.getTokensString());
 				System.out.print(qa.getQuestionString() + "\t" +
@@ -298,7 +324,7 @@ public class BaselineQAExperiment {
 				}
 				System.out.println("\n" + f1.toString());
 			}
-		*/
+
 		}
 		return totalF1;
 	}
@@ -384,7 +410,7 @@ public class BaselineQAExperiment {
 	
 	public static void main(String[] args) {
 		BaselineQAExperiment exp = new BaselineQAExperiment(
-				false /* generate sampels */);
+				true /* generate sampels */);
 		
 		ArrayList<LiblinearHyperParameters> cvPrms =
 				new ArrayList<LiblinearHyperParameters>();

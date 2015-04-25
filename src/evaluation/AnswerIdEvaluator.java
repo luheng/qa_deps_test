@@ -4,6 +4,14 @@ import java.util.Arrays;
 
 public class AnswerIdEvaluator {
 
+	/**
+	 * 
+	 * @param predScores
+	 * @param goldAnswerFlags
+	 * @param goldAnswerHeads
+	 * @param eval
+	 * @return
+	 */
 	public static F1Metric evaluate(
 			double[] predScores,
 			int[] goldAnswerFlags,
