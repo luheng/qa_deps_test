@@ -81,10 +81,12 @@ public class QuestionEncoder {
 		    } else if (nullPh3 && !nullPh2 && !nullPh1 && !passiveVoice) {
 				// e.g. Who did someone give something to?
 				label = wh + "_2";
-			} else if (nullPh3 && nullPh2 && !nullPh1 && passiveVoice && !pp.isEmpty()) {
+			} else if (nullPh3 && nullPh2 && !nullPh1 && passiveVoice) {
 				// e.g. What is something capped to?
 				//      Who is something baked for?
 				//      What is something being driven for?
+				//      What is someone given?
+				//      What is someone named?
 				label = wh + "_2";
 			} else {
 				label = wh + "_???";

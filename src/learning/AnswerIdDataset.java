@@ -28,6 +28,8 @@ public class AnswerIdDataset {
 	int[][] answerFlags, answerHeads;
 	Feature[][] features;
 	double[] labels;
+	
+	static final boolean generateHead = false;
 
 	public AnswerIdDataset(Corpus corpus, String name) {
 		this(corpus);
@@ -121,38 +123,52 @@ public class AnswerIdDataset {
 				sentences.size(), filePath));
 	}
 	
-	public void generateSamples(KBestParseRetriever syntaxHelper) {
+	public void generateSamples(KBestParseRetriever syntaxHelper,
+								boolean generateSpanBasedSamples) {
+		int numPositiveSamples = 0;
 		for (int i = 0; i < questions.size(); i++) {
-			ArrayList<QASample> newSamples =
-					syntaxHelper.generateSamplesGivenQuestion(
-							questions.get(i), i);
+			ArrayList<QASample> newSamples = generateSpanBasedSamples ? 
+					syntaxHelper.generateSamplesFromSpans(questions.get(i), i) :
+					syntaxHelper.generateSamplesWithParses(questions.get(i), i);			
+							
 			for (QASample sample : newSamples) {
 				sample.questionId = i;
 				samples.add(sample);
+				numPositiveSamples += (sample.isPositiveSample ? 1 : 0);
 			}
 			if (i % 100 == 99) {
-				System.out.println(String.format(
-						"Processed %d QAs, %d still left.",
+				System.out.print(String.format(
+						"Processed %d QAs, %d still left.\t",
 						i + 1, questions.size() - i - 1));
+				System.out.println(String.format(
+						"Generated %d samples. %d positive, %d negative.",
+						samples.size(), numPositiveSamples,
+						samples.size() - numPositiveSamples));
 			}
 		}
-		System.out.println(String.format("Generated %d samples.",
-				samples.size()));
+		System.out.println(String.format(
+				"Generated %d samples. %d positive, %d negative.",
+				samples.size(), numPositiveSamples,
+				samples.size() - numPositiveSamples));
 	}
 	
 	public void loadSamples(String filePath)
 			throws IOException, ClassNotFoundException {
 		ObjectInputStream istream =
 				new ObjectInputStream(new FileInputStream(filePath));
+		int numPositiveSamples = 0;
 		@SuppressWarnings("unchecked")
-		ArrayList<Object> objs =
-				(ArrayList<Object>) istream.readObject();
+		ArrayList<Object> objs = (ArrayList<Object>) istream.readObject();
 		for (int i = 0; i < objs.size(); i++) {
-			samples.add((QASample) objs.get(i));
+			QASample sample = (QASample) objs.get(i);
+			samples.add(sample);
+			numPositiveSamples += (sample.isPositiveSample ? 1 : 0);
 		}
 		istream.close();
-		System.out.println(String.format("Loaded %d samples from %s.",
-				samples.size(), filePath));
+		System.out.println(String.format(
+				"Loaded %d samples from %s. %d positive, %d negative.",
+				samples.size(), filePath, numPositiveSamples,
+				samples.size() - numPositiveSamples));
 	}
 	
 	public void extractFeaturesAndLabels(

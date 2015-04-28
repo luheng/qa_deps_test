@@ -1,14 +1,11 @@
 package experiments;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,14 +37,19 @@ public class BaselineQAExperiment {
 	private String oodTrainFilePath = "data/odesk_wiki1.train.qa";
 	private String oodTestFilePath = "data/odesk_wiki1.test.qa";
 	
-	private String trainSamplesPath = "odesk_s1250_20best.train.qaSamples";
-	
 	private String featureOutputPath = "feature_weights.tsv";
 	
 	private final int randomSeed = 12345;
-	private int cvFolds = 5, minFeatureFreq = 3, kBest = 1;
+	private final int cvFolds = 5,
+					  minFeatureFreq = 3,
+					  kBest = 1;
 	
-	private EvaluationType evalType = EvaluationType.topKHead;
+	private boolean regenerateSamples = false;
+	private boolean trainWithWiki = false;
+	private boolean useSpanBasedSamples = true;
+	private boolean useLexicalFeatures = true;
+	private boolean useDependencyFeatures = true;
+	private EvaluationType evalType = EvaluationType.topKSpan;
 	
 	private double evalThreshold = 0;
 	private int evalKBest = 1;
@@ -59,48 +61,61 @@ public class BaselineQAExperiment {
 	private AnswerIdDataset trainSet;
 	private HashMap<String, AnswerIdDataset> testSets;
 	
+	private String getSampleFileName(AnswerIdDataset ds) {
+		if (useSpanBasedSamples) {
+			return ds.datasetName + ".sp.k" + kBest + ".smp";
+		} else {
+			return ds.datasetName + ".k" + kBest + ".smp";
+		}
+	}
 	
-	public BaselineQAExperiment(boolean generateSamples) {
+	public BaselineQAExperiment() throws IOException {
 		baseCorpus = new Corpus("qa-exp-corpus");
-		trainSet = new AnswerIdDataset(baseCorpus);
 		testSets = new HashMap<String, AnswerIdDataset>();
-		testSets.put("prop-test", new AnswerIdDataset(baseCorpus, "prop-test"));
-		testSets.put("wiki1-train", new AnswerIdDataset(baseCorpus, "wiki1-train"));
-		testSets.put("wiki1-test", new AnswerIdDataset(baseCorpus, "wiki1-test"));
-		
-		evalPrm = new AnswerIdEvaluationParameters(evalType, evalKBest,
-				evalThreshold);
-	
 		// ********** Load QA Data ********************
-		try {
+		if (trainWithWiki) {
+			trainSet = new AnswerIdDataset(baseCorpus, "wiki1-train");
+			testSets.put("wiki1-test", new AnswerIdDataset(baseCorpus, "wiki1-test"));			
+			testSets.put("prop-train", new AnswerIdDataset(baseCorpus, "prop-train"));
+			testSets.put("prop-test", new AnswerIdDataset(baseCorpus, "prop-test"));
+			
+			trainSet.loadData(oodTrainFilePath);
+			testSets.get("wiki1-test").loadData(oodTestFilePath);
+			testSets.get("prop-train").loadData(trainFilePath);
+			testSets.get("prop-test").loadData(testFilePath);
+		} else {
+			trainSet = new AnswerIdDataset(baseCorpus, "prop-train");
+			testSets.put("prop-test", new AnswerIdDataset(baseCorpus, "prop-test"));	
+			testSets.put("wiki1-train", new AnswerIdDataset(baseCorpus, "wiki1-train"));
+			testSets.put("wiki1-test", new AnswerIdDataset(baseCorpus, "wiki1-test"));
+			
 			trainSet.loadData(trainFilePath);
-		//	trainSet.loadData(oodTrainFilePath);
 			testSets.get("prop-test").loadData(testFilePath);
 			testSets.get("wiki1-train").loadData(oodTrainFilePath);
 			testSets.get("wiki1-test").loadData(oodTestFilePath);
-		} catch (IOException e) {
-			e.printStackTrace();	
 		}
+		evalPrm = new AnswerIdEvaluationParameters(evalType, evalKBest,
+				evalThreshold);
 		
 		// *********** Generate training/test samples **********
-		if (generateSamples) {
+		if (regenerateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
-			trainSet.generateSamples(syntaxHelper);
+			trainSet.generateSamples(syntaxHelper, useSpanBasedSamples);
 			for (AnswerIdDataset ds : testSets.values()) {
-				ds.generateSamples(syntaxHelper);
+				ds.generateSamples(syntaxHelper, useSpanBasedSamples);
 			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;
 			try {
 				ostream = new ObjectOutputStream(
-						new FileOutputStream(trainSamplesPath));
+						new FileOutputStream(getSampleFileName(trainSet)));
 				ostream.writeObject(trainSet.getSamples());
 				ostream.flush();
 				ostream.close();
-				for (String dsName : testSets.keySet()) {
+				for (AnswerIdDataset testSet : testSets.values()) {
 					ostream = new ObjectOutputStream(
-							new FileOutputStream(dsName + ".qaSamples"));
-					ostream.writeObject(testSets.get(dsName).getSamples());
+							new FileOutputStream(getSampleFileName(testSet)));
+					ostream.writeObject(testSet.getSamples());
 					ostream.flush();
 					ostream.close();
 				}
@@ -109,9 +124,9 @@ public class BaselineQAExperiment {
 			}
 		} else {
 			try {
-				trainSet.loadSamples(trainSamplesPath);
-				for (String dsName : testSets.keySet()) {
-					testSets.get(dsName).loadSamples(dsName + ".k" + kBest + ".smp");
+     			trainSet.loadSamples(getSampleFileName(trainSet));
+     			for (AnswerIdDataset testSet : testSets.values()) {
+					testSet.loadSamples(getSampleFileName(testSet));
 				}
 			} catch (ClassNotFoundException | IOException e) {
 				e.printStackTrace();
@@ -127,8 +142,12 @@ public class BaselineQAExperiment {
 			allSamples.addAll(ds.getSamples());
 		}
 */
-		featureExtractor = new AnswerIdFeatureExtractor(baseCorpus, kBest,
-				minFeatureFreq);
+		featureExtractor = new AnswerIdFeatureExtractor(
+				baseCorpus,
+				kBest,
+				minFeatureFreq,
+				useLexicalFeatures,
+				useDependencyFeatures);
 		featureExtractor.extractFeatures(trainSet.getSamples());
 		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (AnswerIdDataset ds : testSets.values()) {
@@ -193,11 +212,10 @@ public class BaselineQAExperiment {
 		System.out.println(String.format("Training accuracy:\t %.4f", accuracy));
 		for (AnswerIdDataset ds : testSets.values()) {
 			accuracy = predictAndEvaluate(ds, model);
-			F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(), 
-					ds.getLabels(), model);
+//			F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(),  ds.getLabels(), model);
 			System.out.println(String.format("Testing accuracy on %s: %.4f",
 					ds.datasetName, accuracy));		
-			System.out.println("Old f1:\t" + oldF1.toString());
+//			System.out.println("Old f1:\t" + oldF1.toString());
 		}
 		
 		BufferedWriter writer = null;
@@ -215,21 +233,6 @@ public class BaselineQAExperiment {
 		
 	}
 	
-	// FIXME: Use a FileWriter ....
-	public void outputFeatures(Model model) {		
-		try {
-			System.setOut(new PrintStream(new BufferedOutputStream(
-					new FileOutputStream("feature_weights.tsv"))));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		for (int fid = 0; fid < model.getNrFeature(); fid++) {
-			double fweight = model.getFeatureWeights()[fid + 1];
-			System.out.println(String.format("%s\t%.6f",
-					featureExtractor.featureDict.getString(fid), fweight));
-		}
-	}
-	
 	private Model train(Feature[][] features, double[] labels,
 			int numFeatures, LiblinearHyperParameters par) {
 		Problem training = new Problem();
@@ -245,6 +248,8 @@ public class BaselineQAExperiment {
 		return predictAndEvaluate(ds.getSamples(), ds.getFeatures(), ds, model);
 	}
 	
+	@SuppressWarnings("unused")
+	@Deprecated
 	private F1Metric predictAndEvaluateOld(Feature[][] features,
 			double[] labels, Model model) {
 		int numMatched = 0, numPred = 0, numGold = 0;
@@ -291,23 +296,38 @@ public class BaselineQAExperiment {
 				evalQIds.size()));
 		
 		int numMatchedQuestions = 0;
+		double avgMatchedWords = .0;
+		double allNegBaseline = .0;
 		for (int qid = 0; qid < numQuestions; qid++) {
 			if (!evalQIds.contains(qid)) {
 				continue;
 			}
 			QAPair qa = questions.get(qid);
-			int bestIdx = (qa.propHead > 0 ? qa.propHead - 1 : qa.propHead + 1);
-			for (int i = 0; i < predScores[qid].length; i++) {
-				if (predScores[qid][i] > predScores[qid][bestIdx]) {
-					bestIdx = i;
+			if (useSpanBasedSamples) {
+				double matched = AnswerIdEvaluator.evaluateAccuracy(
+						predScores[qid],
+						answerFlags[qid],
+						evalPrm);
+				avgMatchedWords += matched;
+				int numGold = 0;
+				for (int flag : answerFlags[qid]) {
+					numGold += (flag > 0 ? 1 : 0);
 				}
+				allNegBaseline += (1.0 - 1.0 * numGold / answerFlags[qid].length);
+			} else {
+				int bestIdx = (qa.propHead > 0 ? qa.propHead - 1 : qa.propHead + 1);
+				for (int i = 0; i < predScores[qid].length; i++) {
+					if (predScores[qid][i] > predScores[qid][bestIdx]) {
+						bestIdx = i;
+					}
+				}
+				int matched = AnswerIdEvaluator.evaluateAccuracy(
+						bestIdx,
+						answerFlags[qid],
+						answerHeads[qid],
+						evalPrm);
+				numMatchedQuestions += matched;
 			}
-			int matched = AnswerIdEvaluator.evaluateAccuracy(
-					bestIdx,
-					answerFlags[qid],
-					answerHeads[qid],
-					evalPrm);
-			numMatchedQuestions += matched;
 /*			
 			if (samples.size() == 141324 && i % 37 == 1) {
 				QAPair qa = questions.get(i);
@@ -335,7 +355,13 @@ public class BaselineQAExperiment {
 			}
 */
 		}
-		return 1.0 * numMatchedQuestions /evalQIds.size();
+		if (useSpanBasedSamples) {
+			System.out.println("All negative baseline:\t" +
+					allNegBaseline / evalQIds.size());
+		}
+		return useSpanBasedSamples ? 
+				avgMatchedWords / evalQIds.size() :
+				1.0 * numMatchedQuestions /evalQIds.size();
 	}
 	
 	private double crossValidate(AnswerIdDataset ds, int cvFolds,
@@ -414,15 +440,20 @@ public class BaselineQAExperiment {
 	}
 	
 	public static void main(String[] args) {
-		BaselineQAExperiment exp = new BaselineQAExperiment(
-				true /* generate sampels */);
+		BaselineQAExperiment exp = null;
+		try {
+			exp = new BaselineQAExperiment();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
 		
 		ArrayList<LiblinearHyperParameters> cvPrms =
 				new ArrayList<LiblinearHyperParameters>();
 		
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
-	//	cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
-	//	cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
+		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
+		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
 		
 		LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
 		exp.trainAndPredict(bestPar);

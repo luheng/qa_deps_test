@@ -9,13 +9,28 @@ public class AnswerIdEvaluator {
 			int[] goldAnswerFlags,
 			int[] goldAnswerHeads,
 			AnswerIdEvaluationParameters eval) {
-		
 		int matched = 0;
 		if ((eval.evalHead() && goldAnswerHeads[predictedHead] > 0) ||
 			(!eval.evalHead() && goldAnswerFlags[predictedHead] > 0)) {
 			matched = 1;
 		}
 		return matched;
+	}
+	
+
+	public static double evaluateAccuracy(
+			double[] predScores,
+			int[] goldAnswerFlags,
+			AnswerIdEvaluationParameters evalPrm) {
+		int numMatched = 0;
+		for (int i = 0; i < predScores.length; i++) {
+			boolean gold = (goldAnswerFlags[i] > 0);
+			boolean pred = (predScores[i] > evalPrm.threshold);
+			if (gold == pred) {
+				++ numMatched;
+			}
+		}
+		return 1.0 * numMatched / predScores.length;
 	}
 	
 	/**
@@ -103,4 +118,5 @@ public class AnswerIdEvaluator {
 		}
 		return result;
 	}
+
 }

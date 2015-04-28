@@ -53,7 +53,7 @@ public class KBestParseRetriever {
 		this.cachedSentenceId = -1;
 	}
 	
-	public ArrayList<QASample> generateSamplesGivenQuestion(QAPair qa,
+	public ArrayList<QASample> generateSamplesWithParses(QAPair qa,
 			int questionId) {
 		if (cachedSentenceId != qa.sentence.sentenceID) {
 			retrieveAndCacheSyntax(qa.sentence);
@@ -98,6 +98,43 @@ public class KBestParseRetriever {
 							questionId,
 							qa.questionWords,
 							idx, /* answer head */
+							kBestScores,
+							kBestParses,
+							postags,
+							lemmas));
+			}
+		}
+		return samples;
+	}
+	
+	public ArrayList<QASample> generateSamplesFromSpans(QAPair qa,
+			int questionId) {
+		if (cachedSentenceId != qa.sentence.sentenceID) {
+			retrieveAndCacheSyntax(qa.sentence);
+		}
+		// Generate all samples for the question.
+		ArrayList<QASample> samples = new ArrayList<QASample>();
+		for (int idx = 0; idx < qa.sentence.length; idx++) {
+			if (qa.answerFlags[idx] > 0) {
+				samples.add(
+					QASample.addPositiveSample(
+						qa.sentence,
+						qa.propHead,
+						questionId,
+						qa.questionWords,
+						idx, /* answer word */
+						kBestScores,
+						kBestParses,
+						postags,
+						lemmas));
+			} else if (idx != qa.propHead) {
+				samples.add(
+					QASample.addNegativeSample(
+							qa.sentence,
+							qa.propHead,
+							questionId,
+							qa.questionWords,
+							idx, /* answer word */
 							kBestScores,
 							kBestParses,
 							postags,
