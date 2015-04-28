@@ -20,6 +20,7 @@ import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
 
 public class AnswerIdDataset {
+	public String datasetName;
 	Corpus corpus;
 	ArrayList<AnnotatedSentence> sentences;
 	ArrayList<QAPair> questions;
@@ -27,6 +28,11 @@ public class AnswerIdDataset {
 	int[][] answerFlags, answerHeads;
 	Feature[][] features;
 	double[] labels;
+
+	public AnswerIdDataset(Corpus corpus, String name) {
+		this(corpus);
+		this.datasetName = name;
+	}
 	
 	public AnswerIdDataset(Corpus corpus) {
 		this.corpus = corpus;
@@ -35,6 +41,10 @@ public class AnswerIdDataset {
 		this.samples = new ArrayList<QASample>();
 	}
 	
+	public Corpus getCorpus() {
+		return corpus;
+	}
+	 
 	public ArrayList<QASample> getSamples() {
 		return samples;
 	}

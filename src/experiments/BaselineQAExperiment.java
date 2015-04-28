@@ -36,19 +36,18 @@ import evaluation.F1Metric;
 public class BaselineQAExperiment {
 
 	private String trainFilePath = "data/odesk_s1250.train.qa";
-	private String testFilePath = "data/odesk_s1250.test.qa";
-	
-	private String oodFilePath = "data/odesk_wiki1.qa";
+	private String testFilePath = "data/odesk_s1250.test.qa";	
+	private String oodTrainFilePath = "data/odesk_wiki1.train.qa";
+	private String oodTestFilePath = "data/odesk_wiki1.test.qa";
 	
 	private String trainSamplesPath = "odesk_s1250_20best.train.qaSamples";
-//	private String testSamplesPath = "odesk_s1250_20best.test.qaSamples";
 	
 	private String featureOutputPath = "feature_weights.tsv";
 	
 	private final int randomSeed = 12345;
-	private int cvFolds = 10, minFeatureFreq = 5, kBest = 20;
+	private int cvFolds = 5, minFeatureFreq = 3, kBest = 1;
 	
-	private EvaluationType evalType = EvaluationType.BinaryHead;
+	private EvaluationType evalType = EvaluationType.topKHead;
 	
 	private double evalThreshold = 0;
 	private int evalKBest = 1;
@@ -65,8 +64,9 @@ public class BaselineQAExperiment {
 		baseCorpus = new Corpus("qa-exp-corpus");
 		trainSet = new AnswerIdDataset(baseCorpus);
 		testSets = new HashMap<String, AnswerIdDataset>();
-		testSets.put("prop-test", new AnswerIdDataset(baseCorpus));
-		testSets.put("wiki1", new AnswerIdDataset(baseCorpus));
+		testSets.put("prop-test", new AnswerIdDataset(baseCorpus, "prop-test"));
+		testSets.put("wiki1-train", new AnswerIdDataset(baseCorpus, "wiki1-train"));
+		testSets.put("wiki1-test", new AnswerIdDataset(baseCorpus, "wiki1-test"));
 		
 		evalPrm = new AnswerIdEvaluationParameters(evalType, evalKBest,
 				evalThreshold);
@@ -74,8 +74,10 @@ public class BaselineQAExperiment {
 		// ********** Load QA Data ********************
 		try {
 			trainSet.loadData(trainFilePath);
+		//	trainSet.loadData(oodTrainFilePath);
 			testSets.get("prop-test").loadData(testFilePath);
-			testSets.get("wiki1").loadData(oodFilePath);
+			testSets.get("wiki1-train").loadData(oodTrainFilePath);
+			testSets.get("wiki1-test").loadData(oodTestFilePath);
 		} catch (IOException e) {
 			e.printStackTrace();	
 		}
@@ -109,7 +111,7 @@ public class BaselineQAExperiment {
 			try {
 				trainSet.loadSamples(trainSamplesPath);
 				for (String dsName : testSets.keySet()) {
-					testSets.get(dsName).loadSamples(dsName + ".qaSamples");
+					testSets.get(dsName).loadSamples(dsName + ".k" + kBest + ".smp");
 				}
 			} catch (ClassNotFoundException | IOException e) {
 				e.printStackTrace();
@@ -119,14 +121,15 @@ public class BaselineQAExperiment {
 		sanityCheck1();
 		
 		// ********** Extract features ***************
-		ArrayList<QASample> allSamples = new ArrayList<QASample>();
+/*		ArrayList<QASample> allSamples = new ArrayList<QASample>();
 		allSamples.addAll(trainSet.getSamples());
 		for (AnswerIdDataset ds : testSets.values()) {
 			allSamples.addAll(ds.getSamples());
 		}
+*/
 		featureExtractor = new AnswerIdFeatureExtractor(baseCorpus, kBest,
 				minFeatureFreq);
-		featureExtractor.extractFeatures(allSamples);
+		featureExtractor.extractFeatures(trainSet.getSamples());
 		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (AnswerIdDataset ds : testSets.values()) {
 			ds.extractFeaturesAndLabels(featureExtractor);
@@ -159,21 +162,21 @@ public class BaselineQAExperiment {
 	
 	public LiblinearHyperParameters runCrossValidation(
 			ArrayList<LiblinearHyperParameters> cvPrms) {
-		ArrayList<double[]> cvResults = new ArrayList<double[]>();
-		double bestF1 = .0;
+		ArrayList<Double> cvResults = new ArrayList<Double>();
+		double bestAcc = .0;
 		LiblinearHyperParameters bestPrm = null;
 		
 		for (LiblinearHyperParameters prm : cvPrms) {
 			System.out.println(prm.toString());
-			double[] res = crossValidate(trainSet, cvFolds, prm);
+			double res = crossValidate(trainSet, cvFolds, prm);
 			cvResults.add(res);
 		}
 		for (int i = 0; i < cvResults.size(); i++) {
-			double[] res = cvResults.get(i);
-			System.out.println(String.format("%s\t%.3f\t%.3f\t%.3f\n",
-					cvPrms.get(i).toString(), res[0], res[1], res[2]));
-			if (res[2] > bestF1) {
-				bestF1 = res[2];
+			double acc = cvResults.get(i);
+			System.out.println(String.format("%s\t%.5f\n",
+					cvPrms.get(i).toString(), acc));
+			if (acc > bestAcc) {
+				bestAcc = acc;
 				bestPrm = cvPrms.get(i);
 			}
 		}
@@ -186,15 +189,14 @@ public class BaselineQAExperiment {
 				trainSet.getFeatures(),
 				trainSet.getLabels(),
 				numFeatures, prm);
-		F1Metric f1 = predictAndEvaluate(trainSet, model);
-		System.out.println("Training accuracy:\t" + f1.toString());
-		for (String dsName : testSets.keySet()) {
-			AnswerIdDataset ds = testSets.get(dsName);
-			f1 = predictAndEvaluate(ds, model);
+		double accuracy = predictAndEvaluate(trainSet, model);
+		System.out.println(String.format("Training accuracy:\t %.4f", accuracy));
+		for (AnswerIdDataset ds : testSets.values()) {
+			accuracy = predictAndEvaluate(ds, model);
 			F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(), 
 					ds.getLabels(), model);
-			System.out.println(String.format("Testing accuracy on %s: %s",
-					dsName, f1.toString()));		
+			System.out.println(String.format("Testing accuracy on %s: %.4f",
+					ds.datasetName, accuracy));		
 			System.out.println("Old f1:\t" + oldF1.toString());
 		}
 		
@@ -239,7 +241,7 @@ public class BaselineQAExperiment {
 		return Linear.train(training, parameter);
 	}
 	
-	private F1Metric predictAndEvaluate(AnswerIdDataset ds, Model model) {
+	private double predictAndEvaluate(AnswerIdDataset ds, Model model) {
 		return predictAndEvaluate(ds.getSamples(), ds.getFeatures(), ds, model);
 	}
 	
@@ -262,7 +264,7 @@ public class BaselineQAExperiment {
 		return new F1Metric(numMatched, numGold, numPred);
 	}
 	
-	private F1Metric predictAndEvaluate(
+	private double predictAndEvaluate(
 			ArrayList<QASample> samples,
 			Feature[][] features,
 			AnswerIdDataset ds,
@@ -271,7 +273,6 @@ public class BaselineQAExperiment {
 		int[][] answerHeads = ds.getAnswerHeads();
 		ArrayList<QAPair> questions = ds.getQuestions();
 		
-		F1Metric totalF1 = new F1Metric();
 		int numQuestions = answerFlags.length;
 		HashSet<Integer> evalQIds = new HashSet<Integer>();
 		double[][] predScores = new double[numQuestions][];
@@ -288,19 +289,27 @@ public class BaselineQAExperiment {
 		}
 		System.out.println(String.format("Evaluating %d questions.",
 				evalQIds.size()));
-		for (int i = 0; i < numQuestions; i++) {
-			if (!evalQIds.contains(i)) {
+		
+		int numMatchedQuestions = 0;
+		for (int qid = 0; qid < numQuestions; qid++) {
+			if (!evalQIds.contains(qid)) {
 				continue;
 			}
-			
-			F1Metric f1 = AnswerIdEvaluator.evaluate(
-					predScores[i],
-					answerFlags[i],
-					answerHeads[i],
+			QAPair qa = questions.get(qid);
+			int bestIdx = (qa.propHead > 0 ? qa.propHead - 1 : qa.propHead + 1);
+			for (int i = 0; i < predScores[qid].length; i++) {
+				if (predScores[qid][i] > predScores[qid][bestIdx]) {
+					bestIdx = i;
+				}
+			}
+			int matched = AnswerIdEvaluator.evaluateAccuracy(
+					bestIdx,
+					answerFlags[qid],
+					answerHeads[qid],
 					evalPrm);
-			totalF1.add(f1);
-			
-			if (samples.size() == 63467) {
+			numMatchedQuestions += matched;
+/*			
+			if (samples.size() == 141324 && i % 37 == 1) {
 				QAPair qa = questions.get(i);
 				System.out.println(qa.sentence.getTokensString());
 				System.out.print(qa.getQuestionString() + "\t" +
@@ -319,17 +328,17 @@ public class BaselineQAExperiment {
 				}
 				System.out.print("\nPSCR:\t");
 				for (int j = 0; j < length; j++) {
-					System.out.print(String.format("%s(%.0f)\t", 
+					System.out.print(String.format("%s(%.3f)\t", 
 							qa.sentence.getTokenString(j), predScores[i][j]));
 				}
-				System.out.println("\n" + f1.toString());
+				System.out.println("\nmatched:" + matched);
 			}
-
+*/
 		}
-		return totalF1;
+		return 1.0 * numMatchedQuestions /evalQIds.size();
 	}
 	
-	private double[] crossValidate(AnswerIdDataset ds, int cvFolds,
+	private double crossValidate(AnswerIdDataset ds, int cvFolds,
 			LiblinearHyperParameters prm) {
 		ArrayList<Integer> shuffledIds = new ArrayList<Integer>();		
 		for (int i = 0; i < ds.getQuestions().size(); i++) {
@@ -339,7 +348,7 @@ public class BaselineQAExperiment {
 		int sampleSize = shuffledIds.size();
 		int foldSize = sampleSize / cvFolds;
 	
-		double avgPrec = .0, avgRecall = .0, avgF1 = .0;
+		double avgAcc = .0;
 		for (int c = 0; c < cvFolds; c++) {
 			System.out.println("cv: " + c);
 			
@@ -393,19 +402,15 @@ public class BaselineQAExperiment {
 			
 			Model model = train(trnFeats, trnLabels,
 					featureExtractor.numFeatures(), prm);
-			F1Metric trnF1 = predictAndEvaluate(
+			double trnAcc = predictAndEvaluate(
 					trnSamples, trnFeats, ds, model);
-			F1Metric valF1 = predictAndEvaluate(
+			double valAcc = predictAndEvaluate(
 					valSamples, valFeats, ds, model);
-			avgPrec += valF1.precision();
-			avgRecall += valF1.recall();
-			avgF1 += valF1.f1();
-			System.out.println(trnF1.toString());
-			System.out.println(valF1.toString());
+			avgAcc += valAcc;
+			System.out.println(trnAcc);
+			System.out.println(valAcc);
 		}
-		return new double[] {avgPrec / cvFolds,
-							 avgRecall / cvFolds,
-							 avgF1 / cvFolds};
+		return avgAcc / cvFolds;
 	}
 	
 	public static void main(String[] args) {
@@ -416,11 +421,8 @@ public class BaselineQAExperiment {
 				new ArrayList<LiblinearHyperParameters>();
 		
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVC, 0.1, 1e-3));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_L2LOSS_SVR, 0.1, 1e-3));
+	//	cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
+	//	cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
 		
 		LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
 		exp.trainAndPredict(bestPar);

@@ -4,6 +4,20 @@ import java.util.Arrays;
 
 public class AnswerIdEvaluator {
 
+	public static int evaluateAccuracy(
+			int predictedHead,
+			int[] goldAnswerFlags,
+			int[] goldAnswerHeads,
+			AnswerIdEvaluationParameters eval) {
+		
+		int matched = 0;
+		if ((eval.evalHead() && goldAnswerHeads[predictedHead] > 0) ||
+			(!eval.evalHead() && goldAnswerFlags[predictedHead] > 0)) {
+			matched = 1;
+		}
+		return matched;
+	}
+	
 	/**
 	 * 
 	 * @param predScores

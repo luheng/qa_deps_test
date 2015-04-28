@@ -44,13 +44,19 @@ public class BaselineQADataProcessor {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r002_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r003_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r004_sarah.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r005_sarah.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r006_tracy.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r007_tracy.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r008_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r009_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r010_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r011_maria.xlsx",
-		};
+		"odesk_wiki/raw_annotation/odesk_wiki1_r013_john.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r014_john.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r019_breanna.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r021_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r022_ellen.xlsx",
+	};
 		
 	private static String kOutputPathPrefix = "data/odesk_wiki1";
 		
