@@ -1,4 +1,4 @@
-package experiments;
+package baselines;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,6 +11,8 @@ import data.AnnotatedSentence;
 import data.Corpus;
 import data.SRLCorpus;
 import data.WikipediaCorpus;
+import experiments.ExperimentUtils;
+import experiments.XSSFDataRetriever;
 
 public class BaselineQADataProcessor {
 
@@ -51,14 +53,19 @@ public class BaselineQADataProcessor {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r009_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r010_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r011_maria.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r012_maria.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r013_john.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r014_john.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r019_breanna.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r020_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r021_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r022_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r025_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r026_ellen.xlsx",
 	};
 		
 	private static String kOutputPathPrefix = "data/odesk_wiki1";
+	//private static String kOutputPathPrefix = "data/propbank_test";
 		
 	private static final int randomSeed = 12345;
 	
@@ -127,11 +134,11 @@ public class BaselineQADataProcessor {
 	
 	
 	public static void main(String[] args) {
-		// SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus(
+		//SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus(
 		//		ExperimentUtils.conll2009TrainFilename, "PROPBANK");
 		WikipediaCorpus wikiCorpus = new WikipediaCorpus("WIKI1");
 		
-		//processData(xssfInputFiles, outputPathPrefix, srlCorpus, 0.6);
+		//processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.6);
 		processData(kWikifInputFiles, kOutputPathPrefix, wikiCorpus, 0.6);
 		
 		//	debugOutput(trainCorpus, annotatedSentences);

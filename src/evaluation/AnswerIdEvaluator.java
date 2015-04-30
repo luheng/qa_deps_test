@@ -9,12 +9,14 @@ public class AnswerIdEvaluator {
 			int[] goldAnswerFlags,
 			int[] goldAnswerHeads,
 			AnswerIdEvaluationParameters eval) {
-		int matched = 0;
+		if (predictedHead < 0) {
+			return 0;
+		}
 		if ((eval.evalHead() && goldAnswerHeads[predictedHead] > 0) ||
 			(!eval.evalHead() && goldAnswerFlags[predictedHead] > 0)) {
-			matched = 1;
+			return 1;
 		}
-		return matched;
+		return 0;
 	}
 	
 

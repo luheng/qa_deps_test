@@ -1,4 +1,4 @@
-package experiments;
+package baselines;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,8 +29,9 @@ import evaluation.AnswerIdEvaluationParameters.EvaluationType;
 import evaluation.AnswerIdEvaluationParameters;
 import evaluation.AnswerIdEvaluator;
 import evaluation.F1Metric;
+import experiments.LiblinearHyperParameters;
 
-public class BaselineQAExperiment {
+public class BaselineAnswerIdExperiment {
 
 	private String trainFilePath = "data/odesk_s1250.train.qa";
 	private String testFilePath = "data/odesk_s1250.test.qa";	
@@ -42,11 +43,12 @@ public class BaselineQAExperiment {
 	private final int randomSeed = 12345;
 	private final int cvFolds = 5,
 					  minFeatureFreq = 3,
-					  kBest = 1;
+					  kBest = 20,
+					  featureKBest = 20;
 	
 	private boolean regenerateSamples = false;
 	private boolean trainWithWiki = false;
-	private boolean useSpanBasedSamples = true;
+	private boolean useSpanBasedSamples = false;
 	private boolean useLexicalFeatures = true;
 	private boolean useDependencyFeatures = true;
 	private EvaluationType evalType = EvaluationType.topKSpan;
@@ -69,7 +71,7 @@ public class BaselineQAExperiment {
 		}
 	}
 	
-	public BaselineQAExperiment() throws IOException {
+	public BaselineAnswerIdExperiment() throws IOException {
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new HashMap<String, AnswerIdDataset>();
 		// ********** Load QA Data ********************
@@ -144,7 +146,7 @@ public class BaselineQAExperiment {
 */
 		featureExtractor = new AnswerIdFeatureExtractor(
 				baseCorpus,
-				kBest,
+				featureKBest,
 				minFeatureFreq,
 				useLexicalFeatures,
 				useDependencyFeatures);
@@ -208,10 +210,10 @@ public class BaselineQAExperiment {
 				trainSet.getFeatures(),
 				trainSet.getLabels(),
 				numFeatures, prm);
-		double accuracy = predictAndEvaluate(trainSet, model);
+		double accuracy = predictAndEvaluate(trainSet, model, false);
 		System.out.println(String.format("Training accuracy:\t %.4f", accuracy));
 		for (AnswerIdDataset ds : testSets.values()) {
-			accuracy = predictAndEvaluate(ds, model);
+			accuracy = predictAndEvaluate(ds, model, true);
 //			F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(),  ds.getLabels(), model);
 			System.out.println(String.format("Testing accuracy on %s: %.4f",
 					ds.datasetName, accuracy));		
@@ -244,8 +246,16 @@ public class BaselineQAExperiment {
 		return Linear.train(training, parameter);
 	}
 	
-	private double predictAndEvaluate(AnswerIdDataset ds, Model model) {
-		return predictAndEvaluate(ds.getSamples(), ds.getFeatures(), ds, model);
+	private double predictAndEvaluate(
+			AnswerIdDataset ds,
+			Model model,
+			boolean outputErrorAnalysis) {
+		return predictAndEvaluate(
+				ds.getSamples(),
+				ds.getFeatures(),
+				ds,
+				model,
+				outputErrorAnalysis);
 	}
 	
 	@SuppressWarnings("unused")
@@ -273,7 +283,8 @@ public class BaselineQAExperiment {
 			ArrayList<QASample> samples,
 			Feature[][] features,
 			AnswerIdDataset ds,
-			Model model) {
+			Model model,
+			boolean outputErrorAnalysis) {
 		int[][] answerFlags = ds.getAnswerFlags();
 		int[][] answerHeads = ds.getAnswerHeads();
 		ArrayList<QAPair> questions = ds.getQuestions();
@@ -288,7 +299,7 @@ public class BaselineQAExperiment {
 		for (int i = 0; i < samples.size(); i++) {
 			QASample sample = samples.get(i);
 			int qid = sample.questionId;
-			predScores[qid][sample.answerHead] =
+			predScores[qid][sample.answerWordPosition] =
 					Linear.predict(model, features[i]);
 			evalQIds.add(qid);
 		}
@@ -303,6 +314,8 @@ public class BaselineQAExperiment {
 				continue;
 			}
 			QAPair qa = questions.get(qid);
+			int length = predScores[qid].length;
+			int bestIdx = -1;
 			if (useSpanBasedSamples) {
 				double matched = AnswerIdEvaluator.evaluateAccuracy(
 						predScores[qid],
@@ -315,8 +328,8 @@ public class BaselineQAExperiment {
 				}
 				allNegBaseline += (1.0 - 1.0 * numGold / answerFlags[qid].length);
 			} else {
-				int bestIdx = (qa.propHead > 0 ? qa.propHead - 1 : qa.propHead + 1);
-				for (int i = 0; i < predScores[qid].length; i++) {
+//				int bestIdx = (qa.propHead > 0 ? qa.propHead - 1 : qa.propHead + 1);
+				for (int i = 0; i < length; i++) {
 					if (predScores[qid][i] > predScores[qid][bestIdx]) {
 						bestIdx = i;
 					}
@@ -328,32 +341,23 @@ public class BaselineQAExperiment {
 						evalPrm);
 				numMatchedQuestions += matched;
 			}
-/*			
-			if (samples.size() == 141324 && i % 37 == 1) {
-				QAPair qa = questions.get(i);
-				System.out.println(qa.sentence.getTokensString());
-				System.out.print(qa.getQuestionString() + "\t" +
-								 qa.getQuestionLabel() + "\t" +
-								 qa.getAnswerString());
-				int length = qa.sentence.length;
-				System.out.print("\nAFLG:\t");
-				for (int j = 0; j < length; j++) {
-					System.out.print(String.format("%s(%d)\t", 
-							qa.sentence.getTokenString(j), answerFlags[i][j]));
-				}
-				System.out.print("\nAHED:\t");
-				for (int j = 0; j < length; j++) {
-					System.out.print(String.format("%s(%d)\t", 
-							qa.sentence.getTokenString(j), answerHeads[i][j]));
-				}
-				System.out.print("\nPSCR:\t");
-				for (int j = 0; j < length; j++) {
-					System.out.print(String.format("%s(%.3f)\t", 
-							qa.sentence.getTokenString(j), predScores[i][j]));
-				}
-				System.out.println("\nmatched:" + matched);
+			if (!outputErrorAnalysis ) {
+				continue;
 			}
-*/
+
+			System.out.println(qa.sentence.getTokensString());
+			System.out.print(qa.getQuestionString() + "\t" +
+					 qa.getQuestionLabel() + "\t" +
+					 qa.getAnswerString() + "\t" +
+					 (bestIdx < 0 ? "-" : qa.sentence.getTokenString(bestIdx)));
+				
+			for (int j = 0; j < length; j++) {
+				if (predScores[qid][j] > 0) {
+					System.out.print(String.format("%s(%.3f)\t", 
+						qa.sentence.getTokenString(j), predScores[qid][j]));
+				}
+			}
+			System.out.println();
 		}
 		if (useSpanBasedSamples) {
 			System.out.println("All negative baseline:\t" +
@@ -429,9 +433,9 @@ public class BaselineQAExperiment {
 			Model model = train(trnFeats, trnLabels,
 					featureExtractor.numFeatures(), prm);
 			double trnAcc = predictAndEvaluate(
-					trnSamples, trnFeats, ds, model);
+					trnSamples, trnFeats, ds, model, true);
 			double valAcc = predictAndEvaluate(
-					valSamples, valFeats, ds, model);
+					valSamples, valFeats, ds, model, true);
 			avgAcc += valAcc;
 			System.out.println(trnAcc);
 			System.out.println(valAcc);
@@ -440,9 +444,9 @@ public class BaselineQAExperiment {
 	}
 	
 	public static void main(String[] args) {
-		BaselineQAExperiment exp = null;
+		BaselineAnswerIdExperiment exp = null;
 		try {
-			exp = new BaselineQAExperiment();
+			exp = new BaselineAnswerIdExperiment();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
@@ -451,8 +455,8 @@ public class BaselineQAExperiment {
 		ArrayList<LiblinearHyperParameters> cvPrms =
 				new ArrayList<LiblinearHyperParameters>();
 		
-		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
-		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
 		
 		LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);

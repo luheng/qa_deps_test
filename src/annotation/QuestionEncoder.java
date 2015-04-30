@@ -28,7 +28,6 @@ public class QuestionEncoder {
 	 */
 	public static String encode(String[] question, String[] tokens) {	
 		assert (question.length == 7);
-		
 		String wh  = question[0],
 			   aux = question[1],
 			   ph1 = question[2],
@@ -36,23 +35,18 @@ public class QuestionEncoder {
 			   ph2 = question[4],
 			   pp  = question[5],
 			   ph3 = question[6];
-		
 		boolean nullPh1 = ph1.isEmpty(),
 				nullPh2 = ph2.isEmpty() || ph2.equals("somewhere"),
 				nullPh3 = ph3.isEmpty() || ph3.equals("somewhere");
-		
+		boolean passiveVoice = isPassiveVoice(aux, trg);
 		boolean hasInformativePP = false;
-		
 		for (String tok : tokens) {
 			if (tok.toLowerCase().equals(pp)) {
 				hasInformativePP = true;
 				break;
 			}
-		}
-		
-		boolean passiveVoice = isPassiveVoice(aux, trg);
+		}		
 		String label = null;
-		
 		if (wh.equals("whom")) {
 			wh = "who";
 		}
@@ -77,7 +71,8 @@ public class QuestionEncoder {
 				// e.g. What does someone expect someone to do?
 				//      What was someone expected to do?
 				//      What did someone threaten to do?
-				label = wh + "_do";
+				// label = wh + "_do";
+				label = wh + "_2";
 		    } else if (nullPh3 && !nullPh2 && !nullPh1 && !passiveVoice) {
 				// e.g. Who did someone give something to?
 				label = wh + "_2";
@@ -105,6 +100,43 @@ public class QuestionEncoder {
 		//System.out.println(StringUtils.join(" ", question));
 		//System.out.println(label + "\n");
 		return label;
+	}
+	
+	public static String encodeLong(String[] question) {	
+		String encoded = "";
+		assert (question.length == 7);
+		String wh  = question[0],
+			   aux = question[1],
+			   ph1 = question[2],
+			   trg = question[3],
+			   ph2 = question[4],
+			   pp  = question[5],
+			   ph3 = question[6];
+		if (wh.equals("whom")) {
+			wh = "who";
+		}
+		/*
+		if (ph3.equals("do something") || ph3.equals("doing something") ||
+			ph3.equals("be something") || ph3.equals("being something")) {
+			ph3 = "do something";
+		}
+		if (ph3.equals("do") || ph3.equals("doing") || ph3.equals("be") ||
+			ph3.equals("being")) {
+			ph3 = "do";
+		}
+		*/
+		boolean passiveVoice = isPassiveVoice(aux, trg);
+		encoded = wh.toLowerCase() + "_"
+				+ (passiveVoice ? "passive" : "active") + "_"
+				+ nonEmptyOr(ph1, ph1, "nullph1") + "_"
+				+ nonEmptyOr(ph2, ph2, "nullph2") + "_"
+				+ nonEmptyOr(pp, pp, "nullpp") + "_"
+				+ nonEmptyOr(ph3, ph3, "nullph3");
+		return encoded;
+	}
+	
+	private static String nonEmptyOr(String str, String r1, String r2) {
+		return !str.isEmpty() ? r1 : r2;
 	}
 	
 	public static boolean isPassiveVoice(String[] question) {

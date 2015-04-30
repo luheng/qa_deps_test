@@ -79,7 +79,7 @@ public class KBestParseRetriever {
 		for (int idx = 0; idx < qa.sentence.length; idx++) {
 			if (answerHeads.contains(idx)) {
 				samples.add(
-					QASample.addPositiveSample(
+					QASample.addPositiveAnswerIdSample(
 						qa.sentence,
 						qa.propHead,
 						questionId,
@@ -92,7 +92,7 @@ public class KBestParseRetriever {
 			} //else if (!univPostags[idx].equals(".") && idx != qa.propHead) {
 				else if (idx != qa.propHead) {
 				samples.add(
-					QASample.addNegativeSample(
+					QASample.addNegativeAnswerIdSample(
 							qa.sentence,
 							qa.propHead,
 							questionId,
@@ -117,7 +117,7 @@ public class KBestParseRetriever {
 		for (int idx = 0; idx < qa.sentence.length; idx++) {
 			if (qa.answerFlags[idx] > 0) {
 				samples.add(
-					QASample.addPositiveSample(
+					QASample.addPositiveAnswerIdSample(
 						qa.sentence,
 						qa.propHead,
 						questionId,
@@ -129,7 +129,7 @@ public class KBestParseRetriever {
 						lemmas));
 			} else if (idx != qa.propHead) {
 				samples.add(
-					QASample.addNegativeSample(
+					QASample.addNegativeAnswerIdSample(
 							qa.sentence,
 							qa.propHead,
 							questionId,
@@ -288,7 +288,7 @@ public class KBestParseRetriever {
 					for (int idx = 0; idx < sent.sentence.length; idx++) {
 						if (answerHeads.contains(idx)) {
 							trainingSamples.add(
-								QASample.addPositiveSample(
+								QASample.addPositiveAnswerIdSample(
 									qa.sentence, propHead, -1,
 									qa.questionWords, idx,
 									kBestScores, kBestParses,
@@ -297,7 +297,7 @@ public class KBestParseRetriever {
 						} else if (!univPostags[idx].equals(".") &&
 								idx != propHead) {
 							trainingSamples.add(
-									QASample.addNegativeSample(
+									QASample.addNegativeAnswerIdSample(
 										qa.sentence, propHead, -1,
 										qa.questionWords, idx,
 										kBestScores, kBestParses,

@@ -12,7 +12,8 @@ public class QASample implements java.io.Serializable {
 	public int sentenceId, questionId;
 	public String[] tokens;
 	public String[] question;
-	public int propHead, answerHead;
+	public int propHead, answerWordPosition, questionLabelId;
+	public String questionLabel;
 	public ArrayList<Double> kBestScores;
 	public ArrayList<Collection<TypedDependency>> kBestParses;
 	public String[] postags;
@@ -25,6 +26,8 @@ public class QASample implements java.io.Serializable {
 			int propHead,
 			int questionId,
 			String[] question,
+			String questionLabel,
+			int questionLabelId,
 			int answerHead,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
@@ -42,7 +45,9 @@ public class QASample implements java.io.Serializable {
 		this.propHead = propHead;
 		this.questionId = questionId;
 		this.question = question;
-		this.answerHead = answerHead;
+		this.questionLabel = questionLabel;
+		this.questionLabelId = questionLabelId;
+		this.answerWordPosition = answerHead;
 		this.kBestScores = kBestScores;
 		this.kBestParses = kBestParses;
 		this.postags = postags;
@@ -50,7 +55,7 @@ public class QASample implements java.io.Serializable {
 		this.isPositiveSample = positive;
 	}
 	
-	public static QASample addPositiveSample(Sentence sentence,
+	public static QASample addPositiveAnswerIdSample(Sentence sentence,
 			int propHead,
 			int questionId,
 			String[] question,
@@ -64,6 +69,8 @@ public class QASample implements java.io.Serializable {
 				propHead,
 				questionId,
 				question,
+				"", /* question label */
+				-1, /* question label id */
 				answerHead,
 				kBestScores,
 				kBestParses,
@@ -72,7 +79,7 @@ public class QASample implements java.io.Serializable {
 				true /* is a positive sample or not */);
 	}
 	
-	public static QASample addNegativeSample(Sentence sentence,
+	public static QASample addNegativeAnswerIdSample(Sentence sentence,
 			int propHead,
 			int questionId,
 			String[] question,
@@ -86,6 +93,8 @@ public class QASample implements java.io.Serializable {
 				propHead,
 				questionId,
 				question,
+				"", /* question label */
+				-1, /* question label id */
 				answerHead,
 				kBestScores,
 				kBestParses,

@@ -126,7 +126,7 @@ public class AnswerIdFeatureExtractor {
 		String[] postags = sample.postags;
 		
 		int propId = sample.propHead;
-		int answerId = sample.answerHead;
+		int answerId = sample.answerWordPosition;
 		String prop = tokens[propId];
 		String plemma = inflDict.getBestBaseVerb(prop);
 		String answer = tokens[answerId];
