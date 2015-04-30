@@ -101,13 +101,15 @@ public class BaselineAnswerIdExperiment {
 			ObjectOutputStream ostream = null;
 			try {
 				ostream = new ObjectOutputStream(
-						new FileOutputStream(getSampleFileName(trainSet)));
+						new FileOutputStream(
+								dataPath + getSampleFileName(trainSet)));
 				ostream.writeObject(trainSet.getSamples());
 				ostream.flush();
 				ostream.close();
 				for (AnswerIdDataset testSet : testSets.values()) {
 					ostream = new ObjectOutputStream(
-							new FileOutputStream(getSampleFileName(testSet)));
+							new FileOutputStream(
+									dataPath + getSampleFileName(testSet)));
 					ostream.writeObject(testSet.getSamples());
 					ostream.flush();
 					ostream.close();
@@ -117,9 +119,9 @@ public class BaselineAnswerIdExperiment {
 			}
 		} else {
 			try {
-     			trainSet.loadSamples(getSampleFileName(trainSet));
+     			trainSet.loadSamples(dataPath + getSampleFileName(trainSet));
      			for (AnswerIdDataset testSet : testSets.values()) {
-					testSet.loadSamples(getSampleFileName(testSet));
+					testSet.loadSamples(dataPath + getSampleFileName(testSet));
 				}
 			} catch (ClassNotFoundException | IOException e) {
 				e.printStackTrace();
