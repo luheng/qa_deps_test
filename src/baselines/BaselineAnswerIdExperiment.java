@@ -31,10 +31,10 @@ import experiments.LiblinearHyperParameters;
 
 public class BaselineAnswerIdExperiment {
 
-	private String trainFilePath = "data/odesk_s1250.train.qa";
-	private String testFilePath = "data/odesk_s1250.test.qa";	
-	private String oodTrainFilePath = "data/odesk_wiki1.train.qa";
-	private String oodTestFilePath = "data/odesk_wiki1.test.qa";
+	private String trainFilePath = "odesk_s1250.train.qa";
+	private String testFilePath = "odesk_s1250.test.qa";	
+	private String oodTrainFilePath = "odesk_wiki1.train.qa";
+	private String oodTestFilePath = "odesk_wiki1.test.qa";
 	
 	private String featureOutputPath = "feature_weights.tsv";
 	
@@ -64,7 +64,7 @@ public class BaselineAnswerIdExperiment {
 		}
 	}
 	
-	public BaselineAnswerIdExperiment() throws IOException {
+	public BaselineAnswerIdExperiment(String dataPath) throws IOException {
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new HashMap<String, AnswerIdDataset>();
 		// ********** Load QA Data ********************
@@ -74,20 +74,20 @@ public class BaselineAnswerIdExperiment {
 			testSets.put("prop-train", new AnswerIdDataset(baseCorpus, "prop-train"));
 			testSets.put("prop-test", new AnswerIdDataset(baseCorpus, "prop-test"));
 			
-			trainSet.loadData(oodTrainFilePath);
-			testSets.get("wiki1-test").loadData(oodTestFilePath);
-			testSets.get("prop-train").loadData(trainFilePath);
-			testSets.get("prop-test").loadData(testFilePath);
+			trainSet.loadData(dataPath + oodTrainFilePath);
+			testSets.get("wiki1-test").loadData(dataPath + oodTestFilePath);
+			testSets.get("prop-train").loadData(dataPath + trainFilePath);
+			testSets.get("prop-test").loadData(dataPath + testFilePath);
 		} else {
 			trainSet = new AnswerIdDataset(baseCorpus, "prop-train");
 			testSets.put("prop-test", new AnswerIdDataset(baseCorpus, "prop-test"));	
 			testSets.put("wiki1-train", new AnswerIdDataset(baseCorpus, "wiki1-train"));
 			testSets.put("wiki1-test", new AnswerIdDataset(baseCorpus, "wiki1-test"));
 			
-			trainSet.loadData(trainFilePath);
-			testSets.get("prop-test").loadData(testFilePath);
-			testSets.get("wiki1-train").loadData(oodTrainFilePath);
-			testSets.get("wiki1-test").loadData(oodTestFilePath);
+			trainSet.loadData(dataPath + trainFilePath);
+			testSets.get("prop-test").loadData(dataPath + testFilePath);
+			testSets.get("wiki1-train").loadData(dataPath + oodTrainFilePath);
+			testSets.get("wiki1-test").loadData(dataPath + oodTestFilePath);
 		}
 		
 		// *********** Generate training/test samples **********
@@ -462,9 +462,13 @@ public class BaselineAnswerIdExperiment {
 	}
 	
 	public static void main(String[] args) {
+		String dataPath = "./data/";
+		if (args.length > 0) {
+			dataPath = args[0].trim();
+		}
 		BaselineAnswerIdExperiment exp = null;
 		try {
-			exp = new BaselineAnswerIdExperiment();
+			exp = new BaselineAnswerIdExperiment(dataPath);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
@@ -476,6 +480,9 @@ public class BaselineAnswerIdExperiment {
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 1.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 10.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-2));
 		
 		LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
 		exp.trainAndPredict(bestPar);
