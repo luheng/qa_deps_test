@@ -25,8 +25,6 @@ import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.Problem;
 import de.bwaldvogel.liblinear.SolverType;
-import evaluation.AnswerIdEvaluationParameters.EvaluationType;
-import evaluation.AnswerIdEvaluationParameters;
 import evaluation.AnswerIdEvaluator;
 import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
@@ -51,14 +49,9 @@ public class BaselineAnswerIdExperiment {
 	private boolean useSpanBasedSamples = false;
 	private boolean useLexicalFeatures = true;
 	private boolean useDependencyFeatures = true;
-	private EvaluationType evalType = EvaluationType.topKSpan;
-	
-	private double evalThreshold = 0;
-	private int evalKBest = 1;
 	
 	private Corpus baseCorpus; 
 	private AnswerIdFeatureExtractor featureExtractor;
-	private AnswerIdEvaluationParameters evalPrm;
 	
 	private AnswerIdDataset trainSet;
 	private HashMap<String, AnswerIdDataset> testSets;
@@ -96,8 +89,6 @@ public class BaselineAnswerIdExperiment {
 			testSets.get("wiki1-train").loadData(oodTrainFilePath);
 			testSets.get("wiki1-test").loadData(oodTestFilePath);
 		}
-		evalPrm = new AnswerIdEvaluationParameters(evalType, evalKBest,
-				evalThreshold);
 		
 		// *********** Generate training/test samples **********
 		if (regenerateSamples) {
@@ -210,16 +201,15 @@ public class BaselineAnswerIdExperiment {
 				trainSet.getFeatures(),
 				trainSet.getLabels(),
 				numFeatures, prm);
-		double accuracy = predictAndEvaluate(trainSet, model, "");
-		System.out.println(String.format("Training accuracy:\t %.4f", accuracy));
+		double[] accuracy = predictAndEvaluate(trainSet, model, "");
+		System.out.println(String.format("Training accuracy on %s:\t%.4f\t%.4f",
+				trainSet.datasetName, accuracy[0], accuracy[1]));
 		for (AnswerIdDataset ds : testSets.values()) {
 			accuracy = predictAndEvaluate(ds, model,
 					String.format(ds.datasetName + ".debug.txt"));
-
-			System.out.println(String.format("Testing accuracy on %s: %.4f",
-					ds.datasetName, accuracy));		
-			// F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(),  ds.getLabels(), model);
-			// System.out.println("Old f1:\t" + oldF1.toString());
+			System.out.println(String.format(
+					"Testing accuracy on %s:\t%.4f\t%.4f",
+						ds.datasetName, accuracy[0], accuracy[1]));
 		}
 		
 		BufferedWriter writer = null;
@@ -247,7 +237,7 @@ public class BaselineAnswerIdExperiment {
 		return Linear.train(training, parameter);
 	}
 	
-	private double predictAndEvaluate(
+	private double[] predictAndEvaluate(
 			AnswerIdDataset ds,
 			Model model,
 			String debugFilePath) {
@@ -280,7 +270,7 @@ public class BaselineAnswerIdExperiment {
 		return new F1Metric(numMatched, numGold, numPred);
 	}
 	
-	private double predictAndEvaluate(
+	private double[] predictAndEvaluate(
 			ArrayList<QASample> samples,
 			Feature[][] features,
 			AnswerIdDataset ds,
@@ -303,16 +293,14 @@ public class BaselineAnswerIdExperiment {
 			double[] pred = new double[2];
 			Linear.predictProbability(model, features[i], pred);
 			predScores[qid][sample.answerWordPosition] = pred[0];
-			//predScores[qid][sample.answerWordPosition] = Linear.predict(model, features[i]);
 			evalQIds.add(qid);
 		}
-		System.out.println(String.format("Evaluating %d questions.",
-				evalQIds.size()));
+		//System.out.println(String.format("Evaluating %d questions.",
+		//		evalQIds.size()));
 		
-		int numMatchedQuestions = 0;
+		int numMatched = 0, numContained = 0;
 		double avgMatchedWords = .0;
 		double allNegBaseline = .0;
-		int numEmptyPred = 0, numContainedPred = 0;
 		BufferedWriter writer = null;
 		if (!debugFilePath.isEmpty()) {
 			try {
@@ -333,7 +321,7 @@ public class BaselineAnswerIdExperiment {
 				double matched = AnswerIdEvaluator.evaluateAccuracy(
 						predScores[qid],
 						answerFlags[qid],
-						evalPrm);
+						0.5 /* threshold */);
 				avgMatchedWords += matched;
 				int numGold = 0;
 				for (int flag : answerFlags[qid]) {
@@ -341,31 +329,20 @@ public class BaselineAnswerIdExperiment {
 				}
 				allNegBaseline += (1.0 - 1.0 * numGold / answerFlags[qid].length);
 			} else {
-				// bestIdx = (qa.propHead > 0 ? qa.propHead - 1 : qa.propHead + 1);
-				int contained = 0;
 				for (int i = 0; i < length; i++) {
-					if (predScores[qid][i] < evalThreshold) {
+					if (predScores[qid][i] < 1e-6) {
 						continue;
 					}
 					if (bestIdx < 0 ||
 						predScores[qid][i] > predScores[qid][bestIdx]) {
 						bestIdx = i;
 					}
-					if (predScores[qid][i] > 0 && answerFlags[qid][i] > 0) {
-						contained = 1;
-					}
 				}
-				int matched = AnswerIdEvaluator.evaluateAccuracy(
-						bestIdx,
-						answerFlags[qid],
-						answerHeads[qid],
-						evalPrm);
-				numMatchedQuestions += matched;
-				if (bestIdx < 0) {
-					numEmptyPred ++;
+				if (bestIdx > -1 && answerFlags[qid][bestIdx] > 0) {
+					numContained ++;
 				}
-				if (matched == 0 && contained == 1) {
-					numContainedPred ++;
+				if (bestIdx > -1 && answerHeads[qid][bestIdx] > 0) {
+					numMatched ++;
 				}
 			}
 			if (writer != null) {
@@ -392,11 +369,6 @@ public class BaselineAnswerIdExperiment {
 			System.out.println("All negative baseline:\t" +
 					allNegBaseline / evalQIds.size());
 		}
-/*		System.out.println(String.format(
-				"#questions: %d\t#correct: %d\t#wrong: %d\t#empty: %d\t#contained: %d",
-					evalQIds.size(), numMatchedQuestions,
-					evalQIds.size() - numMatchedQuestions,
-					numEmptyPred, numContainedPred)); */
 		if (writer != null) {
 			try {
 				writer.close();
@@ -404,9 +376,14 @@ public class BaselineAnswerIdExperiment {
 				e.printStackTrace();
 			}
 		}
-		return useSpanBasedSamples ? 
-				avgMatchedWords / evalQIds.size() :
-				1.0 * numMatchedQuestions /evalQIds.size();
+		double[] result = new double[2];
+		if (useSpanBasedSamples) {
+			result[0] = avgMatchedWords / evalQIds.size();
+		} else {
+			result[0] = 1.0 * numMatched /evalQIds.size();
+			result[1] = 1.0 * numContained /evalQIds.size();
+		}
+		return result;				
 	}
 	
 	private double crossValidate(AnswerIdDataset ds, int cvFolds,
@@ -473,11 +450,11 @@ public class BaselineAnswerIdExperiment {
 			
 			Model model = train(trnFeats, trnLabels,
 					featureExtractor.numFeatures(), prm);
-			double trnAcc = predictAndEvaluate(
+			double[] trnAcc = predictAndEvaluate(
 					trnSamples, trnFeats, ds, model, "");
-			double valAcc = predictAndEvaluate(
+			double[] valAcc = predictAndEvaluate(
 					valSamples, valFeats, ds, model, "");
-			avgAcc += valAcc;
+			avgAcc += valAcc[0];
 			System.out.println(trnAcc);
 			System.out.println(valAcc);
 		}

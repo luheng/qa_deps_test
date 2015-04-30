@@ -23,11 +23,11 @@ public class AnswerIdEvaluator {
 	public static double evaluateAccuracy(
 			double[] predScores,
 			int[] goldAnswerFlags,
-			AnswerIdEvaluationParameters evalPrm) {
+			double threshold) {
 		int numMatched = 0;
 		for (int i = 0; i < predScores.length; i++) {
 			boolean gold = (goldAnswerFlags[i] > 0);
-			boolean pred = (predScores[i] > evalPrm.threshold);
+			boolean pred = (predScores[i] > threshold);
 			if (gold == pred) {
 				++ numMatched;
 			}
