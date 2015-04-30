@@ -210,14 +210,16 @@ public class BaselineAnswerIdExperiment {
 				trainSet.getFeatures(),
 				trainSet.getLabels(),
 				numFeatures, prm);
-		double accuracy = predictAndEvaluate(trainSet, model, false);
+		double accuracy = predictAndEvaluate(trainSet, model, "");
 		System.out.println(String.format("Training accuracy:\t %.4f", accuracy));
 		for (AnswerIdDataset ds : testSets.values()) {
-			accuracy = predictAndEvaluate(ds, model, true);
-//			F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(),  ds.getLabels(), model);
+			accuracy = predictAndEvaluate(ds, model,
+					String.format(ds.datasetName + ".debug.txt"));
+
 			System.out.println(String.format("Testing accuracy on %s: %.4f",
 					ds.datasetName, accuracy));		
-//			System.out.println("Old f1:\t" + oldF1.toString());
+			// F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(),  ds.getLabels(), model);
+			// System.out.println("Old f1:\t" + oldF1.toString());
 		}
 		
 		BufferedWriter writer = null;
@@ -231,8 +233,7 @@ public class BaselineAnswerIdExperiment {
 			}
 			writer.close();
 		} catch (IOException e) {
-		}
-		
+		}		
 	}
 	
 	private Model train(Feature[][] features, double[] labels,
@@ -249,13 +250,13 @@ public class BaselineAnswerIdExperiment {
 	private double predictAndEvaluate(
 			AnswerIdDataset ds,
 			Model model,
-			boolean outputErrorAnalysis) {
+			String debugFilePath) {
 		return predictAndEvaluate(
 				ds.getSamples(),
 				ds.getFeatures(),
 				ds,
 				model,
-				outputErrorAnalysis);
+				debugFilePath);
 	}
 	
 	@SuppressWarnings("unused")
@@ -284,7 +285,7 @@ public class BaselineAnswerIdExperiment {
 			Feature[][] features,
 			AnswerIdDataset ds,
 			Model model,
-			boolean outputErrorAnalysis) {
+			String debugFilePath) {
 		int[][] answerFlags = ds.getAnswerFlags();
 		int[][] answerHeads = ds.getAnswerHeads();
 		ArrayList<QAPair> questions = ds.getQuestions();
@@ -299,8 +300,10 @@ public class BaselineAnswerIdExperiment {
 		for (int i = 0; i < samples.size(); i++) {
 			QASample sample = samples.get(i);
 			int qid = sample.questionId;
-			predScores[qid][sample.answerWordPosition] =
-					Linear.predict(model, features[i]);
+			double[] pred = new double[2];
+			Linear.predictProbability(model, features[i], pred);
+			predScores[qid][sample.answerWordPosition] = pred[0];
+			//predScores[qid][sample.answerWordPosition] = Linear.predict(model, features[i]);
 			evalQIds.add(qid);
 		}
 		System.out.println(String.format("Evaluating %d questions.",
@@ -309,6 +312,16 @@ public class BaselineAnswerIdExperiment {
 		int numMatchedQuestions = 0;
 		double avgMatchedWords = .0;
 		double allNegBaseline = .0;
+		int numEmptyPred = 0, numContainedPred = 0;
+		BufferedWriter writer = null;
+		if (!debugFilePath.isEmpty()) {
+			try {
+				writer = new BufferedWriter(
+						new FileWriter(new File(debugFilePath)));
+			} catch (IOException e) {
+			}
+		}
+		
 		for (int qid = 0; qid < numQuestions; qid++) {
 			if (!evalQIds.contains(qid)) {
 				continue;
@@ -328,10 +341,18 @@ public class BaselineAnswerIdExperiment {
 				}
 				allNegBaseline += (1.0 - 1.0 * numGold / answerFlags[qid].length);
 			} else {
-//				int bestIdx = (qa.propHead > 0 ? qa.propHead - 1 : qa.propHead + 1);
+				// bestIdx = (qa.propHead > 0 ? qa.propHead - 1 : qa.propHead + 1);
+				int contained = 0;
 				for (int i = 0; i < length; i++) {
-					if (predScores[qid][i] > predScores[qid][bestIdx]) {
+					if (predScores[qid][i] < evalThreshold) {
+						continue;
+					}
+					if (bestIdx < 0 ||
+						predScores[qid][i] > predScores[qid][bestIdx]) {
 						bestIdx = i;
+					}
+					if (predScores[qid][i] > 0 && answerFlags[qid][i] > 0) {
+						contained = 1;
 					}
 				}
 				int matched = AnswerIdEvaluator.evaluateAccuracy(
@@ -340,28 +361,48 @@ public class BaselineAnswerIdExperiment {
 						answerHeads[qid],
 						evalPrm);
 				numMatchedQuestions += matched;
-			}
-			if (!outputErrorAnalysis ) {
-				continue;
-			}
-
-			System.out.println(qa.sentence.getTokensString());
-			System.out.print(qa.getQuestionString() + "\t" +
-					 qa.getQuestionLabel() + "\t" +
-					 qa.getAnswerString() + "\t" +
-					 (bestIdx < 0 ? "-" : qa.sentence.getTokenString(bestIdx)));
-				
-			for (int j = 0; j < length; j++) {
-				if (predScores[qid][j] > 0) {
-					System.out.print(String.format("%s(%.3f)\t", 
-						qa.sentence.getTokenString(j), predScores[qid][j]));
+				if (bestIdx < 0) {
+					numEmptyPred ++;
+				}
+				if (matched == 0 && contained == 1) {
+					numContainedPred ++;
 				}
 			}
-			System.out.println();
+			if (writer != null) {
+				try {
+					writer.append(qa.sentence.getTokensString() + "\n");
+					writer.append(qa.getQuestionString() + "\t" +
+							 qa.getQuestionLabel() + "\t" +
+							 qa.getAnswerString() + "\t" +
+							 (bestIdx < 0 ? "-" :
+								 qa.sentence.getTokenString(bestIdx)) + "\n");
+					for (int j = 0; j < length; j++) {
+						if (predScores[qid][j] > 0) {
+							writer.append(String.format("%s(%.3f)\t", 
+								qa.sentence.getTokenString(j), predScores[qid][j]));
+						}
+					}
+					writer.append("\n\n");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		if (useSpanBasedSamples) {
 			System.out.println("All negative baseline:\t" +
 					allNegBaseline / evalQIds.size());
+		}
+/*		System.out.println(String.format(
+				"#questions: %d\t#correct: %d\t#wrong: %d\t#empty: %d\t#contained: %d",
+					evalQIds.size(), numMatchedQuestions,
+					evalQIds.size() - numMatchedQuestions,
+					numEmptyPred, numContainedPred)); */
+		if (writer != null) {
+			try {
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return useSpanBasedSamples ? 
 				avgMatchedWords / evalQIds.size() :
@@ -433,9 +474,9 @@ public class BaselineAnswerIdExperiment {
 			Model model = train(trnFeats, trnLabels,
 					featureExtractor.numFeatures(), prm);
 			double trnAcc = predictAndEvaluate(
-					trnSamples, trnFeats, ds, model, true);
+					trnSamples, trnFeats, ds, model, "");
 			double valAcc = predictAndEvaluate(
-					valSamples, valFeats, ds, model, true);
+					valSamples, valFeats, ds, model, "");
 			avgAcc += valAcc;
 			System.out.println(trnAcc);
 			System.out.println(valAcc);
