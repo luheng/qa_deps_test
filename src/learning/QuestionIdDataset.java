@@ -1,5 +1,7 @@
 package learning;
 
+import gnu.trove.map.hash.TIntDoubleHashMap;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import annotation.QuestionEncoder;
@@ -16,6 +19,7 @@ import data.CountDictionary;
 import data.QAPair;
 import data.Sentence;
 import de.bwaldvogel.liblinear.Feature;
+import de.bwaldvogel.liblinear.FeatureNode;
 
 public class QuestionIdDataset {
 
@@ -188,12 +192,29 @@ public class QuestionIdDataset {
 	}
 	
 	public void extractFeaturesAndLabels(
-			AnswerIdFeatureExtractor featureExtractor) {
-		int numSamples = samples.size(),
-			numQuestions = questions.size();
+			QuestionIdFeatureExtractor featureExtractor) {
+		int numSamples = samples.size();
 		features = new Feature[numSamples][];
 		labels = new double[numSamples];
-		
+		for (int i = 0; i < numSamples; i++) {
+			QASample sample = samples.get(i);
+			TIntDoubleHashMap fv = featureExtractor.getFeatures(sample);
+			features[i] = new Feature[fv.size()];
+			int[] fids = Arrays.copyOf(fv.keys(), fv.size());
+			Arrays.sort(fids);
+			for (int j = 0; j < fids.length; j++) {
+				// Liblinear feature id starts from 1.
+				features[i][j] = new FeatureNode(fids[j] + 1, fv.get(fids[j]));
+			}
+			int label = (sample.isPositiveSample ? 1 : -1);
+			labels[i] = label;
+			if (i % 10000 == 9999) {
+				System.out.println(String.format(
+						"Extracted features for %d samples, %d still left.",
+						i + 1, numSamples - i - 1));
+			}
+		}
+
 	}
 
 }

@@ -44,7 +44,7 @@ public class BaselineQuestionIdExperiment {
 					  minFeatureFreq = 3,
 					  kBest = 1;
 	
-	private boolean regenerateSamples = true;
+	private boolean regenerateSamples = false;
 	private boolean trainWithWiki = false;
 	private boolean useLexicalFeatures = true;
 	private boolean useDependencyFeatures = true;
@@ -147,13 +147,7 @@ public class BaselineQuestionIdExperiment {
 		sanityCheck1();
 
 		// ********** Extract features ***************
-/*		ArrayList<QASample> allSamples = new ArrayList<QASample>();
-		allSamples.addAll(trainSet.getSamples());
-		for (QuestionIdDataset ds : testSets.values()) {
-			allSamples.addAll(ds.getSamples());
-		}
-*/
-/*
+		// TODO: question id feature extractor ..
 		featureExtractor = new QuestionIdFeatureExtractor(
 				baseCorpus,
 				kBest,
@@ -165,7 +159,6 @@ public class BaselineQuestionIdExperiment {
 		for (QuestionIdDataset ds : testSets.values()) {
 			ds.extractFeaturesAndLabels(featureExtractor);
 		}
-*/
 	}
 	
 	public void sanityCheck1() {
@@ -282,6 +275,7 @@ public class BaselineQuestionIdExperiment {
 		return new F1Metric(numMatched, numGold, numPred);
 	}
 	
+	// TODO: do this ...
 	private double predictAndEvaluate(
 			ArrayList<QASample> samples,
 			Feature[][] features,
@@ -290,6 +284,7 @@ public class BaselineQuestionIdExperiment {
 		return -1;
 	}
 	
+	// TODO: do this ...
 	private double crossValidate(QuestionIdDataset ds, int cvFolds,
 			LiblinearHyperParameters prm) {
 		ArrayList<Integer> shuffledIds = new ArrayList<Integer>();		
@@ -381,7 +376,7 @@ public class BaselineQuestionIdExperiment {
 		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
 		
-		//LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
-		//exp.trainAndPredict(bestPar);
+		LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
+		exp.trainAndPredict(bestPar);
 	}
 }
