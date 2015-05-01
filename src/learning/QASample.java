@@ -55,7 +55,8 @@ public class QASample implements java.io.Serializable {
 		this.isPositiveSample = positive;
 	}
 	
-	public static QASample addPositiveAnswerIdSample(Sentence sentence,
+	public static QASample addPositiveAnswerIdSample(
+			Sentence sentence,
 			int propHead,
 			int questionId,
 			String[] question,
@@ -79,7 +80,8 @@ public class QASample implements java.io.Serializable {
 				true /* is a positive sample or not */);
 	}
 	
-	public static QASample addNegativeAnswerIdSample(Sentence sentence,
+	public static QASample addNegativeAnswerIdSample(
+			Sentence sentence,
 			int propHead,
 			int questionId,
 			String[] question,
@@ -96,6 +98,54 @@ public class QASample implements java.io.Serializable {
 				"", /* question label */
 				-1, /* question label id */
 				answerHead,
+				kBestScores,
+				kBestParses,
+				postags,
+				lemmas,
+				false /* is a positive sample or not */);
+	}
+	
+	public static QASample addPositiveQuestionIdSample(
+			Sentence sentence,
+			int propHead,
+			String questionLabel,
+			int questionLabelId,
+			ArrayList<Double> kBestScores,
+			ArrayList<Collection<TypedDependency>> kBestParses,
+			String[] postags,
+			String[] lemmas) {
+		return new QASample(
+				sentence,
+				propHead,
+				-1, /* question id */
+				null, /* question words */
+				questionLabel,
+				questionLabelId,
+				-1, /* answer head */
+				kBestScores,
+				kBestParses,
+				postags,
+				lemmas,
+				true /* is a positive sample or not */);
+	}
+	
+	public static QASample addNegativeQuestionIdSample(
+			Sentence sentence,
+			int propHead,
+			String questionLabel,
+			int questionLabelId,
+			ArrayList<Double> kBestScores,
+			ArrayList<Collection<TypedDependency>> kBestParses,
+			String[] postags,
+			String[] lemmas) {
+		return new QASample(
+				sentence,
+				propHead,
+				-1, /* question id */
+				null, /* question words */
+				questionLabel,
+				questionLabelId,
+				-1, /* answer head */
 				kBestScores,
 				kBestParses,
 				postags,

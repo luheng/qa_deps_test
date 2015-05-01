@@ -51,7 +51,7 @@ public class ExperimentUtils {
 			"odesk_wiki/odesk_wiki1.meta.txt";
 	
 	public static final String enUnivPostagFilename =
-			"/Users/luheng/data/CONLL-x/univmap/en-ptb.map";
+			"data/univmap/en-ptb.map";
 	
 	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
 	// public static String annotationFilename = "manual_annotation/en-upperbound.txt";

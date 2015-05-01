@@ -87,35 +87,34 @@ public class BaselineQuestionIdExperiment {
 			testSets.get("wiki1-test").loadData(oodTestFilePath);
 		}
 
-		// *********** Get question labels ***********
+		// Each QA is associcated with a set of question labels, each label has different granularity. 
 		for (QAPair qa : trainSet.getQuestions()) {
-			//String qstr = QuestionEncoder.encodeLong(qa.questionWords);
-			String qstr = QuestionEncoder.encode(qa.questionWords, qa.sentence);
-			
-			qdict.addString(qstr);
+			String[] qlabels = QuestionEncoder.getMultiQuestionLabels(qa.questionWords, qa);
+			for (String qlabel : qlabels) {
+				qdict.addString(qlabel);
+			}
 		}
 		System.out.println("Saw " + qdict.size() + " distinct question labels.");
 		int numUnseenQuestionLabels = 0;
 		for (QuestionIdDataset testSet : testSets.values()) {
 			for (QAPair qa : testSet.getQuestions()) {
-//				String qstr = QuestionEncoder.encodeLong(qa.questionWords);
-				String qstr = QuestionEncoder.encode(qa.questionWords, qa.sentence);
-				int qid = qdict.lookupString(qstr);
-				if (qid < 0) {
-					System.out.println("Unseen question labels:\t" + qstr);
-					numUnseenQuestionLabels ++;
+				String[] qlabels = QuestionEncoder.getMultiQuestionLabels(qa.questionWords, qa);
+				for (String qlabel : qlabels) {
+					int qid = qdict.lookupString(qlabel);
+					if (qid < 0) {
+						System.out.println("Unseen question labels:\t" + qlabel);
+						numUnseenQuestionLabels ++;
+					}
 				}
 			}
 		}
-		System.out.println(numUnseenQuestionLabels + " unseen question labels.");
-		
+		System.out.println("Number of unseen labels:\t" + numUnseenQuestionLabels);
 		// *********** Generate training/test samples **********
-			/*
 		if (regenerateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
-			trainSet.generateSamples(syntaxHelper);
+			trainSet.generateSamples(syntaxHelper, qdict);
 			for (QuestionIdDataset ds : testSets.values()) {
-				ds.generateSamples(syntaxHelper);
+				ds.generateSamples(syntaxHelper, qdict);
 			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;
@@ -146,7 +145,7 @@ public class BaselineQuestionIdExperiment {
 			}
 		}		
 		sanityCheck1();
-		*/
+
 		// ********** Extract features ***************
 /*		ArrayList<QASample> allSamples = new ArrayList<QASample>();
 		allSamples.addAll(trainSet.getSamples());

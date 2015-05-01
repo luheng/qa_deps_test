@@ -126,11 +126,12 @@ public class AnswerIdDataset {
 		int numPositiveSamples = 0;
 		for (int i = 0; i < questions.size(); i++) {
 			ArrayList<QASample> newSamples = generateSpanBasedSamples ? 
-					syntaxHelper.generateSamplesFromSpans(questions.get(i), i) :
-					syntaxHelper.generateSamplesWithParses(questions.get(i), i);			
+					syntaxHelper.generateSamplesFromSpans(questions.get(i),
+							i /* question id */) :
+					syntaxHelper.generateSamplesWithParses(questions.get(i),
+							i /* question id */);			
 							
 			for (QASample sample : newSamples) {
-				sample.questionId = i;
 				samples.add(sample);
 				numPositiveSamples += (sample.isPositiveSample ? 1 : 0);
 			}

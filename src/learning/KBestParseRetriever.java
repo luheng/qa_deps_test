@@ -2,10 +2,12 @@ package learning;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 import data.AnnotatedSentence;
 import data.Corpus;
+import data.CountDictionary;
 import data.QAPair;
 import data.UniversalPostagMap;
 import edu.stanford.nlp.ling.Sentence;
@@ -51,6 +53,40 @@ public class KBestParseRetriever {
 		this.umap = ExperimentUtils.loadPostagMap();
 		
 		this.cachedSentenceId = -1;
+	}
+	
+
+	public ArrayList<QASample> generateQuesitonIdSamples(
+			data.Sentence sentence,
+			int propHead,
+			HashSet<Integer> posLabels,
+			HashSet<Integer> negLabels,
+			CountDictionary qlabelDict) {
+		if (cachedSentenceId != sentence.sentenceID) {
+			retrieveAndCacheSyntax(sentence);
+		}		
+		ArrayList<QASample> samples = new ArrayList<QASample>();
+		for (int qlabelId : posLabels) {
+			samples.add(QASample.addPositiveQuestionIdSample(sentence,
+							propHead,
+							qlabelDict.getString(qlabelId),
+							qlabelId,
+							kBestScores,
+							kBestParses,
+							postags,
+							lemmas));
+		}
+		for (int qlabelId : negLabels) {
+			samples.add(QASample.addNegativeQuestionIdSample(sentence,
+					propHead,
+					qlabelDict.getString(qlabelId),
+					qlabelId,
+					kBestScores,
+					kBestParses,
+					postags,
+					lemmas));
+		}
+		return samples;
 	}
 	
 	public ArrayList<QASample> generateSamplesWithParses(QAPair qa,
@@ -320,4 +356,5 @@ public class KBestParseRetriever {
 				"Extracted %d samples. %d positive, %d negative",
 					trainingSamples.size(), numPosSamples, numNegSamples));
 	}
+
 }

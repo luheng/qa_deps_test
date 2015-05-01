@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import annotation.QuestionEncoder;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.CountDictionary;
@@ -37,6 +38,7 @@ public class QuestionIdDataset {
 		this.questionLabelDict = qdict;
 		this.sentences = new ArrayList<AnnotatedSentence>();
 		this.questions = new ArrayList<QAPair>();
+		this.samples = new ArrayList<QASample>();
 	}
 	
 	public Corpus getCorpus() {
@@ -110,9 +112,60 @@ public class QuestionIdDataset {
 				sentences.size(), filePath));
 	}
 	
-	public void generateSamples(KBestParseRetriever syntaxHelper) {
+	private HashSet<Integer> getNegativeLabels(HashSet<Integer> posLabels,
+			CountDictionary qlabelDict) {
+		// TODO: random sampling according to label distribution.
+		HashSet<Integer> negLabels = new HashSet<Integer>();
+		for (int qid = 0; qid < qlabelDict.size(); qid++) {
+			if (!posLabels.contains(qid) && qlabelDict.getCount(qid) > 10) {
+				negLabels.add(qid);
+			}
+		}
+		return negLabels;
+	}
+	
+	public void generateSamples(KBestParseRetriever syntaxHelper,
+			CountDictionary qlabelDict) {
 		// For each <sentence, target> pair, generate a set of samples
-		
+		int numTargetWords = 0, numPositiveSamples = 0;
+		for (AnnotatedSentence annotSent : sentences) {
+			for (int propHead : annotSent.qaLists.keySet()) {
+				ArrayList<QAPair> qaList = annotSent.qaLists.get(propHead);
+				HashSet<Integer> qlabelIds = new HashSet<Integer>();
+				for (QAPair qa : qaList) {
+					String[] qlabels = QuestionEncoder.encode(qa.questionWords);
+					for (String qlabel : qlabels) {
+						int qid = qlabelDict.lookupString(qlabel);
+						qlabelIds.add(qid);
+					}
+				}
+				qlabelIds.remove(-1);
+				ArrayList<QASample> newSamples =
+						syntaxHelper.generateQuesitonIdSamples(
+								annotSent.sentence,
+								propHead,
+								qlabelIds,
+								getNegativeLabels(qlabelIds, qlabelDict),
+								qlabelDict);
+				for (QASample sample : newSamples) {
+					samples.add(sample);
+					numPositiveSamples += (sample.isPositiveSample ? 1 : 0);
+				}
+			}
+			if (numTargetWords++ % 100 == 99) {
+				System.out.print(String.format(
+						"Processed %d Sentences.\t",
+						numTargetWords + 1));
+				System.out.println(String.format(
+						"Generated %d samples. %d positive, %d negative.",
+						samples.size(), numPositiveSamples,
+						samples.size() - numPositiveSamples));
+			}
+		}
+		System.out.println(String.format(
+				"Generated %d samples. %d positive, %d negative.",
+				samples.size(), numPositiveSamples,
+				samples.size() - numPositiveSamples));
 	}
 	
 	public void loadSamples(String filePath)
