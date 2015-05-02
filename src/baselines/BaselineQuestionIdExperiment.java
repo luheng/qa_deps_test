@@ -11,10 +11,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
 
-import config.ExperimentDataConfig;
+import config.DataConfig;
 import util.StringUtils;
 import annotation.QuestionEncoder;
-import learning.AnswerIdDataset;
 import learning.KBestParseRetriever;
 import learning.QASample;
 import learning.QuestionIdDataset;
@@ -67,14 +66,14 @@ public class BaselineQuestionIdExperiment {
 			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");
 			testSets.put("prop-train", new QuestionIdDataset(baseCorpus, "prop-train"));
 			
-			trainSet.loadData(ExperimentDataConfig.get("wikiQATrainFilename"));
-			testSets.get("prop-train").loadData(ExperimentDataConfig.get("propbankQATrainFilename"));
+			trainSet.loadData(DataConfig.get("wikiQATrainFilename"));
+			testSets.get("prop-train").loadData(DataConfig.get("propbankQATrainFilename"));
 		} else {
 			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
 			testSets.put("wiki1-train", new QuestionIdDataset(baseCorpus, "wiki1-train"));
 			
-			trainSet.loadData(ExperimentDataConfig.get("propbankQATrainFilename"));
-			testSets.get("wiki1-train").loadData(ExperimentDataConfig.get("wikiQATrainFilename"));
+			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
+			testSets.get("wiki1-train").loadData(DataConfig.get("wikiQATrainFilename"));
 		}
 
 		// Each QA is associcated with a set of question labels, each label has different granularity.

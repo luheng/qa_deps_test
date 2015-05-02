@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import config.ExperimentDataConfig;
+import config.DataConfig;
 
 public class SRLCorpus extends DepCorpus {
 
@@ -162,7 +162,7 @@ public class SRLCorpus extends DepCorpus {
 	public static void main(String[] args) {
 		SRLCorpus corpus = new SRLCorpus("trial");
 		try {
-			corpus.loadCoNLL2009Data(ExperimentDataConfig.get("srlTrainFilename"),
+			corpus.loadCoNLL2009Data(DataConfig.get("srlTrainFilename"),
 									 null /* univ postag map */,
 									 true /* load gold */);
 			

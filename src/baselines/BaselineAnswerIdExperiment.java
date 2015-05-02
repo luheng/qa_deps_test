@@ -13,7 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
-import config.ExperimentDataConfig;
+import config.AnswerIdConfig;
+import config.DataConfig;
 import learning.AnswerIdDataset;
 import learning.AnswerIdFeatureExtractor;
 import learning.KBestParseRetriever;
@@ -31,20 +32,7 @@ import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 
 public class BaselineAnswerIdExperiment {
-	private String featureOutputPath = "feature_weights.tsv";
-	
-	private final int randomSeed = 12345;
-	private final int cvFolds = 5,
-					  minFeatureFreq = 3,
-					  kBest = 20,
-					  featureKBest = 20;
-	
-	private boolean regenerateSamples = false;
-	private boolean trainWithWiki = false;
-	private boolean useSpanBasedSamples = false;
-	private boolean useLexicalFeatures = true;
-	private boolean useDependencyFeatures = true;
-	
+	private AnswerIdConfig config;
 	private Corpus baseCorpus; 
 	private AnswerIdFeatureExtractor featureExtractor;
 	
@@ -52,38 +40,39 @@ public class BaselineAnswerIdExperiment {
 	private HashMap<String, AnswerIdDataset> testSets;
 	
 	private String getSampleFileName(AnswerIdDataset ds) {
-		if (useSpanBasedSamples) {
-			return ds.datasetName + ".sp.k" + kBest + ".smp";
+		if (config.useSpanBasedSamples) {
+			return ds.datasetName + ".sp.k" + config.kBest + ".smp";
 		} else {
-			return ds.datasetName + ".k" + kBest + ".smp";
+			return ds.datasetName + ".k" + config.kBest + ".smp";
 		}
 	}
 	
 	public BaselineAnswerIdExperiment() throws IOException {
+		config = new AnswerIdConfig();
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new HashMap<String, AnswerIdDataset>();
 		// ********** Load QA Data ********************
-		if (trainWithWiki) {
+		if (config.trainWithWiki) {
 			trainSet = new AnswerIdDataset(baseCorpus, "wiki1-train");
 			testSets.put("prop-train", new AnswerIdDataset(baseCorpus, "prop-train"));
 			
-			trainSet.loadData(ExperimentDataConfig.get("wikiQATrainFilename"));
-			testSets.get("prop-train").loadData(ExperimentDataConfig.get("propbankQATrainFilename"));
+			trainSet.loadData(DataConfig.get("wikiQATrainFilename"));
+			testSets.get("prop-train").loadData(DataConfig.get("propbankQATrainFilename"));
 		} else {
 			trainSet = new AnswerIdDataset(baseCorpus, "prop-train");
 			testSets.put("wiki1-train", new AnswerIdDataset(baseCorpus, "wiki1-train"));
 			
-			trainSet.loadData(ExperimentDataConfig.get("propbankQATrainFilename"));
-			testSets.get("wiki1-train").loadData(ExperimentDataConfig.get("wikiQATrainFilename"));
+			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
+			testSets.get("wiki1-train").loadData(DataConfig.get("wikiQATrainFilename"));
 		}
 		
 		// *********** Generate training/test samples **********
-		String dataPath = ExperimentDataConfig.get("tempOutputDatapath");
-		if (regenerateSamples) {
-			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
-			trainSet.generateSamples(syntaxHelper, useSpanBasedSamples);
+		String dataPath = DataConfig.get("tempOutputDatapath");
+		if (config.regenerateSamples) {
+			KBestParseRetriever syntaxHelper = new KBestParseRetriever(config.kBest);
+			trainSet.generateSamples(syntaxHelper, config.useSpanBasedSamples);
 			for (AnswerIdDataset ds : testSets.values()) {
-				ds.generateSamples(syntaxHelper, useSpanBasedSamples);
+				ds.generateSamples(syntaxHelper, config.useSpanBasedSamples);
 			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;
@@ -127,10 +116,10 @@ public class BaselineAnswerIdExperiment {
 */
 		featureExtractor = new AnswerIdFeatureExtractor(
 				baseCorpus,
-				featureKBest,
-				minFeatureFreq,
-				useLexicalFeatures,
-				useDependencyFeatures);
+				config.featureKBest,
+				config.minFeatureFreq,
+				config.useLexicalFeatures,
+				config.useDependencyFeatures);
 		featureExtractor.extractFeatures(trainSet.getSamples());
 		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (AnswerIdDataset ds : testSets.values()) {
@@ -169,7 +158,7 @@ public class BaselineAnswerIdExperiment {
 		LiblinearHyperParameters bestPrm = null;
 		for (LiblinearHyperParameters prm : cvPrms) {
 			System.out.println(prm.toString());
-			double res = crossValidate(trainSet, cvFolds, prm);
+			double res = crossValidate(trainSet, config.cvFolds, prm);
 			cvResults.add(res);
 		}
 		for (int i = 0; i < cvResults.size(); i++) {
@@ -204,7 +193,7 @@ public class BaselineAnswerIdExperiment {
 		BufferedWriter writer = null;
 		try {
 			writer = new BufferedWriter(
-					new FileWriter(new File(featureOutputPath)));
+					new FileWriter(new File(config.featureOutputPath)));
 			for (int fid = 0; fid < model.getNrFeature(); fid++) {
 				double fweight = model.getFeatureWeights()[fid + 1];
 				writer.write(String.format("%s\t%.6f\n",
@@ -306,7 +295,7 @@ public class BaselineAnswerIdExperiment {
 			QAPair qa = questions.get(qid);
 			int length = predScores[qid].length;
 			int bestIdx = -1;
-			if (useSpanBasedSamples) {
+			if (config.useSpanBasedSamples) {
 				double matched = AnswerIdEvaluator.evaluateAccuracy(
 						predScores[qid],
 						answerFlags[qid],
@@ -354,7 +343,7 @@ public class BaselineAnswerIdExperiment {
 				}
 			}
 		}
-		if (useSpanBasedSamples) {
+		if (config.useSpanBasedSamples) {
 			System.out.println("All negative baseline:\t" +
 					allNegBaseline / evalQIds.size());
 		}
@@ -366,7 +355,7 @@ public class BaselineAnswerIdExperiment {
 			}
 		}
 		double[] result = new double[2];
-		if (useSpanBasedSamples) {
+		if (config.useSpanBasedSamples) {
 			result[0] = avgMatchedWords / evalQIds.size();
 		} else {
 			result[0] = 1.0 * numMatched /evalQIds.size();
@@ -381,7 +370,7 @@ public class BaselineAnswerIdExperiment {
 		for (int i = 0; i < ds.getQuestions().size(); i++) {
 			shuffledIds.add(i);
 		}
-		Collections.shuffle(shuffledIds, new Random(randomSeed));
+		Collections.shuffle(shuffledIds, new Random(config.randomSeed));
 		int sampleSize = shuffledIds.size();
 		int foldSize = sampleSize / cvFolds;
 	
