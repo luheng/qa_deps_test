@@ -78,8 +78,7 @@ public class WiktionaryVerbIdentifier {
 	}
 	
 	public static void main(String[] args) {
-		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 	
 		WiktionaryVerbIdentifier verbId =
 				new WiktionaryVerbIdentifier(trainCorpus);

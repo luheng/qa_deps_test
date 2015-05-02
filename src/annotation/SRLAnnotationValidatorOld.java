@@ -228,8 +228,7 @@ public class SRLAnnotationValidatorOld {
 	}
 	
 	public static void main(String[] args) {
-		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrialFilename, "en-srl-trial");
+		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-trial");
 		ArrayList<AnnotatedDepSentence> annotatedSentences =
 				ExperimentUtils.loadSRLAnnotationSentences(trainCorpus);
 	

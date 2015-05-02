@@ -92,8 +92,7 @@ public class CrowdFlowerPropIdDataPreparation {
 	}
 	
 	public static void main(String[] args) {
-		trainCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 	
 		int[] nonQuestionIds = getNonQuestionSentenceIds();
 		int[] sentenceIds = RandomSampler.sampleIDs(nonQuestionIds,

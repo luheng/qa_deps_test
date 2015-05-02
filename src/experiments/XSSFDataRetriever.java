@@ -533,9 +533,7 @@ public class XSSFDataRetriever {
 	}
 	
 	public static void main(String[] args) {
-		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
-		
+		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 		HashMap<Integer, AnnotatedSentence> annotations =
 				new HashMap<Integer, AnnotatedSentence>();
 				

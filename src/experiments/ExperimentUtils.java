@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import config.ExperimentDataConfig;
 import util.CSVUtils;
 import util.StringUtils;
 import annotation.DistanceSensitiveQuestionAnswerAligner;
@@ -21,41 +22,6 @@ import data.VerbInflectionDictionary;
 import data.WikipediaCorpus;
 
 public class ExperimentUtils {
-
-	public static final String trainFilename =
-			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-train.conll";
-	public static final String devFilename =
-			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-dev.conll";
-	public static final String testFilename =
-			"/Users/luheng/data/stanford-universal-dependencies/en-univiersal-test.conll";
-	
-	public static final String srlTrainFilename =
-			"/Users/luheng/data/conll05st-release/conll05_train.srl";
-	
-	public static final String srlAnnotationFilename =
-			//"manual_annotation/sr_pilot_annotation_mike.txt";
-			"manual_annotation/sr_pilot_annotation_luheng.txt";
-			//"manual_annotation/sr_pilot_annotation_luke.txt";
-	
-	public static final String conll2009TrainFilename =
-			"/Users/luheng/data/CoNLL2009-ST-English/CoNLL2009-ST-English-train.txt";
-	
-	public static final String conll2009TrialFilename =
-			//"/Users/luheng/data/CoNLL-2009/CoNLL2009-ST-English-trial.txt";
-			"/Users/luheng/data/CoNLL2009-ST-English/CoNLL2009-ST-English-trial.txt";
-	
-	public static final String wikipediaFilePath =
-			"/Users/luheng/data/Wikipedia/AA";
-	
-	public static final String wikipediaMetaFilePath =
-			"odesk_wiki/odesk_wiki1.meta.txt";
-	
-	public static final String enUnivPostagFilename =
-			"data/univmap/en-ptb.map";
-	
-	public static String annotationFilename = "manual_annotation/en-train-50sentences.txt";
-	// public static String annotationFilename = "manual_annotation/en-upperbound.txt";
-	// public static String annotationFilename = "manual_annotation/luke_first5.csv";
 	public static boolean useNumberedAnnotation = false;
 	public static boolean useDistanceSensitiveAlignment = true;
 	
@@ -64,7 +30,21 @@ public class ExperimentUtils {
 	public static DepCorpus loadDepCorpus() {
 		DepCorpus corpus = new DepCorpus("en-universal-train");
 		try {
-			corpus.loadUniversalDependencyData(trainFilename);
+			corpus.loadUniversalDependencyData(ExperimentDataConfig.get("depTrainFilename"));
+		} catch (NumberFormatException | IOException e) {
+			e.printStackTrace();
+		}
+		return corpus;
+	}
+	
+	public static SRLCorpus loadSRLCorpus(String corpusName) {
+		SRLCorpus corpus = new SRLCorpus(corpusName);
+		UniversalPostagMap univmap = new UniversalPostagMap();
+		try {
+			univmap.loadFromFile(ExperimentDataConfig.get("enUnivPostagFilename"));
+			corpus.loadCoNLL2009Data(ExperimentDataConfig.get("srlTrainFilename"),
+									 univmap,
+									 true /* load gold syntax info */);	
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}
@@ -76,7 +56,7 @@ public class ExperimentUtils {
 		SRLCorpus corpus = new SRLCorpus(corpusName);
 		UniversalPostagMap univmap = new UniversalPostagMap();
 		try {
-			univmap.loadFromFile(enUnivPostagFilename);
+			univmap.loadFromFile(ExperimentDataConfig.get("enUnivPostagFilename"));
 			corpus.loadCoNLL2009Data(corpusPath,
 									 univmap,
 									 true /* load gold syntax info */);	
@@ -100,7 +80,7 @@ public class ExperimentUtils {
 	public static UniversalPostagMap loadPostagMap() {
 		UniversalPostagMap univmap = new UniversalPostagMap();
 		try {
-			univmap.loadFromFile(enUnivPostagFilename);
+			univmap.loadFromFile(ExperimentDataConfig.get("enUnivPostagFilename"));
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}
@@ -110,7 +90,8 @@ public class ExperimentUtils {
 	public static VerbInflectionDictionary loadInflectionDictionary(Corpus corpus) {
 		VerbInflectionDictionary inflDict = new VerbInflectionDictionary(corpus);
 		try {
-			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
+			inflDict.loadDictionaryFromFile(
+					ExperimentDataConfig.get("wiktionaryVerbsFilename"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -124,7 +105,8 @@ public class ExperimentUtils {
 				new ArrayList<AnnotatedDepSentence>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
-					new FileInputStream(annotationFilename)));
+					new FileInputStream(ExperimentDataConfig.get(
+							"trailAnnotationFilename"))));
 			String line;
 			int sentPtr = 0;
 			while ((line = reader.readLine()) != null) {
@@ -171,7 +153,8 @@ public class ExperimentUtils {
 				new ArrayList<AnnotatedDepSentence>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
-					new FileInputStream(annotationFilename)));
+					new FileInputStream(ExperimentDataConfig.get(
+							"trailAnnotationFilename"))));
 			String line, lastQuestion = "";
 			int sentPtr = 0;
 			while ((line = reader.readLine()) != null) {
@@ -217,6 +200,7 @@ public class ExperimentUtils {
 	 * @param corpus
 	 * @return
 	 */
+	@Deprecated
 	public static ArrayList<AnnotatedDepSentence> loadSRLAnnotationSentences(
 			SRLCorpus corpus) {
 		
@@ -225,7 +209,7 @@ public class ExperimentUtils {
 				new ArrayList<AnnotatedDepSentence>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(
-					new FileInputStream(srlAnnotationFilename)));
+					new FileInputStream(ExperimentDataConfig.get("trialAnnotationFilename"))));
 			String line;
 			while ((line = reader.readLine()) != null) {
 				if (line.trim().isEmpty()) {

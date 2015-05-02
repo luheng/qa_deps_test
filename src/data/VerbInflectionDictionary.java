@@ -102,8 +102,7 @@ public class VerbInflectionDictionary {
 	}
 	
 	public static void main(String[] args) {
-		SRLCorpus corpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		SRLCorpus corpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 		VerbInflectionDictionary inflDict = new VerbInflectionDictionary(corpus);
 		try {
 			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");

@@ -281,8 +281,7 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	}
 
 	  public static void main(String args[]) {
-		  SRLCorpus corpus = ExperimentUtils.loadSRLCorpus(
-				  ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		  SRLCorpus corpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 		  
 		  ArrayList<DepSentence> sentences = new ArrayList<DepSentence>();
 		  /*

@@ -407,8 +407,7 @@ public class CrowdFlowerQADataAnalyzer {
 	}
 	
 	public static void main(String[] args) {
-		corpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		corpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 		annotationResults = new ArrayList<CrowdFlowerQAResult>();
 		try {
 			CrowdFlowerQADataRetriever.readAnnotationResult(annotationResults);

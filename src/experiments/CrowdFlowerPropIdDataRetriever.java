@@ -25,8 +25,7 @@ public class CrowdFlowerPropIdDataRetriever {
 		assert (sentences != null);
 		assert (propositions != null);
 		
-		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 	
 		ArrayList<ArrayList<String>> annotation = DataUtils.readTSVFile(
 				annotationFilePath);

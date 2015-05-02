@@ -216,8 +216,7 @@ public class CrowdFlowerStage2DataPreparation {
 	}
 	
 	public static void main(String[] args) {
-		trainCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 		
 		stage1Results = new ArrayList<CrowdFlowerQAResult>();
 		try {

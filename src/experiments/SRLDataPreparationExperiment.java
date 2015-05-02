@@ -104,8 +104,7 @@ public class SRLDataPreparationExperiment {
 	}
 	
 	public static void main(String[] args) {
-		corpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrialFilename, "en-srl-trial");
+		corpus = ExperimentUtils.loadSRLCorpus("en-srl-trial");
 		/*
 		for (DepSentence sentence : corpus.sentences) {
 			System.out.println(sentence.toString());

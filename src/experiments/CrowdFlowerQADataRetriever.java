@@ -414,8 +414,7 @@ public class CrowdFlowerQADataRetriever {
 	}
 	
 	public static void main(String[] args) {
-		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 		ArrayList<CrowdFlowerQAResult> annotationResults =
 				new ArrayList<CrowdFlowerQAResult>();
 		ArrayList<AnnotatedSentence> annotatedSentences =

@@ -42,8 +42,7 @@ public class WiktionaryPosDictionary {
 	}
 	
 	public static void main(String[] args) {
-		SRLCorpus corpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		SRLCorpus corpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 		WiktionaryPosDictionary wikposDict = new WiktionaryPosDictionary(corpus);
 		try {
 			wikposDict.loadDictionaryFromFile("wiktionary/en_postags_withverb.txt");

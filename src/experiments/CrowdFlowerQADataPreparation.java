@@ -555,8 +555,7 @@ public class CrowdFlowerQADataPreparation {
 	}
 	
 	public static void main(String[] args) {
-		trainCorpus = ExperimentUtils.loadSRLCorpus(
-				ExperimentUtils.conll2009TrainFilename, "en-srl-train");
+		trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
 		inflDict = new VerbInflectionDictionary(trainCorpus);
 		try {
 			inflDict.loadDictionaryFromFile("wiktionary/en_verb_inflections.txt");
