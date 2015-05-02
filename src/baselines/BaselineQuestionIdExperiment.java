@@ -7,12 +7,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
+import util.StringUtils;
 import annotation.QuestionEncoder;
 import learning.KBestParseRetriever;
 import learning.QASample;
@@ -32,22 +32,26 @@ import experiments.LiblinearHyperParameters;
 
 public class BaselineQuestionIdExperiment {
 
-	private String trainFilePath = "data/odesk_s1250.train.qa";
-	private String testFilePath = "data/odesk_s1250.test.qa";	
+	private String trainFilePath = "data/odesk_s1250.train.qa";	
 	private String oodTrainFilePath = "data/odesk_wiki1.train.qa";
-	private String oodTestFilePath = "data/odesk_wiki1.test.qa";
+	//private String testFilePath = "data/odesk_s1250.test.qa";
+	//private String oodTestFilePath = "data/odesk_wiki1.test.qa";
 	
 	private String featureOutputPath = "feature_weights.tsv";
 	
 	private final int randomSeed = 12345;
-	private final int cvFolds = 5,
-					  minFeatureFreq = 3,
-					  kBest = 1;
+	private final int cvFolds = 5;
+	private final int minFeatureFreq = 3;
+	private final int minLabelFreq = 15;
+	private final int kBest = 1; // 20
 	
-	private boolean regenerateSamples = false;
+	
+	private boolean regenerateSamples = true;
 	private boolean trainWithWiki = false;
 	private boolean useLexicalFeatures = true;
 	private boolean useDependencyFeatures = true;
+	
+	private double evalThreshold = 0.4999;
 	
 	private Corpus baseCorpus; 
 	private QuestionIdFeatureExtractor featureExtractor;
@@ -62,39 +66,40 @@ public class BaselineQuestionIdExperiment {
 	public BaselineQuestionIdExperiment() throws IOException {
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new HashMap<String, QuestionIdDataset>();
-		CountDictionary qdict = new CountDictionary();
 		
 		// ********** Load QA Data ********************
 		if (trainWithWiki) {
-			trainSet = new QuestionIdDataset(baseCorpus, qdict, "wiki1-train");
-			testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, qdict, "wiki1-test"));			
-			testSets.put("prop-train", new QuestionIdDataset(baseCorpus, qdict, "prop-train"));
-			testSets.put("prop-test", new QuestionIdDataset(baseCorpus, qdict, "prop-test"));
+			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");
+			testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, "wiki1-test"));			
+			testSets.put("prop-train", new QuestionIdDataset(baseCorpus, "prop-train"));
+			testSets.put("prop-test", new QuestionIdDataset(baseCorpus, "prop-test"));
 			
 			trainSet.loadData(oodTrainFilePath);
-			testSets.get("wiki1-test").loadData(oodTestFilePath);
 			testSets.get("prop-train").loadData(trainFilePath);
-			testSets.get("prop-test").loadData(testFilePath);
+			//	testSets.get("wiki1-test").loadData(oodTestFilePath);
+			//	testSets.get("prop-test").loadData(testFilePath);
 		} else {
-			trainSet = new QuestionIdDataset(baseCorpus, qdict, "prop-train");
-			testSets.put("prop-test", new QuestionIdDataset(baseCorpus, qdict, "prop-test"));	
-			testSets.put("wiki1-train", new QuestionIdDataset(baseCorpus, qdict, "wiki1-train"));
-			testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, qdict, "wiki1-test"));
+			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
+			testSets.put("prop-test", new QuestionIdDataset(baseCorpus, "prop-test"));	
+			testSets.put("wiki1-train", new QuestionIdDataset(baseCorpus, "wiki1-train"));
+			testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, "wiki1-test"));
 			
 			trainSet.loadData(trainFilePath);
-			testSets.get("prop-test").loadData(testFilePath);
 			testSets.get("wiki1-train").loadData(oodTrainFilePath);
-			testSets.get("wiki1-test").loadData(oodTestFilePath);
+			//	testSets.get("wiki1-test").loadData(oodTestFilePath);
+			//	testSets.get("prop-test").loadData(testFilePath);
 		}
 
-		// Each QA is associcated with a set of question labels, each label has different granularity. 
+		// Each QA is associcated with a set of question labels, each label has different granularity.
+		CountDictionary tempQDict = new CountDictionary();
 		for (QAPair qa : trainSet.getQuestions()) {
 			String[] qlabels = QuestionEncoder.getMultiQuestionLabels(qa.questionWords, qa);
 			for (String qlabel : qlabels) {
-				qdict.addString(qlabel);
+				tempQDict.addString(qlabel);
 			}
 		}
-		System.out.println("Saw " + qdict.size() + " distinct question labels.");
+		System.out.println("Saw " + tempQDict.size() + " distinct question labels.");
+		CountDictionary qdict = new CountDictionary(tempQDict, minLabelFreq);
 		int numUnseenQuestionLabels = 0;
 		for (QuestionIdDataset testSet : testSets.values()) {
 			for (QAPair qa : testSet.getQuestions()) {
@@ -109,6 +114,15 @@ public class BaselineQuestionIdExperiment {
 			}
 		}
 		System.out.println("Number of unseen labels:\t" + numUnseenQuestionLabels);
+		int numKeptLabels = 0;
+		for (int i = 0; i < qdict.size(); i++) {
+			if (qdict.getCount(i) >= minLabelFreq) {
+				numKeptLabels ++;
+			}
+		}
+		System.out.println("Number of labels:\t" + numKeptLabels);
+		
+		
 		// *********** Generate training/test samples **********
 		if (regenerateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
@@ -144,8 +158,7 @@ public class BaselineQuestionIdExperiment {
 				e.printStackTrace();
 			}
 		}		
-		sanityCheck1();
-
+	
 		// ********** Extract features ***************
 		// TODO: question id feature extractor ..
 		featureExtractor = new QuestionIdFeatureExtractor(
@@ -158,30 +171,6 @@ public class BaselineQuestionIdExperiment {
 		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (QuestionIdDataset ds : testSets.values()) {
 			ds.extractFeaturesAndLabels(featureExtractor);
-		}
-	}
-	
-	public void sanityCheck1() {
-		// 1. Different datasets should have disjoint sentence Ids.
-		System.out.println("======= Sanity Check1: Sentence Overlap =======");
-		int overlap = 0;
-		HashSet<Integer> sids = trainSet.getSentenceIds();
-		for (QuestionIdDataset ds : testSets.values()) {
-			HashSet<Integer> sids2 = ds.getSentenceIds();
-			for (int sid : sids2) {
-				if (sids.contains(sid)) {
-					System.out.println("Overlap!!\t" + sid);
-					overlap++;
-				}
-				sids.add(sid);
-			}
-		}
-		if (overlap == 0) {
-			System.out.println("======= Sanity Check1 Passed: No Overlap =======");
-		} else {
-			System.out.println(
-					String.format("Sanity Check1 Failed with %d overlapping sentences.",
-					overlap));
 		}
 	}
 	
@@ -214,14 +203,12 @@ public class BaselineQuestionIdExperiment {
 				trainSet.getFeatures(),
 				trainSet.getLabels(),
 				numFeatures, prm);
-		double accuracy = predictAndEvaluate(trainSet, model);
+		double[] accuracy = predictAndEvaluate(trainSet, model, "");
 		System.out.println(String.format("Training accuracy:\t %.4f", accuracy));
 		for (QuestionIdDataset ds : testSets.values()) {
-			accuracy = predictAndEvaluate(ds, model);
-//			F1Metric oldF1 = predictAndEvaluateOld(ds.getFeatures(),  ds.getLabels(), model);
-			System.out.println(String.format("Testing accuracy on %s: %.4f",
-					ds.datasetName, accuracy));		
-//			System.out.println("Old f1:\t" + oldF1.toString());
+			accuracy = predictAndEvaluate(ds, model, "");
+			System.out.println(String.format("Testing accuracy on %s:\t%.4f\t%.4f",
+					ds.datasetName, accuracy[0], accuracy[1]));		
 		}
 		
 		BufferedWriter writer = null;
@@ -250,41 +237,56 @@ public class BaselineQuestionIdExperiment {
 		return Linear.train(training, parameter);
 	}
 	
-	private double predictAndEvaluate(QuestionIdDataset ds, Model model) {
-		return predictAndEvaluate(ds.getSamples(), ds.getFeatures(), ds, model);
+	private double[] predictAndEvaluate(QuestionIdDataset ds, Model model,
+			String debugFilePath) {
+		return predictAndEvaluate(ds.getSamples(), ds.getFeatures(), ds, model,
+				debugFilePath);
 	}
 	
-	@SuppressWarnings("unused")
-	@Deprecated
-	private F1Metric predictAndEvaluateOld(Feature[][] features,
-			double[] labels, Model model) {
-		int numMatched = 0, numPred = 0, numGold = 0;
-		for (int i = 0; i < features.length; i++) {
-			int pred = (int) Linear.predict(model, features[i]);
-			int gold = (int) labels[i];
-			if (gold > 0 && pred > 0) {
-				numMatched ++;
-			}
-			if (gold > 0) {
-				numGold ++;
-			}
-			if (pred > 0) {
-				numPred ++;
-			}
-		}
-		return new F1Metric(numMatched, numGold, numPred);
-	}
-	
-	// TODO: do this ...
-	private double predictAndEvaluate(
+	/**
+	 * 
+	 * @param samples
+	 * @param features
+	 * @param ds
+	 * @param model
+	 * @param debugFilePath
+	 * @return [accuracy, precision, recall, F1] 
+	 */
+	private double[] predictAndEvaluate(
 			ArrayList<QASample> samples,
 			Feature[][] features,
 			QuestionIdDataset ds,
-			Model model) {
-		return -1;
+			Model model,
+			String debugFilePath) {
+		
+		F1Metric f1 = new F1Metric();
+		int numCorrect = 0;
+		for (int i = 0; i < samples.size(); i++) {
+			QASample sample = samples.get(i);
+			double[] prob = new double[2];
+			Linear.predictProbability(model, features[i], prob);
+			int gold = sample.isPositiveSample ? 1 : -1;
+			int pred = prob[0] > evalThreshold ? 1 : -1;
+			f1.numGold += (gold > 0 ? 1 : 0);
+			f1.numProposed += (pred > 0 ? 1 : 0);
+			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);
+			numCorrect += (gold == pred ? 1 : 0);
+		}
+		return new double[] {
+				1.0 * numCorrect / samples.size(),
+				f1.precision(), f1.recall(), f1.f1()}; 
+		/*
+		BufferedWriter writer = null;
+		if (!debugFilePath.isEmpty()) {
+			try {
+				writer = new BufferedWriter(
+						new FileWriter(new File(debugFilePath)));
+			} catch (IOException e) {
+			}
+		}
+		*/
 	}
 	
-	// TODO: do this ...
 	private double crossValidate(QuestionIdDataset ds, int cvFolds,
 			LiblinearHyperParameters prm) {
 		ArrayList<Integer> shuffledIds = new ArrayList<Integer>();		
@@ -349,13 +351,13 @@ public class BaselineQuestionIdExperiment {
 			
 			Model model = train(trnFeats, trnLabels,
 					featureExtractor.numFeatures(), prm);
-			double trnAcc = predictAndEvaluate(
-					trnSamples, trnFeats, ds, model);
-			double valAcc = predictAndEvaluate(
-					valSamples, valFeats, ds, model);
-			avgAcc += valAcc;
-			System.out.println(trnAcc);
-			System.out.println(valAcc);
+			double[] trnAcc = predictAndEvaluate(
+					trnSamples, trnFeats, ds, model, "");
+			double[] valAcc = predictAndEvaluate(
+					valSamples, valFeats, ds, model, "");
+			avgAcc += valAcc[3];
+			System.out.println(StringUtils.doubleArrayToString("\t", trnAcc));
+			System.out.println(StringUtils.doubleArrayToString("\t", valAcc));
 		}
 		return avgAcc / cvFolds;
 	}

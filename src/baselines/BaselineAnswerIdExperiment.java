@@ -179,7 +179,6 @@ public class BaselineAnswerIdExperiment {
 		ArrayList<Double> cvResults = new ArrayList<Double>();
 		double bestAcc = .0;
 		LiblinearHyperParameters bestPrm = null;
-		
 		for (LiblinearHyperParameters prm : cvPrms) {
 			System.out.println(prm.toString());
 			double res = crossValidate(trainSet, cvFolds, prm);

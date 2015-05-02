@@ -25,21 +25,19 @@ public class QuestionIdDataset {
 
 	public String datasetName;
 	Corpus corpus;
-	CountDictionary questionLabelDict;
 	ArrayList<AnnotatedSentence> sentences;
 	ArrayList<QAPair> questions;
 	ArrayList<QASample> samples;
 	Feature[][] features;
 	double[] labels;
 	
-	public QuestionIdDataset(Corpus corpus, CountDictionary qdict, String name) {
-		this(corpus, qdict);
+	public QuestionIdDataset(Corpus corpus, String name) {
+		this(corpus);
 		this.datasetName = name;
 	}
 	
-	public QuestionIdDataset(Corpus corpus, CountDictionary qdict) {
+	public QuestionIdDataset(Corpus corpus) {
 		this.corpus = corpus;
-		this.questionLabelDict = qdict;
 		this.sentences = new ArrayList<AnnotatedSentence>();
 		this.questions = new ArrayList<QAPair>();
 		this.samples = new ArrayList<QASample>();
@@ -121,7 +119,7 @@ public class QuestionIdDataset {
 		// TODO: random sampling according to label distribution.
 		HashSet<Integer> negLabels = new HashSet<Integer>();
 		for (int qid = 0; qid < qlabelDict.size(); qid++) {
-			if (!posLabels.contains(qid) && qlabelDict.getCount(qid) > 10) {
+			if (!posLabels.contains(qid)) {
 				negLabels.add(qid);
 			}
 		}
