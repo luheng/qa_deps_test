@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
+import config.ExperimentDataConfig;
 import learning.AnswerIdDataset;
 import learning.AnswerIdFeatureExtractor;
 import learning.KBestParseRetriever;
@@ -30,12 +31,6 @@ import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 
 public class BaselineAnswerIdExperiment {
-
-	private String trainFilePath = "odesk_s1250.train.qa";
-	private String testFilePath = "odesk_s1250.test.qa";	
-	private String oodTrainFilePath = "odesk_wiki1.train.qa";
-	private String oodTestFilePath = "odesk_wiki1.test.qa";
-	
 	private String featureOutputPath = "feature_weights.tsv";
 	
 	private final int randomSeed = 12345;
@@ -64,33 +59,26 @@ public class BaselineAnswerIdExperiment {
 		}
 	}
 	
-	public BaselineAnswerIdExperiment(String dataPath) throws IOException {
+	public BaselineAnswerIdExperiment() throws IOException {
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new HashMap<String, AnswerIdDataset>();
 		// ********** Load QA Data ********************
 		if (trainWithWiki) {
 			trainSet = new AnswerIdDataset(baseCorpus, "wiki1-train");
-			testSets.put("wiki1-test", new AnswerIdDataset(baseCorpus, "wiki1-test"));			
 			testSets.put("prop-train", new AnswerIdDataset(baseCorpus, "prop-train"));
-			testSets.put("prop-test", new AnswerIdDataset(baseCorpus, "prop-test"));
 			
-			trainSet.loadData(dataPath + oodTrainFilePath);
-			testSets.get("wiki1-test").loadData(dataPath + oodTestFilePath);
-			testSets.get("prop-train").loadData(dataPath + trainFilePath);
-			testSets.get("prop-test").loadData(dataPath + testFilePath);
+			trainSet.loadData(ExperimentDataConfig.get("wikiQATrainFilename"));
+			testSets.get("prop-train").loadData(ExperimentDataConfig.get("propbankQATrainFilename"));
 		} else {
 			trainSet = new AnswerIdDataset(baseCorpus, "prop-train");
-			testSets.put("prop-test", new AnswerIdDataset(baseCorpus, "prop-test"));	
 			testSets.put("wiki1-train", new AnswerIdDataset(baseCorpus, "wiki1-train"));
-			testSets.put("wiki1-test", new AnswerIdDataset(baseCorpus, "wiki1-test"));
 			
-			trainSet.loadData(dataPath + trainFilePath);
-			testSets.get("prop-test").loadData(dataPath + testFilePath);
-			testSets.get("wiki1-train").loadData(dataPath + oodTrainFilePath);
-			testSets.get("wiki1-test").loadData(dataPath + oodTestFilePath);
+			trainSet.loadData(ExperimentDataConfig.get("propbankQATrainFilename"));
+			testSets.get("wiki1-train").loadData(ExperimentDataConfig.get("wikiQATrainFilename"));
 		}
 		
 		// *********** Generate training/test samples **********
+		String dataPath = ExperimentDataConfig.get("tempOutputDatapath");
 		if (regenerateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
 			trainSet.generateSamples(syntaxHelper, useSpanBasedSamples);
@@ -463,13 +451,9 @@ public class BaselineAnswerIdExperiment {
 	}
 	
 	public static void main(String[] args) {
-		String dataPath = "./data/";
-		if (args.length > 0) {
-			dataPath = args[0].trim();
-		}
 		BaselineAnswerIdExperiment exp = null;
 		try {
-			exp = new BaselineAnswerIdExperiment(dataPath);
+			exp = new BaselineAnswerIdExperiment();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;

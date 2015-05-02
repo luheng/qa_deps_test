@@ -28,7 +28,7 @@ public class ExperimentDataConfig {
 				e.printStackTrace();
 			}
 		}
-		return properties.getProperty(key);
+		return properties.getProperty(key).trim();
 	}
 	
 	public static void main(String[] args) {

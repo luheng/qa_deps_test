@@ -11,8 +11,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
 
+import config.ExperimentDataConfig;
 import util.StringUtils;
 import annotation.QuestionEncoder;
+import learning.AnswerIdDataset;
 import learning.KBestParseRetriever;
 import learning.QASample;
 import learning.QuestionIdDataset;
@@ -31,11 +33,6 @@ import experiments.LiblinearHyperParameters;
 
 public class BaselineQuestionIdExperiment {
 
-	private String trainFilePath = "data/odesk_s1250.train.qa";	
-	private String oodTrainFilePath = "data/odesk_wiki1.train.qa";
-	//private String testFilePath = "data/odesk_s1250.test.qa";
-	//private String oodTestFilePath = "data/odesk_wiki1.test.qa";
-	
 	private String featureOutputPath = "feature_weights.tsv";
 	
 	private final int randomSeed = 12345;
@@ -43,7 +40,6 @@ public class BaselineQuestionIdExperiment {
 	private final int minFeatureFreq = 3;
 	private final int minLabelFreq = 5;
 	private final int kBest = 1; // 20
-	
 	
 	private boolean regenerateSamples = true;
 	private boolean trainWithWiki = false;
@@ -68,25 +64,17 @@ public class BaselineQuestionIdExperiment {
 		
 		// ********** Load QA Data ********************
 		if (trainWithWiki) {
-			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");			
+			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");
 			testSets.put("prop-train", new QuestionIdDataset(baseCorpus, "prop-train"));
-			// testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, "wiki1-test"));
-			// testSets.put("prop-test", new QuestionIdDataset(baseCorpus, "prop-test"));
 			
-			trainSet.loadData(oodTrainFilePath);
-			testSets.get("prop-train").loadData(trainFilePath);
-			//	testSets.get("wiki1-test").loadData(oodTestFilePath);
-			//	testSets.get("prop-test").loadData(testFilePath);
+			trainSet.loadData(ExperimentDataConfig.get("wikiQATrainFilename"));
+			testSets.get("prop-train").loadData(ExperimentDataConfig.get("propbankQATrainFilename"));
 		} else {
-			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");	
+			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
 			testSets.put("wiki1-train", new QuestionIdDataset(baseCorpus, "wiki1-train"));
-			// testSets.put("prop-test", new QuestionIdDataset(baseCorpus, "prop-test"));
-			// testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, "wiki1-test"));
 			
-			trainSet.loadData(trainFilePath);
-			testSets.get("wiki1-train").loadData(oodTrainFilePath);
-			//	testSets.get("wiki1-test").loadData(oodTestFilePath);
-			//	testSets.get("prop-test").loadData(testFilePath);
+			trainSet.loadData(ExperimentDataConfig.get("propbankQATrainFilename"));
+			testSets.get("wiki1-train").loadData(ExperimentDataConfig.get("wikiQATrainFilename"));
 		}
 
 		// Each QA is associcated with a set of question labels, each label has different granularity.
