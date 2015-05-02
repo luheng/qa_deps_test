@@ -9,7 +9,6 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Random;
 
 import util.StringUtils;
@@ -42,7 +41,7 @@ public class BaselineQuestionIdExperiment {
 	private final int randomSeed = 12345;
 	private final int cvFolds = 5;
 	private final int minFeatureFreq = 3;
-	private final int minLabelFreq = 15;
+	private final int minLabelFreq = 5;
 	private final int kBest = 1; // 20
 	
 	
@@ -69,20 +68,20 @@ public class BaselineQuestionIdExperiment {
 		
 		// ********** Load QA Data ********************
 		if (trainWithWiki) {
-			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");
-			testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, "wiki1-test"));			
+			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");			
 			testSets.put("prop-train", new QuestionIdDataset(baseCorpus, "prop-train"));
-			testSets.put("prop-test", new QuestionIdDataset(baseCorpus, "prop-test"));
+			// testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, "wiki1-test"));
+			// testSets.put("prop-test", new QuestionIdDataset(baseCorpus, "prop-test"));
 			
 			trainSet.loadData(oodTrainFilePath);
 			testSets.get("prop-train").loadData(trainFilePath);
 			//	testSets.get("wiki1-test").loadData(oodTestFilePath);
 			//	testSets.get("prop-test").loadData(testFilePath);
 		} else {
-			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
-			testSets.put("prop-test", new QuestionIdDataset(baseCorpus, "prop-test"));	
+			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");	
 			testSets.put("wiki1-train", new QuestionIdDataset(baseCorpus, "wiki1-train"));
-			testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, "wiki1-test"));
+			// testSets.put("prop-test", new QuestionIdDataset(baseCorpus, "prop-test"));
+			// testSets.put("wiki1-test", new QuestionIdDataset(baseCorpus, "wiki1-test"));
 			
 			trainSet.loadData(trainFilePath);
 			testSets.get("wiki1-train").loadData(oodTrainFilePath);
@@ -204,11 +203,14 @@ public class BaselineQuestionIdExperiment {
 				trainSet.getLabels(),
 				numFeatures, prm);
 		double[] accuracy = predictAndEvaluate(trainSet, model, "");
-		System.out.println(String.format("Training accuracy:\t %.4f", accuracy));
+		System.out.println(String.format("Training accuracy on %s:\t%s",
+				trainSet.datasetName,
+				StringUtils.doubleArrayToString("\t", accuracy)));
 		for (QuestionIdDataset ds : testSets.values()) {
 			accuracy = predictAndEvaluate(ds, model, "");
-			System.out.println(String.format("Testing accuracy on %s:\t%.4f\t%.4f",
-					ds.datasetName, accuracy[0], accuracy[1]));		
+			System.out.println(String.format("Testing accuracy on %s:\t%s",
+					ds.datasetName,
+					StringUtils.doubleArrayToString("\t", accuracy)));
 		}
 		
 		BufferedWriter writer = null;
@@ -300,49 +302,35 @@ public class BaselineQuestionIdExperiment {
 		double avgAcc = .0;
 		for (int c = 0; c < cvFolds; c++) {
 			System.out.println("cv: " + c);
-			
-			HashSet<Integer> trnQIds = new HashSet<Integer>();
-			HashSet<Integer> valQIds = new HashSet<Integer>();
 			ArrayList<QASample> trnSamples = new ArrayList<QASample>();
 			ArrayList<QASample> valSamples = new ArrayList<QASample>();
 			
 			for (int j = 0; j < sampleSize; j++) {
 				int qid = shuffledIds.get(j);
 				if (j < foldSize * c || j >= foldSize * (c + 1)) {
-					trnQIds.add(qid);
+					trnSamples.add(ds.getSamples().get(qid));
 				} else {
-					valQIds.add(qid);
+					valSamples.add(ds.getSamples().get(qid));
 				}
 			}
 			System.out.println(String.format(
 					"%d questions in training, %d in validation",
-					trnQIds.size(), valQIds.size()));
+					trnSamples.size(), valSamples.size()));
 			
-
-			for (int j = 0; j < ds.getSamples().size(); j++) {
-				QASample sample = ds.getSamples().get(j);
-				if (trnQIds.contains(sample.questionId)) {
-					trnSamples.add(sample);
-				} else {
-					valSamples.add(sample);
-				}
-			}
 			Feature[][] trnFeats = new Feature[trnSamples.size()][];		
 			Feature[][] valFeats = new Feature[valSamples.size()][];
 			double[] trnLabels = new double[trnSamples.size()];
 			double[] valLabels = new double[valSamples.size()];
 			
 			int trnCnt = 0, valCnt = 0;
-			
-			for (int j = 0; j < ds.getSamples().size(); j++) {
-				QASample sample = ds.getSamples().get(j);
-				int qid = sample.questionId;
-				if (trnQIds.contains(qid)) {
-					trnFeats[trnCnt] = ds.getFeatures()[j];
-					trnLabels[trnCnt++] = ds.getLabels()[j];
+			for (int j = 0; j < sampleSize; j++) {
+				int qid = shuffledIds.get(j);
+				if (j < foldSize * c || j >= foldSize * (c + 1)) {
+					trnFeats[trnCnt] = ds.getFeatures()[qid];
+					trnLabels[trnCnt++] = ds.getLabels()[qid];
 				} else {
-					valFeats[valCnt] = ds.getFeatures()[j];
-					valLabels[valCnt++] = ds.getLabels()[j];
+					valFeats[valCnt] = ds.getFeatures()[qid];
+					valLabels[valCnt++] = ds.getLabels()[qid];
 				}
 			}
 			System.out.println(String.format(
