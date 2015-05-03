@@ -76,8 +76,9 @@ public class QuestionGenFeatureExtractor {
 		return feats;
 	}
 	
-	public TIntDoubleHashMap extractFeatures(Sentence sentence, int propHead,
-			String[][] lattice, boolean acceptNew) {
+	public TIntDoubleHashMap extractFeatures(
+			Sentence sentence, int propHead, String[][] lattice,
+			int slotId, int[] latticeIds, boolean acceptNew) {
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
 		// WH
 		for (int i = 0; i < lattice[0].length; i++) {
@@ -118,5 +119,9 @@ public class QuestionGenFeatureExtractor {
 			fv.put(fid, 1);
 		}
 		return fv;
+	}
+
+	public void freeze() {
+		featureDict = new CountDictionary(featureDict, minFeatureFreq);
 	}
 }
