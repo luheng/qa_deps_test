@@ -78,7 +78,7 @@ public class BaselineQuestionIdExperiment {
 
 		// Each QA is associcated with a set of question labels, each label has different granularity.
 		CountDictionary tempQDict = new CountDictionary();
-		for (QAPair qa : trainSet.getQuestions()) {
+		for (QAPair qa : trainSet.questions) {
 			String[] qlabels = QuestionEncoder.getMultiQuestionLabels(qa.questionWords, qa);
 			for (String qlabel : qlabels) {
 				tempQDict.addString(qlabel);
@@ -88,7 +88,7 @@ public class BaselineQuestionIdExperiment {
 		CountDictionary qdict = new CountDictionary(tempQDict, minLabelFreq);
 		int numUnseenQuestionLabels = 0;
 		for (QuestionIdDataset testSet : testSets.values()) {
-			for (QAPair qa : testSet.getQuestions()) {
+			for (QAPair qa : testSet.questions) {
 				String[] qlabels = QuestionEncoder.getMultiQuestionLabels(qa.questionWords, qa);
 				for (String qlabel : qlabels) {
 					int qid = qdict.lookupString(qlabel);
@@ -121,13 +121,13 @@ public class BaselineQuestionIdExperiment {
 			try {
 				ostream = new ObjectOutputStream(
 						new FileOutputStream(getSampleFileName(trainSet)));
-				ostream.writeObject(trainSet.getSamples());
+				ostream.writeObject(trainSet.samples);
 				ostream.flush();
 				ostream.close();
 				for (QuestionIdDataset testSet : testSets.values()) {
 					ostream = new ObjectOutputStream(
 							new FileOutputStream(getSampleFileName(testSet)));
-					ostream.writeObject(testSet.getSamples());
+					ostream.writeObject(testSet.samples);
 					ostream.flush();
 					ostream.close();
 				}
@@ -153,7 +153,7 @@ public class BaselineQuestionIdExperiment {
 				minFeatureFreq,
 				useLexicalFeatures,
 				useDependencyFeatures);
-		featureExtractor.extractFeatures(trainSet.getSamples());
+		featureExtractor.extractFeatures(trainSet.samples);
 		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (QuestionIdDataset ds : testSets.values()) {
 			ds.extractFeaturesAndLabels(featureExtractor);
@@ -186,8 +186,8 @@ public class BaselineQuestionIdExperiment {
 	public void trainAndPredict(LiblinearHyperParameters prm) {
 		int numFeatures = featureExtractor.numFeatures();
 		Model model = train(
-				trainSet.getFeatures(),
-				trainSet.getLabels(),
+				trainSet.features,
+				trainSet.labels,
 				numFeatures, prm);
 		double[] accuracy = predictAndEvaluate(trainSet, model, "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
@@ -228,7 +228,7 @@ public class BaselineQuestionIdExperiment {
 	
 	private double[] predictAndEvaluate(QuestionIdDataset ds, Model model,
 			String debugFilePath) {
-		return predictAndEvaluate(ds.getSamples(), ds.getFeatures(), ds, model,
+		return predictAndEvaluate(ds.samples, ds.features, ds, model,
 				debugFilePath);
 	}
 	
@@ -279,7 +279,7 @@ public class BaselineQuestionIdExperiment {
 	private double crossValidate(QuestionIdDataset ds, int cvFolds,
 			LiblinearHyperParameters prm) {
 		ArrayList<Integer> shuffledIds = new ArrayList<Integer>();		
-		for (int i = 0; i < ds.getQuestions().size(); i++) {
+		for (int i = 0; i < ds.questions.size(); i++) {
 			shuffledIds.add(i);
 		}
 		Collections.shuffle(shuffledIds, new Random(randomSeed));
@@ -295,9 +295,9 @@ public class BaselineQuestionIdExperiment {
 			for (int j = 0; j < sampleSize; j++) {
 				int qid = shuffledIds.get(j);
 				if (j < foldSize * c || j >= foldSize * (c + 1)) {
-					trnSamples.add(ds.getSamples().get(qid));
+					trnSamples.add(ds.samples.get(qid));
 				} else {
-					valSamples.add(ds.getSamples().get(qid));
+					valSamples.add(ds.samples.get(qid));
 				}
 			}
 			System.out.println(String.format(
@@ -313,11 +313,11 @@ public class BaselineQuestionIdExperiment {
 			for (int j = 0; j < sampleSize; j++) {
 				int qid = shuffledIds.get(j);
 				if (j < foldSize * c || j >= foldSize * (c + 1)) {
-					trnFeats[trnCnt] = ds.getFeatures()[qid];
-					trnLabels[trnCnt++] = ds.getLabels()[qid];
+					trnFeats[trnCnt] = ds.features[qid];
+					trnLabels[trnCnt++] = ds.labels[qid];
 				} else {
-					valFeats[valCnt] = ds.getFeatures()[qid];
-					valLabels[valCnt++] = ds.getLabels()[qid];
+					valFeats[valCnt] = ds.features[qid];
+					valLabels[valCnt++] = ds.labels[qid];
 				}
 			}
 			System.out.println(String.format(

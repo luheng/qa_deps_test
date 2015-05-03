@@ -25,11 +25,11 @@ public class QuestionIdDataset {
 
 	public String datasetName;
 	Corpus corpus;
-	ArrayList<AnnotatedSentence> sentences;
-	ArrayList<QAPair> questions;
-	ArrayList<QASample> samples;
-	Feature[][] features;
-	double[] labels;
+	public ArrayList<AnnotatedSentence> sentences;
+	public ArrayList<QAPair> questions;
+	public ArrayList<QASample> samples;
+	public Feature[][] features;
+	public double[] labels;
 	
 	public QuestionIdDataset(Corpus corpus, String name) {
 		this(corpus);
@@ -41,26 +41,6 @@ public class QuestionIdDataset {
 		this.sentences = new ArrayList<AnnotatedSentence>();
 		this.questions = new ArrayList<QAPair>();
 		this.samples = new ArrayList<QASample>();
-	}
-	
-	public Corpus getCorpus() {
-		return corpus;
-	}
-	 
-	public ArrayList<QASample> getSamples() {
-		return samples;
-	}
-	
-	public ArrayList<QAPair> getQuestions() {
-		return questions;
-	}
-
-	public Feature[][] getFeatures() {
-		return features;
-	}
-	
-	public double[] getLabels() {
-		return labels;
 	}
 	
 	public HashSet<Integer> getSentenceIds() {

@@ -299,7 +299,7 @@ public class XSSFOutputHelper {
         		unitCounter, xlsxFileName));
 	}
 	
-	private static ArrayList<String> getTrgOptions(
+	public static ArrayList<String> getTrgOptions(
 			Sentence sent,
 			int propHeadId,
 			VerbInflectionDictionary inflDict) {
@@ -355,7 +355,7 @@ public class XSSFOutputHelper {
 		return options;
 	}
 	
-	private static ArrayList<String> getPPOptions(Sentence sent) {
+	public static ArrayList<String> getPPOptions(Sentence sent) {
 		HashSet<String> opSet = new HashSet<String>();
 		ArrayList<String> options = new ArrayList<String>();
 		for (int i = 0; i < sent.length; i++) {
