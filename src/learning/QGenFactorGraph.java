@@ -114,6 +114,7 @@ public class QGenFactorGraph {
 				}
 			}
 		}
+		//System.out.println(logNorm);
 	}
 	
 	public void addToEmpirical(QGenSequence sequence, int[] gold,

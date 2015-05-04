@@ -265,6 +265,7 @@ public class QGenFeatureExtractor {
 		if (slotId == QGenSlots.TRGSlotId) {
 			// TODO...
 		}
+		conjFeats.add("BIAS");
 		
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
 		for (String feat : conjFeats) {
@@ -279,8 +280,15 @@ public class QGenFeatureExtractor {
 		}
 		return fv;
 	}
+	
+	public TIntDoubleHashMap extractEmissionFeatures(QGenSequence qGenSequence,
+			String[][] lattice, int i, int s, int sp, int spp, boolean b) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	public void freeze() {
 		featureDict = new CountDictionary(featureDict, minFeatureFreq);
 	}
+
 }

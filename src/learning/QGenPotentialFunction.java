@@ -1,13 +1,13 @@
 package learning;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
-import util.StringUtils;
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlotPlaceHolders;
 import annotation.QASlotPrepositions;
@@ -22,9 +22,11 @@ public class QGenPotentialFunction {
 
 	private int seqLength;
 	
-	public int[][][] featureIds;     // slot-id, clique-id 
-	public double[][][] featureVals;
-	//public int[][][][] contextFeatureIds // sent-id, slot-id,
+	//public int[][][] featureIds;     // slot-id, clique-id 
+	//public double[][][] featureVals;
+	
+	public FeatureVector[][] transitionFeatures; // slot-id, clique-id
+	public TIntObjectHashMap<FeatureVector>[][] emissionFeatures; // seq-id, slot-id
 	
 	public QGenPotentialFunction() {
 		initializeLattice();
@@ -103,30 +105,30 @@ public class QGenPotentialFunction {
 		return options;
 	}
 	
-	public void extractFeatures(QuestionIdDataset trains,
+	@SuppressWarnings("unchecked")
+	public void extractFeatures(
+			ArrayList<QGenSequence> sequences,
 			QGenFeatureExtractor featureExtractor) {
 		// Extract transition features.
-		
+		/*
 		for (int i = 0; i < seqLength; i++) {
 			for (int s = 0; s < iterator[i][0]; s++) {
 				for (int sp = 0; sp < iterator[i][1]; sp++) {
 					for (int spp = 0; spp < iterator[i][2]; spp++) {
 						featureExtractor.extractTransitionFeatures(
-								lattice, i, s, sp, spp, true /* accept new */);
+								lattice, i, s, sp, spp, true);
 					}
 				}
 			}
 		}
-		
-		//featureExtractor.freeze();
-		int numFeatures = featureExtractor.featureDict.size();
-		System.out.println(String.format("Extracted %d features.", numFeatures));
-		
-		featureIds = new int[seqLength][][];
-		featureVals = new double[seqLength][][];
+		featureExtractor.freeze();
+		*/
+		int numSequences = sequences.size();
+		transitionFeatures = new FeatureVector[seqLength][];
+		emissionFeatures = new TIntObjectHashMap[numSequences][seqLength];
+		// Extract transition features.
 		for (int i = 0; i < seqLength; i++) {
-			featureIds[i] = new int[cliqueSizes[i]][];
-			featureVals[i] = new double[cliqueSizes[i]][];
+			transitionFeatures[i] = new FeatureVector[cliqueSizes[i]];
 			for (int s = 0; s < iterator[i][0]; s++) {
 				for (int sp = 0; sp < iterator[i][1]; sp++) {
 					for (int spp = 0; spp < iterator[i][2]; spp++) {
@@ -134,19 +136,34 @@ public class QGenPotentialFunction {
 						TIntDoubleHashMap fv =
 							featureExtractor.extractTransitionFeatures(
 								lattice, i, s, sp, spp, false /* accept new */);
-						
-						int[] fids = Arrays.copyOf(fv.keys(), fv.size());
-						Arrays.sort(fids);
-						featureIds[i][cliqueId] = new int[fids.length];
-						featureVals[i][cliqueId] = new double[fids.length];
-						for (int j = 0; j < fids.length; j++) {
-							featureIds[i][cliqueId][j] = fids[j];
-							featureVals[i][cliqueId][j] = fv.get(fids[j]);
+						transitionFeatures[i][cliqueId] = new FeatureVector(fv);
+					}
+				}
+			}
+		}
+		// Extract emission features.
+		for (int seq = 0; seq < numSequences; seq++) {
+			for (int i = 0; i < seqLength; i++) {
+				emissionFeatures[seq][i] = new TIntObjectHashMap<FeatureVector>();
+				for (int s = 0; s < iterator[i][0]; s++) {
+					for (int sp = 0; sp < iterator[i][1]; sp++) {
+						for (int spp = 0; spp < iterator[i][2]; spp++) {
+							int cliqueId = getCliqueId(i, s, sp, spp);
+							TIntDoubleHashMap fv =
+								featureExtractor.extractEmissionFeatures(
+									sequences.get(seq),
+									lattice, i, s, sp, spp, false /* accept new */);
+							if (fv != null && fv.size() > 0) {
+								emissionFeatures[seq][i].put(cliqueId,
+										new FeatureVector(fv));
+							}
 						}
 					}
 				}
 			}
 		}
+		int numFeatures = featureExtractor.featureDict.size();
+		System.out.println(String.format("Extracted %d features.", numFeatures));
 	}
 		
 	/**
@@ -171,8 +188,15 @@ public class QGenPotentialFunction {
 			double[] parameters) {
 		int clique = getCliqueId(slot, states);
 		double score = .0;
-		for (int i = 0; i < featureIds[slot][clique].length; i++) {
-			score += featureIds[slot][clique][i] * featureVals[slot][clique][i];
+		FeatureVector tf = transitionFeatures[slot][clique],
+				      ef = emissionFeatures[seq][slot].get(clique);
+		for (int i = 0; i < tf.length; i++) {
+			score += tf.vals[i] * parameters[tf.ids[i]];
+		}
+		if (ef != null) {
+			for (int i = 0; i < ef.length; i++) {
+				score += ef.vals[i] * parameters[ef.ids[i]];
+			}
 		}
 		return score;
 	}
@@ -184,10 +208,15 @@ public class QGenPotentialFunction {
 			return;
 		}
 		int clique = getCliqueId(slot, states);
-		// System.out.println(slot + "\t" + StringUtils.intArrayToString(",", states) + "\t" + clique);
-		for (int i = 0; i < featureIds[slot][clique].length; i++) {
-			int fid = featureIds[slot][clique][i];
-			empirical[fid] += marginal * featureVals[slot][clique][i];
+		FeatureVector tf = transitionFeatures[slot][clique],
+			      	  ef = emissionFeatures[seq][slot].get(clique);
+		for (int i = 0; i < tf.length; i++) {
+			empirical[tf.ids[i]] += marginal * tf.vals[i];
+		}
+		if (ef != null) {
+			for (int i = 0; i < ef.length; i++) {
+				empirical[ef.ids[i]] += marginal * ef.vals[i];
+			}	
 		}
 	}
 }

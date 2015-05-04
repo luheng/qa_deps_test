@@ -4,8 +4,11 @@ import gnu.trove.map.hash.TIntDoubleHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 
+import annotation.QASlotAuxiliaryVerbs;
 import optimization.gradientBasedMethods.LBFGS;
 import optimization.gradientBasedMethods.Optimizer;
 import optimization.gradientBasedMethods.stats.OptimizerStats;
@@ -17,6 +20,7 @@ import optimization.stopCriteria.NormalizedValueDifference;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.QAPair;
+import data.Sentence;
 import data.VerbInflectionDictionary;
 import experiments.ExperimentUtils;
 
@@ -46,7 +50,7 @@ public class QGenCRF {
 		this.trainSet = trainSet;
 		this.testSets = testSets;
 		initializeSequences();
-		potentialFunction.extractFeatures(trainSet, featureExtractor);
+		potentialFunction.extractFeatures(sequences, featureExtractor);
 	}
 	
 	public void run() {
@@ -56,9 +60,11 @@ public class QGenCRF {
 		OptimizerStats stats;
 		double prevStepSize = 0.1;
 		QGenCRFObjective objective;
-		int numIters = 100;
+		int numIters = 300;
 		double stopThreshold = 1e-4;
 		double gaussianPrior = 1.0;
+		
+		System.out.println("Start CRF training");
 		
 		// ******* initialize model
 		numFeatures = featureExtractor.featureDict.size();
@@ -127,15 +133,17 @@ public class QGenCRF {
 	private QGenSequence initializeSequence(AnnotatedSentence sent,
 			int propHead, QAPair qa, boolean isLabeled) {
 		String[][] lattice = potentialFunction.lattice;
+		String[] question = qa.questionWords;
 		int[] latticeIds = new int[lattice.length],
 			  cliqueIds = new int[lattice.length];
 		for (int i = 0; i < lattice.length; i++) {
+			String token = question[i];
 			if (i == QGenSlots.TRGSlotId) {
-				// TODO
-				continue;
+				token = getGenericTrg(sent.sentence, propHead,
+						question[QGenSlots.AUXSlotId], question[i]);
 			}
 			for (int j = 0; j < lattice[i].length; j++) {
-				if (lattice[i][j].equalsIgnoreCase(qa.questionWords[i])) {
+				if (lattice[i][j].equalsIgnoreCase(token)) {
 					latticeIds[i] = j;
 					break;
 				}
@@ -148,5 +156,63 @@ public class QGenCRF {
 				latticeIds, cliqueIds, isLabeled);
 	}
 	
+	private String getGenericTrg(Sentence sent, int propHead, String aux,
+			String trg) {
+		String[] twords = trg.trim().split(" ");
+		String[] infl = getInflections(sent, propHead);
+		if (twords.length > 1 && trg.endsWith("ing")) {
+			return twords.length == 2 ?
+						twords[0] + " doing" :
+						twords[0] + " " + twords[1] + " doing";
+		}
+		if (twords.length > 1) {
+			return twords.length == 2 ?
+						twords[0] + " done" :
+						twords[0] + " " + twords[1] + " done";
+		}
+		if (twords[0].equals(infl[1])) {
+			return "does";
+		}
+		if (twords[0].equals(infl[2])) {
+			return "doing";
+		}
+		if (twords[0].equals(infl[3]) && aux.isEmpty()) {
+			return "did";
+		}
+		if (twords[0].equals(infl[4]) && 
+				(QASlotAuxiliaryVerbs.beValuesSet.contains(aux) ||
+				 QASlotAuxiliaryVerbs.haveValuesSet.contains(aux))) {
+			return "done";
+		}
+		return "do";
+	}
+	
+	private String[] getInflections(Sentence sent, int propHeadId) {
+		String verb = sent.getTokenString(propHeadId).toLowerCase();
+		String verbPrefix = "";
+		if (verb.contains("-")) {
+			int idx = verb.indexOf('-');
+			verbPrefix = verb.substring(0, idx + 1);
+			verb = verb.substring(idx + 1);
+			// System.out.println(verbPrefix + ", " + verb);
+		}
+		ArrayList<Integer> inflIds = inflDict.inflMap.get(verb);
+		if (inflIds == null) {
+			return null;
+		}
+		int bestId = -1, bestCount = -1;
+		for (int i = 0; i < inflIds.size(); i++) {
+			int count = inflDict.inflCount[inflIds.get(i)];
+			if (count > bestCount) {
+				bestId = inflIds.get(i);
+				bestCount = count;
+			}
+		}
+		String[] inflections = new String[5];
+		for (int i = 0; i < 5; i++) {
+			inflections[i] = verbPrefix + inflDict.inflections.get(bestId)[i];
+		}
+		return inflections;
+	}
 
 }

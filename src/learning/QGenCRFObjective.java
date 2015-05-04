@@ -44,21 +44,20 @@ public class QGenCRFObjective extends Objective {
 			QGenSequence sequence = sequences.get(seq);
 			if (!sequence.isLabeled) {
 				continue;
-			}
-			model.computeScores(sequence, parameters, 0.0);
+			}			
+			model.computeScores(sequence, parameters, 1e-10);
 			model.computeMarginals();
 			model.addToExpectation(sequence, gradient);
 			labelLikelihood += model.logNorm;
 		}
 		objective = parameterRegularizer +  labelLikelihood;
-		
-		if (updateCalls % 100 == 0) {
+		//if (updateCalls % 10 == 0) {
 			System.out.println("iteration:: " + updateCalls);
 			System.out.println("objective:: " + objective + "\tlabeled:: " +
 					labelLikelihood);
 			System.out.println("gradient norm:: " + twoNormSquared(gradient));
 			System.out.println("parameter norm:: " + twoNormSquared(parameters));
-		}
+		//}
 	}
 	
 	@Override
@@ -81,7 +80,7 @@ public class QGenCRFObjective extends Objective {
 
 	@Override
 	public String toString() {
-		return "ocr discriminative model objective";
+		return "question generation crf objective";
 	}
 	
 	private double twoNormSquared(double[] x) {
