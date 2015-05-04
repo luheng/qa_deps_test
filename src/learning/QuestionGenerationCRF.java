@@ -26,19 +26,11 @@ public class QuestionGenerationCRF {
 	private static int minFeatureFreq = 5;
 	
 	QuestionGenFeatureExtractor featureExtractor;
-	
-	/*
-	int[][] o1Features;     // slot-id, option-id
-	int[][][] o2Features;   // slot-id, option-id, prev-option-id
-	int[][][][] o3Features; // slot-id, option-id, prev-option-id, prev...
-	double[][] o1FeatVals;
-	double[][][] o2FeatVals;
-	double[][][][] o3FeatVals;
-	*/
 	int[][][] latticeSizes; // instance-id, slot-id, 3
 	
 	int[][][][] featIds;     // instance-id, clique-id, feat-id
 	double[][][][] featVals;
+	ArrayList<Instance> instances;
 	int numInstances;
 	
 	public QuestionGenerationCRF(Corpus baseCorpus,
@@ -82,81 +74,100 @@ public class QuestionGenerationCRF {
 		return latticeIds;
 	}
 	
+	private void populateFeatureVector(int instId, int slotId, int cliqueId,
+			TIntDoubleHashMap fv) {
+		int[] fids = Arrays.copyOf(fv.keys(), fv.size());
+		Arrays.sort(fids);
+		featIds[instId][slotId][cliqueId] = new int[fids.length];
+		featVals[instId][slotId][cliqueId] = new double[fids.length];
+		for (int i = 0; i < fids.length; i++) {
+			// Liblinear feature id starts from 1.
+			featIds[instId][slotId][cliqueId][i] = fids[i];
+			featVals[instId][slotId][cliqueId][i] = fv.get(fids[i]);
+		}
+	}
+	
 	private void initialize() {
 		featureExtractor = new QuestionGenFeatureExtractor(baseCorpus,
 				minFeatureFreq);
 		inflDict = ExperimentUtils.loadInflectionDictionary(baseCorpus);
 		
-		// TODO: map sentence and target word to instance id.
-		numInstances = 0;
+		instances = new ArrayList<Instance>();
+		
 		for (AnnotatedSentence sent : trainSet.sentences) {
-			numInstances += sent.qaLists.size();
+			for (int propHead : sent.qaLists.keySet()) {
+				instances.add(new Instance(sent, propHead, true));
+			}
 		}
+		for (QuestionIdDataset testSet : testSets.values()) {
+			for (AnnotatedSentence sent : testSet.sentences) {
+				for (int propHead : sent.qaLists.keySet()) {
+					instances.add(new Instance(sent, propHead, false));
+				}
+			}
+		}
+		numInstances = instances.size();
+		System.out.println(String.format("Processing %d instances.",
+				numInstances));
 		featIds = new int[numInstances][][][];
 		featVals = new double[numInstances][][][];
 		latticeSizes = new int[numInstances][][];
 		
-		int instId = 0;
-		for (int sid = 0; sid < trainSet.sentences.size(); sid++) {
-			AnnotatedSentence sent = trainSet.sentences.get(sid); 
-			Sentence sentence = sent.sentence;
-			for (int propHead : sent.qaLists.keySet()) {
-				String[][] lattice = generateLattice(sentence, propHead);
-				featIds[instId] = new int[lattice.length][][];
-				featVals[instId] = new double[lattice.length][][];
-				latticeSizes[instId] = new int[lattice.length][3];
-				
+		for (int instId = 0; instId < numInstances; instId ++) {
+			Instance inst = instances.get(instId);
+			Sentence sentence = inst.sentence.sentence;
+			int propHead = inst.propHead;
+			
+			String[][] lattice = generateLattice(sentence, propHead);
+			featIds[instId] = new int[lattice.length][][];
+			featVals[instId] = new double[lattice.length][][];
+			latticeSizes[instId] = new int[lattice.length][3];
+			for (int slotId = 0; slotId < lattice.length; slotId++) {
 				int numCliques = 1;
-				int[] latIds = new int[3];
-				for (int slotId = 0; slotId < lattice.length; slotId++) {
-					for (int j = 0; j < 2; j++) {
-						int k = slotId - 2 + j;
-						latticeSizes[instId][slotId][j] =
-								(k < 0 ? 1 : lattice[k].length);
-						numCliques *= latticeSizes[instId][slotId][j];
-					}
-					featIds[instId][slotId] = new int[numCliques][];
-					featVals[instId][slotId] = new double[numCliques][];
-					// Pre-compute features
-					int[] latSizes = latticeSizes[instId][slotId];
-					for (latIds[0] = 0; latIds[0] < latSizes[0]; latIds[0]++) {
-						for (latIds[1] = 0; latIds[1] < latSizes[1]; latIds[1]++) {
-							for (latIds[2] = 0; latIds[2]< latSizes[2]; latIds[2]++) {
-								featureExtractor.extractFeatures(
-										sentence, propHead, lattice,
-										slotId, latIds, true /* acceptNew */);
-							}
+				for (int j = 0; j < 3; j++) {
+					int k = slotId - 2 + j;
+					latticeSizes[instId][slotId][j] =
+							(k < 0 ? 1 : lattice[k].length);
+					numCliques *= latticeSizes[instId][slotId][j];
+				}
+				featIds[instId][slotId] = new int[numCliques][];
+				featVals[instId][slotId] = new double[numCliques][];
+				int[] ranges = latticeSizes[instId][slotId];
+				int[] ids = new int[3];
+				for (ids[0] = 0; ids[0] < ranges[0]; ids[0]++) {
+					for (ids[1] = 0; ids[1] < ranges[1]; ids[1]++) {
+						for (ids[2] = 0; ids[2]< ranges[2]; ids[2]++) {
+							featureExtractor.extractFeatures(
+									sentence, propHead, lattice,
+									slotId, ids, true /* acceptNew */);
 						}
 					}
 				}
-				instId ++;
 			}
 		}
 		featureExtractor.freeze();
-		
-		instId = 0;
-		for (int sid = 0; sid < trainSet.sentences.size(); sid++) {
-			AnnotatedSentence sent = trainSet.sentences.get(sid); 
-			Sentence sentence = sent.sentence;
-			for (int propHead : sent.qaLists.keySet()) {
-				String[][] lattice = generateLattice(sentence, propHead);
-				int[] latIds = new int[3];
-				for (int slotId = 0; slotId < lattice.length; slotId++) {
-					int[] latSizes = latticeSizes[instId][slotId];
-					for (latIds[0] = 0; latIds[0] < latSizes[0]; latIds[0]++) {
-						for (latIds[1] = 0; latIds[1] < latSizes[1]; latIds[1]++) {
-							for (latIds[2] = 0; latIds[2]< latSizes[2]; latIds[2]++) {
-								TIntDoubleHashMap fv =
-									featureExtractor.extractFeatures(
-											sentence, propHead, lattice,
-											slotId, latIds, false /* acceptNew */);
-								int cliqueId = getCliqueId(latIds, latSizes);
-								// TODO: populate feature vector
-							}
+		System.out.println(String.format("Extracted %d features.",
+				featureExtractor.featureDict.size()));
+		for (int instId = 0; instId < numInstances; instId ++) {
+			Instance inst = instances.get(instId);
+			Sentence sentence = inst.sentence.sentence;
+			int propHead = inst.propHead;
+			String[][] lattice = generateLattice(sentence, propHead);
+			for (int slotId = 0; slotId < lattice.length; slotId++) {
+				int[] ranges = latticeSizes[instId][slotId];
+				int[] ids = new int[3];
+				for (ids[0] = 0; ids[0] < ranges[0]; ids[0]++) {
+					for (ids[1] = 0; ids[1] < ranges[1]; ids[1]++) {
+						for (ids[2] = 0; ids[2]< ranges[2]; ids[2]++) {
+							TIntDoubleHashMap fv =
+								featureExtractor.extractFeatures(
+										sentence, propHead, lattice,
+										slotId, ids, false /* acceptNew */);
+							int cliqueId = getCliqueId(ids, ranges);
+							populateFeatureVector(instId, slotId, cliqueId, fv);
 						}
 					}
 				}
-				instId ++;
 			}
 		}
 	}
@@ -186,6 +197,17 @@ public class QuestionGenerationCRF {
 		lattice[6] = Arrays.copyOf(QASlotPlaceHolders.ph3Values,
 				   				   QASlotPlaceHolders.ph3Values.length);
 		return lattice;
+	}
+	
+	private class Instance {
+		AnnotatedSentence sentence;
+		int propHead;
+		boolean isTraining;
+		Instance(AnnotatedSentence sentence, int propHead, boolean isTraining) {
+			this.sentence = sentence;
+			this.propHead = propHead;
+			this.isTraining = isTraining;
+		}
 	}
 	
 }

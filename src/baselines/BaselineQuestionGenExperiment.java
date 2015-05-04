@@ -1,7 +1,5 @@
 package baselines;
 
-import io.XSSFOutputHelper;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -63,7 +61,7 @@ public class BaselineQuestionGenExperiment {
 		}
 		
 		crf = new QuestionGenerationCRF(baseCorpus, trainSet, testSets);
-		
+		// Initialize CRf.
 	}
 	
 	public static void main(String[] args) {
