@@ -72,4 +72,12 @@ public class LatticeUtils {
 			}
 		}
 	}
+
+	public static double L2NormSquared(double[] arr) {
+		double norm = .0;
+		for (double a : arr) {
+			norm += a * a;
+		}
+		return norm;
+	}
 }

@@ -17,6 +17,7 @@ import optimization.linesearch.LineSearchMethod;
 import optimization.linesearch.WolfRuleLineSearch;
 import optimization.stopCriteria.CompositeStopingCriteria;
 import optimization.stopCriteria.NormalizedValueDifference;
+import util.LatticeUtils;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.QAPair;
@@ -79,6 +80,9 @@ public class QGenCRF {
 						sequence.latticeIds, empiricalCounts, 1.0);
 			}
 		}
+		System.out.println("Empirical count l2norm:\t" +
+				LatticeUtils.L2NormSquared(empiricalCounts));
+		
 		lineSearch = new WolfRuleLineSearch(
 				new InterpolationPickFirstStep(prevStepSize), 1e-4, 0.9, 10);
 		lineSearch.setDebugLevel(0);

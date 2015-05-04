@@ -50,7 +50,7 @@ public class QGenCRFObjective extends Objective {
 			model.addToExpectation(sequence, gradient);
 			labelLikelihood += model.logNorm;
 		}
-		objective = parameterRegularizer +  labelLikelihood;
+		objective = parameterRegularizer + labelLikelihood;
 		//if (updateCalls % 10 == 0) {
 			System.out.println("iteration:: " + updateCalls);
 			System.out.println("objective:: " + objective + "\tlabeled:: " +
