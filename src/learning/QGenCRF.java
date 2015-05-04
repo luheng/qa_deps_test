@@ -1,13 +1,10 @@
 package learning;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
-import io.XSSFOutputHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import optimization.gradientBasedMethods.LBFGS;
 import optimization.gradientBasedMethods.Optimizer;
@@ -20,7 +17,6 @@ import optimization.stopCriteria.NormalizedValueDifference;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.QAPair;
-import data.Sentence;
 import data.VerbInflectionDictionary;
 import experiments.ExperimentUtils;
 
@@ -40,9 +36,6 @@ public class QGenCRF {
 	int numSequences;
 	QGenPotentialFunction potentialFunction;
 	
-	int[][][][] featureIds;     // seq-id, slot-id, clique-id, feat-id
-	double[][][][] featureVals;
-	
 	int numFeatures;
 	double[] parameters;
 	double[] empiricalCounts;
@@ -53,7 +46,7 @@ public class QGenCRF {
 		this.trainSet = trainSet;
 		this.testSets = testSets;
 		initializeSequences();
-		extractFeatures();
+		potentialFunction.extractFeatures(trainSet, featureExtractor);
 	}
 	
 	public void run() {
@@ -68,6 +61,7 @@ public class QGenCRF {
 		double gaussianPrior = 1.0;
 		
 		// ******* initialize model
+		numFeatures = featureExtractor.featureDict.size();
 		parameters = new double[numFeatures];
 		empiricalCounts = new double[numFeatures];
 		for (QGenSequence sequence : sequences) {
@@ -87,8 +81,9 @@ public class QGenCRF {
 		optimizer = new LBFGS(lineSearch, 10);
 		optimizer.setMaxIterations(numIters);
 		stats = new OptimizerStats();
-		objective = new QGenCRFObjective(sequences, parameters,
-				empiricalCounts, gaussianPrior); 
+		objective = new QGenCRFObjective(
+				new QGenFactorGraph(potentialFunction),
+				sequences, parameters, empiricalCounts, gaussianPrior); 
 		boolean succeed = optimizer.optimize(objective, stats, stopping);
 		prevStepSize = optimizer.getCurrentStep();
 		System.out.println("success:\t" + succeed + "\twith latest stepsize:\t"
@@ -129,60 +124,6 @@ public class QGenCRF {
 				numSequences));
 	}
 	
-	private void extractFeatures() {
-		int seqLength = QGenSlots.numSlots;
-		int[] csizes = potentialFunction.cliqueSizes;
-		int[][] iterator = potentialFunction.iterator;
-		for (AnnotatedSentence sent : trainSet.sentences) {
-			for (int propHead : sent.qaLists.keySet()) {
-				for (int i = 0; i < seqLength; i++) {
-					for (int s = 0; s < iterator[i][0]; s++) {
-						for (int sp = 0; sp < iterator[i][1]; sp++) {
-							for (int spp = 0; spp < iterator[i][2]; spp++) {
-								featureExtractor.extractFeatures(
-										sent.sentence, propHead,
-										potentialFunction.lattice,
-										i, s, sp, spp, true /* accept new */);
-							}
-						}
-					}
-				}
-			}
-			System.out.println(sent.sentence.sentenceID + "\t" +
-							   featureExtractor.featureDict.size());
-		}
-		featureExtractor.freeze();
-		numFeatures = featureExtractor.featureDict.size();
-		System.out.println(String.format("Extracted %d features.", numFeatures));
-		
-		featureIds = new int[numSequences][seqLength][][];
-		featureVals = new double[numSequences][seqLength][][];
-		for (int seq = 0; seq < numSequences; seq++) {
-			QGenSequence sequence = sequences.get(seq);
-			for (int i = 0; i < seqLength; i++) {
-				featureIds[seq][i] = new int[csizes[i]][];
-				featureVals[seq][i] = new double[csizes[i]][];
-				for (int s = 0; s < iterator[i][0]; s++) {
-					for (int sp = 0; sp < iterator[i][1]; sp++) {
-						for (int spp = 0; spp < iterator[i][2]; spp++) {
-							int cliqueId =
-								potentialFunction.getCliqueId(i, s, sp, spp);
-							TIntDoubleHashMap fv =
-								featureExtractor.extractFeatures(
-									sequence.sentence, sequence.propHead,
-									potentialFunction.lattice,
-									i, s, sp, spp, false /* accept new */);
-							System.out.println(fv.size());
-							populateFeatureVector(seq, i, cliqueId, fv);
-						}
-					}
-				}
-			}
-			System.out.println(sequence.sequenceId + "\t" + sequence.sentence.sentenceID + "\t" + sequence.propHead);
-		}
-		potentialFunction.setFeatures(featureIds, featureVals);
-	}
-
 	private QGenSequence initializeSequence(AnnotatedSentence sent,
 			int propHead, QAPair qa, boolean isLabeled) {
 		String[][] lattice = potentialFunction.lattice;
@@ -208,15 +149,4 @@ public class QGenCRF {
 	}
 	
 
-	private void populateFeatureVector(int seqId, int slotId, int cliqueId,
-			TIntDoubleHashMap fv) {
-		int[] fids = Arrays.copyOf(fv.keys(), fv.size());
-		Arrays.sort(fids);
-		featureIds[seqId][slotId][cliqueId] = new int[fids.length];
-		featureVals[seqId][slotId][cliqueId] = new double[fids.length];
-		for (int i = 0; i < fids.length; i++) {
-			featureIds[seqId][slotId][cliqueId][i] = fids[i];
-			featureVals[seqId][slotId][cliqueId][i] = fv.get(fids[i]);
-		}
-	}
 }

@@ -16,8 +16,8 @@ public class QGenFactorGraph {
 	private double[] dp;
 	private int sequenceLength;
 	
-	public QGenFactorGraph(QGenSequence sequence,
-			QGenPotentialFunction potentialFunction) {
+	public QGenFactorGraph(QGenPotentialFunction potentialFunction) {
+		this.potentialFunction = potentialFunction;
 		sequenceLength = QGenSlots.numSlots;
 		cliqueScores = new double[sequenceLength][];
 		cliqueMarginals = new double[sequenceLength][];
@@ -102,8 +102,11 @@ public class QGenFactorGraph {
 						int cLeft = spp * iterator[i][1] + sp;
 						int c = cLeft * iterator[i][0] + s;
 						cliqueMarginals[i][c] =
-								alpha[i-1][cLeft] + beta[i][cRight] +
-								cliqueScores[i][c] - logNorm;
+								beta[i][cRight] + cliqueScores[i][c] - logNorm;
+						if (i > 0) {
+							// TODO: veriy this
+							cliqueMarginals[i][c] += alpha[i-1][cLeft];
+						}
 						
 					}
 					dp[len++] = alpha[i][cRight] + cliqueScores[i][cRight];

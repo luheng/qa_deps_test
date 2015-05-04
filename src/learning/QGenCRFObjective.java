@@ -14,9 +14,11 @@ public class QGenCRFObjective extends Objective {
 	double[] empiricalCounts, gradientInit;
 	
 	public QGenCRFObjective(
+			QGenFactorGraph model,
 			ArrayList<QGenSequence> sequences,
 			double[] parameters,
 			double[] empiricalCounts, double gaussianPrior) {
+		this.model = model;
 		this.sequences = sequences;
 		this.nrFeatures = parameters.length;
 		this.gradient = new double[nrFeatures];		
@@ -24,7 +26,6 @@ public class QGenCRFObjective extends Objective {
 		this.empiricalCounts = empiricalCounts;
 		this.gpSquared = gaussianPrior * gaussianPrior;
 		this.gradientInit = new double[parameters.length];
-		
 		for (int i = 0; i < parameters.length; i++) {
 			gradientInit[i] = - empiricalCounts[i];
 		}

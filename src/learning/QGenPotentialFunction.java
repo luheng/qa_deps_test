@@ -1,10 +1,13 @@
 package learning;
 
+import gnu.trove.map.hash.TIntDoubleHashMap;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import util.StringUtils;
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlotPlaceHolders;
 import annotation.QASlotPrepositions;
@@ -18,17 +21,13 @@ public class QGenPotentialFunction {
 	public int[][] iterator;  // slot-id, offset
 
 	private int seqLength;
-	private int[][][][] featureIds;
-	private double[][][][] featureVals;
+	
+	public int[][][] featureIds;     // slot-id, clique-id 
+	public double[][][] featureVals;
+	//public int[][][][] contextFeatureIds // sent-id, slot-id,
 	
 	public QGenPotentialFunction() {
 		initializeLattice();
-	}
-	
-	public void setFeatures(int[][][][] featureIds,
-			double[][][][] featureVals) {
-		this.featureIds = featureIds;
-		this.featureVals = featureVals;
 	}
 	
 	private void initializeLattice() {
@@ -104,62 +103,76 @@ public class QGenPotentialFunction {
 		return options;
 	}
 	
+	public void extractFeatures(QuestionIdDataset trains,
+			QGenFeatureExtractor featureExtractor) {
+		// Extract transition features.
+		
+		for (int i = 0; i < seqLength; i++) {
+			for (int s = 0; s < iterator[i][0]; s++) {
+				for (int sp = 0; sp < iterator[i][1]; sp++) {
+					for (int spp = 0; spp < iterator[i][2]; spp++) {
+						featureExtractor.extractTransitionFeatures(
+								lattice, i, s, sp, spp, true /* accept new */);
+					}
+				}
+			}
+		}
+		
+		//featureExtractor.freeze();
+		int numFeatures = featureExtractor.featureDict.size();
+		System.out.println(String.format("Extracted %d features.", numFeatures));
+		
+		featureIds = new int[seqLength][][];
+		featureVals = new double[seqLength][][];
+		for (int i = 0; i < seqLength; i++) {
+			featureIds[i] = new int[cliqueSizes[i]][];
+			featureVals[i] = new double[cliqueSizes[i]][];
+			for (int s = 0; s < iterator[i][0]; s++) {
+				for (int sp = 0; sp < iterator[i][1]; sp++) {
+					for (int spp = 0; spp < iterator[i][2]; spp++) {
+						int cliqueId = getCliqueId(i, s, sp, spp);
+						TIntDoubleHashMap fv =
+							featureExtractor.extractTransitionFeatures(
+								lattice, i, s, sp, spp, false /* accept new */);
+						
+						int[] fids = Arrays.copyOf(fv.keys(), fv.size());
+						Arrays.sort(fids);
+						featureIds[i][cliqueId] = new int[fids.length];
+						featureVals[i][cliqueId] = new double[fids.length];
+						for (int j = 0; j < fids.length; j++) {
+							featureIds[i][cliqueId][j] = fids[j];
+							featureVals[i][cliqueId][j] = fv.get(fids[j]);
+						}
+					}
+				}
+			}
+		}
+	}
+		
 	/**
 	 * For example, [0, 0, 5] , [1, 1, 10] -> (1 * 10 * 0) + (10 * 0) + 5
 	 * For example, [2, 3, 5] , [3, 5, 10] -> (5 * 10 * 2) + (10 * 3) + 5
-	 * @param latticeIds
-	 * @param latticeSizes
-	 * @return
 	 */
-	@Deprecated
-	public int getCliqueId(int[] latticeIds) {
-		int step = 1, cliqueId = 0;
-		for (int i = latticeIds.length - 1; i >= 0; i--) {
-			cliqueId += step * latticeIds[i];
-			step *= latticeSizes[i];
-		}
-		return cliqueId;
-	}
-	
 	public int getCliqueId(int slotId, int[] latticeIds) {		
 		int step = 1, cliqueId = 0;
 		for (int i = slotId; i > slotId - kSequenceOrder; i--) {
-			cliqueId += step * (i < 0 ? 1 : latticeIds[i]);
+			cliqueId += step * (i < 0 ? 0 : latticeIds[i]);
 			step *= (i < 0 ? 1 : latticeSizes[i]);
 		}
 		return cliqueId;
 	}
 	
 	public int getCliqueId(int slotId, int s, int sp, int spp) {
-		return s +
-			   sp * iterator[slotId][0] +
-			   spp * iterator[slotId][0] * iterator[slotId][1];
+		return s + sp * iterator[slotId][0] +
+			spp * iterator[slotId][0] * iterator[slotId][1];
 	}
 	
-	@Deprecated
-	public int[] getLatticeIds(int cliqueId) {
-		int step = 1, rem = cliqueId;
-		int[] latticeIds = new int[latticeSizes.length];
-		for (int i = 1; i < latticeSizes.length; i++) {
-			step *= latticeSizes[i];
-		}
-		for (int i = 0; i < latticeSizes.length; i++) {
-			latticeIds[i] = rem / step;
-			rem %= step;
-			if (i + 1 < latticeSizes.length) {
-				step /= latticeSizes[i + 1];
-			}
-		}
-		return latticeIds;
-	}
-
 	public double computeCliqueScore(int seq, int slot, int[] states,
 			double[] parameters) {
 		int clique = getCliqueId(slot, states);
 		double score = .0;
-		for (int i = 0; i < featureIds[seq][slot][clique].length; i++) {
-			score += featureIds[seq][slot][clique][i] *
-					 featureVals[seq][slot][clique][i];
+		for (int i = 0; i < featureIds[slot][clique].length; i++) {
+			score += featureIds[slot][clique][i] * featureVals[slot][clique][i];
 		}
 		return score;
 	}
@@ -171,9 +184,10 @@ public class QGenPotentialFunction {
 			return;
 		}
 		int clique = getCliqueId(slot, states);
-		for (int i = 0; i < featureIds[seq][slot][clique].length; i++) {
-			int fid = featureIds[seq][slot][clique][i];
-			empirical[fid] += marginal * featureVals[seq][slot][clique][i];
+		// System.out.println(slot + "\t" + StringUtils.intArrayToString(",", states) + "\t" + clique);
+		for (int i = 0; i < featureIds[slot][clique].length; i++) {
+			int fid = featureIds[slot][clique][i];
+			empirical[fid] += marginal * featureVals[slot][clique][i];
 		}
 	}
 }
