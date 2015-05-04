@@ -21,7 +21,7 @@ import annotation.QASlotQuestionWords;
 import annotation.QuestionEncoder;
 import learning.KBestParseRetriever;
 import learning.QASample;
-import learning.QuestionGenerationCRF;
+import learning.QGenCRF;
 import learning.QuestionIdDataset;
 import learning.QuestionIdFeatureExtractor;
 import data.AnnotatedSentence;
@@ -37,7 +37,7 @@ public class BaselineQuestionGenExperiment {
 	private QuestionGenConfig config;
 	private Corpus baseCorpus; 
 	private VerbInflectionDictionary inflDict;
-	private QuestionGenerationCRF crf;
+	private QGenCRF crf;
 	
 	private QuestionIdDataset trainSet;
 	private HashMap<String, QuestionIdDataset> testSets;
@@ -60,7 +60,7 @@ public class BaselineQuestionGenExperiment {
 			testSets.get("wiki1-train").loadData(DataConfig.get("wikiQATrainFilename"));
 		}
 		
-		crf = new QuestionGenerationCRF(baseCorpus, trainSet, testSets);
+		crf = new QGenCRF(baseCorpus, trainSet, testSets);
 		// Initialize CRf.
 	}
 	
