@@ -2,6 +2,7 @@ package learning;
 
 import java.util.HashSet;
 
+import annotation.QASlotPrepositions;
 import data.Corpus;
 import data.CountDictionary;
 import data.Sentence;
@@ -81,9 +82,22 @@ public class QGenFeatureExtractor {
 	private static HashSet<String> getPPFeatures(
 			Sentence sentence, int propHead, String pp) {
 		HashSet<String> feats = new HashSet<String>();
+		boolean ppInSentence = false, ppInCommon = false;
+		for (int i = 0; i < sentence.length; i++) {
+			if (sentence.getTokenString(i).equalsIgnoreCase(pp)) {
+				ppInSentence = true;
+				break;
+			}
+		}
+		for (String mfpp : QASlotPrepositions.mostFrequentPPs) {
+			if (mfpp.equals(pp)) {
+				ppInCommon = true;
+				break;
+			}
+		}
 		if (pp.isEmpty()) {
 			feats.add("PP=null");
-		} else {
+		} else if (ppInSentence || ppInCommon) {
 			feats.add("PP=" + pp);
 		}
 		// TODO: add more pp features
@@ -130,7 +144,6 @@ public class QGenFeatureExtractor {
 			int slotId, int s, int sp, int spp, boolean acceptNew) {		
 		HashSet<String> conjFeats = new HashSet<String>();
 		// TODO: add more specified conjunction features. i.e. voice(aux+trg)
-		
 		HashSet<String> unaryFeats = getUnaryFeatures(
 				sentence, propHead, slotId, lattice[slotId][s]);
 		conjFeats.addAll(unaryFeats);

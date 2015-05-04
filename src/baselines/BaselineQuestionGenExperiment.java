@@ -59,9 +59,11 @@ public class BaselineQuestionGenExperiment {
 			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
 			testSets.get("wiki1-train").loadData(DataConfig.get("wikiQATrainFilename"));
 		}
-		
+	}
+	
+	private void run() {
 		crf = new QGenCRF(baseCorpus, trainSet, testSets);
-		// Initialize CRf.
+		crf.run();
 	}
 	
 	public static void main(String[] args) {
@@ -72,6 +74,6 @@ public class BaselineQuestionGenExperiment {
 			e.printStackTrace();
 			return;
 		}
-	
+		exp.run();
 	}
 }

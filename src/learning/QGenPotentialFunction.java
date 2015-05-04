@@ -50,13 +50,22 @@ public class QGenPotentialFunction {
 		lattice[4] = Arrays.copyOf(QASlotPlaceHolders.values,
 								   QASlotPlaceHolders.values.length);
 		// 6. PP
-		lattice[4] = Arrays.copyOf(QASlotPlaceHolders.values,
-								   QASlotPlaceHolders.values.length);
-		// 7. PH3
-		lattice[6] = Arrays.copyOf(QASlotPrepositions.values,
+		lattice[5] = Arrays.copyOf(QASlotPrepositions.values,
 								   QASlotPrepositions.values.length);
+		// 7. PH3
+		lattice[6] = Arrays.copyOf(QASlotPlaceHolders.ph3Values,
+								   QASlotPlaceHolders.ph3Values.length);
 		
-		//latticeSizes = new int[seqLength][kSequenceOrder];
+		long latSize = 1;
+		
+		for (int i = 0; i < 7; i++) {
+			for (String lat : lattice[i]) {
+				System.out.println(lat);
+			}
+			System.out.println();
+			latSize *= lattice[i].length;
+		}
+		System.out.println(latSize);
 		latticeSizes = new int[seqLength];
 		cliqueSizes = new int[seqLength];
 		iterator = new int[seqLength][kSequenceOrder];
@@ -64,7 +73,7 @@ public class QGenPotentialFunction {
 			cliqueSizes[i] = 1;
 			latticeSizes[i] = lattice[i].length;
 			for (int j = 0; j < kSequenceOrder; j++) {
-				int k = i - kSequenceOrder + j + 1;
+				int k = i - j;
 				int lsize = (k < 0 ? 1 : latticeSizes[k]);
 				iterator[i][j] = lsize;
 				cliqueSizes[i] *=  lsize;
@@ -112,7 +121,7 @@ public class QGenPotentialFunction {
 		return cliqueId;
 	}
 	
-	public int getCliqueId(int slotId, int[] latticeIds) {
+	public int getCliqueId(int slotId, int[] latticeIds) {		
 		int step = 1, cliqueId = 0;
 		for (int i = slotId; i > slotId - kSequenceOrder; i--) {
 			cliqueId += step * (i < 0 ? 1 : latticeIds[i]);

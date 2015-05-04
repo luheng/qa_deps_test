@@ -9,10 +9,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import annotation.QASlotAuxiliaryVerbs;
-import annotation.QASlotPlaceHolders;
-import annotation.QASlotPrepositions;
-import annotation.QASlotQuestionWords;
+import optimization.gradientBasedMethods.LBFGS;
+import optimization.gradientBasedMethods.Optimizer;
+import optimization.gradientBasedMethods.stats.OptimizerStats;
+import optimization.linesearch.InterpolationPickFirstStep;
+import optimization.linesearch.LineSearchMethod;
+import optimization.linesearch.WolfRuleLineSearch;
+import optimization.stopCriteria.CompositeStopingCriteria;
+import optimization.stopCriteria.NormalizedValueDifference;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.QAPair;
@@ -41,6 +45,7 @@ public class QGenCRF {
 	
 	int numFeatures;
 	double[] parameters;
+	double[] empiricalCounts;
 	
 	public QGenCRF(Corpus baseCorpus, QuestionIdDataset trainSet,
 			HashMap<String, QuestionIdDataset> testSets) {
@@ -49,6 +54,51 @@ public class QGenCRF {
 		this.testSets = testSets;
 		initializeSequences();
 		extractFeatures();
+	}
+	
+	public void run() {
+		LineSearchMethod lineSearch;
+		CompositeStopingCriteria stopping;
+		Optimizer optimizer;
+		OptimizerStats stats;
+		double prevStepSize = 0.1;
+		QGenCRFObjective objective;
+		int numIters = 100;
+		double stopThreshold = 1e-4;
+		double gaussianPrior = 1.0;
+		
+		// ******* initialize model
+		parameters = new double[numFeatures];
+		empiricalCounts = new double[numFeatures];
+		for (QGenSequence sequence : sequences) {
+			if (!sequence.isLabeled) {
+				continue;
+			}
+			for (int i = 0; i < QGenSlots.numSlots; i++) {
+				potentialFunction.addToEmpirical(sequence.sequenceId, i,
+						sequence.latticeIds, empiricalCounts, 1.0);
+			}
+		}
+		lineSearch = new WolfRuleLineSearch(
+				new InterpolationPickFirstStep(prevStepSize), 1e-4, 0.9, 10);
+		lineSearch.setDebugLevel(0);
+		stopping = new CompositeStopingCriteria();
+		stopping.add(new NormalizedValueDifference(stopThreshold));
+		optimizer = new LBFGS(lineSearch, 10);
+		optimizer.setMaxIterations(numIters);
+		stats = new OptimizerStats();
+		objective = new QGenCRFObjective(sequences, parameters,
+				empiricalCounts, gaussianPrior); 
+		boolean succeed = optimizer.optimize(objective, stats, stopping);
+		prevStepSize = optimizer.getCurrentStep();
+		System.out.println("success:\t" + succeed + "\twith latest stepsize:\t"
+				+ prevStepSize);
+	
+		double obj = objective.objective;
+			
+		System.out.println("Negative Labeled Likelihood::\t" +
+				objective.labelLikelihood);
+		System.out.println("*** Combined objective::\t" + obj);
 	}
 	
 	private void initializeSequences() {
@@ -83,22 +133,28 @@ public class QGenCRF {
 		int seqLength = QGenSlots.numSlots;
 		int[] csizes = potentialFunction.cliqueSizes;
 		int[][] iterator = potentialFunction.iterator;
-		for (int seq = 0; seq < numSequences; seq++) {
-			QGenSequence sequence = sequences.get(seq);
-			for (int i = 0; i < seqLength; i++) {
-				for (int s = 0; s < iterator[i][0]; s++) {
-					for (int sp = 0; sp < iterator[i][1]; sp++) {
-						for (int spp = 0; spp < iterator[i][2]; spp++) {
-							featureExtractor.extractFeatures(
-									sequence.sentence, sequence.propHead,
-									potentialFunction.lattice,
-									i, s, sp, spp, true /* accept new */);
+		for (AnnotatedSentence sent : trainSet.sentences) {
+			for (int propHead : sent.qaLists.keySet()) {
+				for (int i = 0; i < seqLength; i++) {
+					for (int s = 0; s < iterator[i][0]; s++) {
+						for (int sp = 0; sp < iterator[i][1]; sp++) {
+							for (int spp = 0; spp < iterator[i][2]; spp++) {
+								featureExtractor.extractFeatures(
+										sent.sentence, propHead,
+										potentialFunction.lattice,
+										i, s, sp, spp, true /* accept new */);
+							}
 						}
 					}
 				}
 			}
+			System.out.println(sent.sentence.sentenceID + "\t" +
+							   featureExtractor.featureDict.size());
 		}
 		featureExtractor.freeze();
+		numFeatures = featureExtractor.featureDict.size();
+		System.out.println(String.format("Extracted %d features.", numFeatures));
+		
 		featureIds = new int[numSequences][seqLength][][];
 		featureVals = new double[numSequences][seqLength][][];
 		for (int seq = 0; seq < numSequences; seq++) {
@@ -116,16 +172,15 @@ public class QGenCRF {
 									sequence.sentence, sequence.propHead,
 									potentialFunction.lattice,
 									i, s, sp, spp, false /* accept new */);
+							System.out.println(fv.size());
 							populateFeatureVector(seq, i, cliqueId, fv);
 						}
 					}
 				}
 			}
+			System.out.println(sequence.sequenceId + "\t" + sequence.sentence.sentenceID + "\t" + sequence.propHead);
 		}
 		potentialFunction.setFeatures(featureIds, featureVals);
-		numFeatures = featureExtractor.featureDict.size();
-		System.out.println(String.format("Extracted %d features.", numFeatures));
-		parameters = new double[numFeatures];
 	}
 
 	private QGenSequence initializeSequence(AnnotatedSentence sent,
