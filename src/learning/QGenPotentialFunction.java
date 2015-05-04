@@ -144,10 +144,9 @@ public class QGenPotentialFunction {
 		return latticeIds;
 	}
 
-	
-	public double computeCliqueScore(int seq, int slot, int s, int sp, int spp,
+	public double computeCliqueScore(int seq, int slot, int[] states,
 			double[] parameters) {
-		int clique = getCliqueId(slot, s, sp, spp);
+		int clique = getCliqueId(slot, states);
 		double score = .0;
 		for (int i = 0; i < featureIds[seq][slot][clique].length; i++) {
 			score += featureIds[seq][slot][clique][i] *
@@ -156,26 +155,13 @@ public class QGenPotentialFunction {
 		return score;
 	}
 	
-	public double computeCliqueScore(QGenSequence sequence, int slot,
-			double[] parameters) {
-		int seq = sequence.sequenceId;
-		int clique = getCliqueId(slot, sequence.latticeIds);
-		double score = .0;
-		for (int i = 0; i < featureIds[seq][slot][clique].length; i++) {
-			score += featureIds[seq][slot][clique][i] *
-					 featureVals[seq][slot][clique][i];
-		}
-		return score;
-	}
-	
-	
-	public void addToEmpirical(int seq, int slot, int s, int sp, int spp,
+	public void addToEmpirical(int seq, int slot, int[] states,
 			double[] empirical, double marginal) {	
 		if (marginal == 0 || Double.isInfinite(marginal) ||
 				Double.isNaN(marginal)) {
 			return;
 		}
-		int clique = getCliqueId(slot, s, sp, spp);
+		int clique = getCliqueId(slot, states);
 		for (int i = 0; i < featureIds[seq][slot][clique].length; i++) {
 			int fid = featureIds[seq][slot][clique][i];
 			empirical[fid] += marginal * featureVals[seq][slot][clique][i];

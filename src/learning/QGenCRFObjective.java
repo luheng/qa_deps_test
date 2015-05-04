@@ -1,17 +1,23 @@
 package learning;
 
+import java.util.ArrayList;
+
 import optimization.gradientBasedMethods.Objective;
 
 public class QGenCRFObjective extends Objective {
-	
+	QGenFactorGraph model;
+	ArrayList<QGenSequence> sequences;
 	protected double objective, labelLikelihood, parameterRegularizer;
 	int nrFeatures;
 	int numThetaUpdates;
 	double gpSquared;
 	double[] empiricalCounts, gradientInit;
 	
-	public QGenCRFObjective(double[] parameters,
+	public QGenCRFObjective(
+			ArrayList<QGenSequence> sequences,
+			double[] parameters,
 			double[] empiricalCounts, double gaussianPrior) {
+		this.sequences = sequences;
 		this.nrFeatures = parameters.length;
 		this.gradient = new double[nrFeatures];		
 		this.parameters = parameters;
@@ -33,15 +39,14 @@ public class QGenCRFObjective extends Objective {
 			gradient[i] = gradientInit[i] + parameters[i] / gpSquared;
 			labelLikelihood -= parameters[i] * empiricalCounts[i];
 		}
-		for (int i = 0; i < numSequences; i++) {
-			AbstractSequence instance = corpus.getInstance(sid);
-			if (!instance.isLabeled) {
+		for (int seq = 0; seq < sequences.size(); seq++) {
+			QGenSequence sequence = sequences.get(seq);
+			if (!sequence.isLabeled) {
 				continue;
 			}
-			model.computeScores(instance, parameters, 0.0);
+			model.computeScores(sequence, parameters, 0.0);
 			model.computeMarginals();
-			
-			model.addToExpectation(sid, gradient);
+			model.addToExpectation(sequence, gradient);
 			labelLikelihood += model.logNorm;
 		}
 		objective = parameterRegularizer +  labelLikelihood;
