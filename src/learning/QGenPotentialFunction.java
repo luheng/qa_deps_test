@@ -26,7 +26,8 @@ public class QGenPotentialFunction {
 	//public double[][][] featureVals;
 	
 	public FeatureVector[][] transitionFeatures; // slot-id, clique-id
-	public TIntObjectHashMap<FeatureVector>[][] emissionFeatures; // seq-id, slot-id
+	public FeatureVector[][][] emissionFeatures; // seq-id, slot-id, state-di
+	//public TIntObjectHashMap<FeatureVector>[][] emissionFeatures; // seq-id, slot-id
 	
 	public QGenPotentialFunction() {
 		initializeLattice();
@@ -125,7 +126,7 @@ public class QGenPotentialFunction {
 		*/
 		int numSequences = sequences.size();
 		transitionFeatures = new FeatureVector[seqLength][];
-		emissionFeatures = new TIntObjectHashMap[numSequences][seqLength];
+		emissionFeatures = new FeatureVector[numSequences][seqLength][];
 		// Extract transition features.
 		for (int i = 0; i < seqLength; i++) {
 			transitionFeatures[i] = new FeatureVector[cliqueSizes[i]];
@@ -135,7 +136,7 @@ public class QGenPotentialFunction {
 						int cliqueId = getCliqueId(i, s, sp, spp);
 						TIntDoubleHashMap fv =
 							featureExtractor.extractTransitionFeatures(
-								lattice, i, s, sp, spp, false /* accept new */);
+								lattice, i, s, sp, spp, true /* accept new */);
 						transitionFeatures[i][cliqueId] = new FeatureVector(fv);
 					}
 				}
@@ -144,21 +145,12 @@ public class QGenPotentialFunction {
 		// Extract emission features.
 		for (int seq = 0; seq < numSequences; seq++) {
 			for (int i = 0; i < seqLength; i++) {
-				emissionFeatures[seq][i] = new TIntObjectHashMap<FeatureVector>();
+				emissionFeatures[seq][i] = new FeatureVector[latticeSizes[i]];
 				for (int s = 0; s < iterator[i][0]; s++) {
-					for (int sp = 0; sp < iterator[i][1]; sp++) {
-						for (int spp = 0; spp < iterator[i][2]; spp++) {
-							int cliqueId = getCliqueId(i, s, sp, spp);
-							TIntDoubleHashMap fv =
-								featureExtractor.extractEmissionFeatures(
-									sequences.get(seq),
-									lattice, i, s, sp, spp, false /* accept new */);
-							if (fv != null && fv.size() > 0) {
-								emissionFeatures[seq][i].put(cliqueId,
-										new FeatureVector(fv));
-							}
-						}
-					}
+					TIntDoubleHashMap fv =
+						featureExtractor.extractEmissionFeatures(
+							sequences.get(seq), lattice, i, s, true /* accept new */);
+					emissionFeatures[seq][i][s] = new FeatureVector(fv);
 				}
 			}
 		}
@@ -189,14 +181,12 @@ public class QGenPotentialFunction {
 		int clique = getCliqueId(slot, states);
 		double score = .0;
 		FeatureVector tf = transitionFeatures[slot][clique],
-				      ef = emissionFeatures[seq][slot].get(clique);
+				      ef = emissionFeatures[seq][slot][states[slot]];
 		for (int i = 0; i < tf.length; i++) {
 			score += tf.vals[i] * parameters[tf.ids[i]];
 		}
-		if (ef != null) {
-			for (int i = 0; i < ef.length; i++) {
-				score += ef.vals[i] * parameters[ef.ids[i]];
-			}
+		for (int i = 0; i < ef.length; i++) {
+			score += ef.vals[i] * parameters[ef.ids[i]];
 		}
 		return score;
 	}
@@ -209,14 +199,12 @@ public class QGenPotentialFunction {
 		}
 		int clique = getCliqueId(slot, states);
 		FeatureVector tf = transitionFeatures[slot][clique],
-			      	  ef = emissionFeatures[seq][slot].get(clique);
+			      	  ef = emissionFeatures[seq][slot][states[slot]];
 		for (int i = 0; i < tf.length; i++) {
 			empirical[tf.ids[i]] += marginal * tf.vals[i];
 		}
-		if (ef != null) {
-			for (int i = 0; i < ef.length; i++) {
-				empirical[ef.ids[i]] += marginal * ef.vals[i];
-			}	
-		}
+		for (int i = 0; i < ef.length; i++) {
+			empirical[ef.ids[i]] += marginal * ef.vals[i];
+		}	
 	}
 }

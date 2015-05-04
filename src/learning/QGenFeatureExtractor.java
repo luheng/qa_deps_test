@@ -282,9 +282,15 @@ public class QGenFeatureExtractor {
 	}
 	
 	public TIntDoubleHashMap extractEmissionFeatures(QGenSequence qGenSequence,
-			String[][] lattice, int i, int s, int sp, int spp, boolean b) {
-		// TODO Auto-generated method stub
-		return null;
+			String[][] lattice, int i, int s, boolean acceptNew) {
+		TIntDoubleHashMap fv = new TIntDoubleHashMap();
+		fv.adjustOrPutValue(featureDict.addString("E-BIAS", acceptNew), 1, 1);
+		
+		fv.remove(-1);
+		for (int fid : fv.keys()) {
+			fv.put(fid, 1);
+		}
+		return fv;
 	}
 
 	public void freeze() {
