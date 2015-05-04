@@ -107,15 +107,14 @@ public class QGenFactorGraph {
 		}
 	}
 	
-	public void addToExpectation(QGenSequence sequence, double[] empirical,
-			double multiplier) {
+	public void addToExpectation(QGenSequence sequence, double[] empirical) {
 		int[] csizes = potentialFunction.cliqueSizes;
 		for (int i = 0; i < sequenceLength; i++) {
 			for (int c = 0; c < csizes[i]; c++) {
 				if (Double.isInfinite(cliqueMarginal[i][c])) {
 					continue;
 				}
-				double marginal = Math.exp(cliqueMarginal[i][c]) * multiplier;
+				double marginal = Math.exp(cliqueMarginal[i][c]);
 				potentialFunction.addToEmpirical(
 					sequence.sequenceId, i, sequence.latticeIds,
 					empirical, marginal);

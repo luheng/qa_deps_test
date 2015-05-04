@@ -83,11 +83,6 @@ public class QGenCRFObjective extends Objective {
 		return "ocr discriminative model objective";
 	}
 	
-	private void update() {
-		
-	}
-	
-
 	private double twoNormSquared(double[] x) {
 		double norm = .0;
 		for(double v : x) {
