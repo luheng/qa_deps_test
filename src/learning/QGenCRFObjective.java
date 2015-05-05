@@ -44,7 +44,8 @@ public class QGenCRFObjective extends Objective {
 			QGenSequence sequence = sequences.get(seq);
 			if (!sequence.isLabeled) {
 				continue;
-			}			
+			}
+			// TODO: change the interface, make sure we are not training using test data..
 			model.computeScores(sequence, parameters, 0);
 			model.computeMarginals();
 			model.addToExpectation(sequence, gradient);

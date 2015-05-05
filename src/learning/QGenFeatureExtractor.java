@@ -1,5 +1,7 @@
 package learning;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 
 import annotation.QASlotPrepositions;
@@ -8,6 +10,7 @@ import data.CountDictionary;
 import data.Sentence;
 import data.UniversalPostagMap;
 import data.VerbInflectionDictionary;
+import edu.stanford.nlp.trees.TypedDependency;
 import experiments.ExperimentUtils;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
@@ -164,21 +167,6 @@ public class QGenFeatureExtractor {
 		return feats;
 	}
 	
-	private static HashSet<String> getUnaryFeatures(
-			Sentence sentence, int propHead, int slotId, String opt) {
-		switch (slotId) {
-		case 0: return getWhFeatures(sentence, propHead, opt);
-		case 1: return getAuxFeatures(sentence, propHead, opt);
-		case 2: return getPhFeatures(sentence, propHead, opt, "PH1");
-		case 3: return getTrgFeatures(sentence, propHead, opt);
-		case 4: return getPhFeatures(sentence, propHead, opt, "PH2");
-		case 5: return getPPFeatures(sentence, propHead, opt);
-		case 6: return getPhFeatures(sentence, propHead, opt, "PH3");
-		default:
-			return new HashSet<String>();
-		}
-	}
-	
 	private static HashSet<String> getTransitionFeatures(
 			int slotId, String opt) {
 		switch (slotId) {
@@ -204,43 +192,6 @@ public class QGenFeatureExtractor {
 				conjFeats.add(uf + "_" + cf);
 			}
 		}
-	}
-	
-	public TIntDoubleHashMap extractFeatures(
-			Sentence sentence, int propHead, String[][] lattice,
-			int slotId, int s, int sp, int spp, boolean acceptNew) {		
-		HashSet<String> conjFeats = new HashSet<String>();
-		// TODO: add more specified conjunction features. i.e. voice(aux+trg)
-		HashSet<String> unaryFeats = getUnaryFeatures(
-				sentence, propHead, slotId, lattice[slotId][s]);
-		conjFeats.addAll(unaryFeats);
-		if (slotId > 0) {
-			unaryFeats = getUnaryFeatures(
-					sentence, propHead, slotId - 1, lattice[slotId-1][sp]);
-			makeConjunctionFeatures(unaryFeats, conjFeats);
-		}
-		if (slotId > 1) {
-			unaryFeats = getUnaryFeatures(
-					sentence, propHead, slotId - 2, lattice[slotId-2][spp]);
-			makeConjunctionFeatures(unaryFeats, conjFeats);
-		}
-		
-		if (slotId == QGenSlots.TRGSlotId) {
-			// TODO...
-		}
-		
-		TIntDoubleHashMap fv = new TIntDoubleHashMap();
-		for (String feat : conjFeats) {
-			fv.adjustOrPutValue(featureDict.addString(feat, acceptNew), 1, 1);
-		}
-		
-		// TODO: add bias term.
-		fv.remove(-1);
-		// Binarize features.
-		for (int fid : fv.keys()) {
-			fv.put(fid, 1);
-		}
-		return fv;
 	}
 	
 	public TIntDoubleHashMap extractTransitionFeatures(
@@ -281,9 +232,43 @@ public class QGenFeatureExtractor {
 		return fv;
 	}
 	
-	public TIntDoubleHashMap extractEmissionFeatures(QGenSequence qGenSequence,
-			String[][] lattice, int i, int s, boolean acceptNew) {
+	private HashSet<TypedDependency> lookupChildrenByParent(
+			Collection<TypedDependency> deps, int parentId) {
+		HashSet<TypedDependency> parents = new HashSet<TypedDependency>();
+		for (TypedDependency dep : deps) {
+			if (dep.gov().index() == parentId + 1) {
+				parents.add(dep);
+			}
+		}
+		return parents;
+	}
+	
+	public TIntDoubleHashMap extractEmissionFeatures(
+			QGenSequence sequence,  String[][] lattice, int i, int s,
+			boolean acceptNew) {
+		QASample sample = sequence.sample;
+		ArrayList<Collection<TypedDependency>> parses = sample.kBestParses;
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
+		String opt = QGenSlots.slotNames[i] + lattice[i][s];
+		
+		for (int k = 0; k < parses.size(); k++) {
+			Collection<TypedDependency> deps = parses.get(k);
+			for (TypedDependency dep : lookupChildrenByParent(deps, sample.propHead)) {
+				String relStr = dep.reln().toString();
+				String modTok = dep.gov().word();
+				String modPos = sample.postags[dep.dep().index() - 1];
+				fv.adjustOrPutValue(featureDict.addString("PCRelkb=" + relStr + "_" + opt, acceptNew), 1, 1);
+				fv.adjustOrPutValue(featureDict.addString("PCPoskb=" + modPos + "_" + opt, acceptNew), 1, 1);
+				fv.adjustOrPutValue(featureDict.addString("PCTokkb=" + modTok + "_" + opt, acceptNew), 1, 1);
+				/*
+				if (i == 0) {
+					fv.adjustOrPutValue(featureDict.addString("PCRel1kb=" + relStr + "_" + opt, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PCPos1b=" + modPos + "_" + opt, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PCTok1b=" + modTok + "_" + opt, acceptNew), 1, 1);
+				}
+				*/
+			}
+		}
 		fv.adjustOrPutValue(featureDict.addString("E-BIAS", acceptNew), 1, 1);
 		
 		fv.remove(-1);

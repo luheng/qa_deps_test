@@ -11,4 +11,13 @@ public class QGenSlots {
 	
 	public static final int numSlots = 7;
 	
+	public static String[] slotNames = {
+		"WH",
+		"AUX",
+		"PH1",
+		"TRG",
+		"PH2",
+		"PP",
+		"PP3"
+	};
 }
