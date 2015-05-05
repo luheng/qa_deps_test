@@ -1,12 +1,7 @@
 package learning;
 
-import gnu.trove.map.hash.TIntDoubleHashMap;
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.PriorityQueue;
 
 import learning.BeamSearch.Beam;
@@ -20,9 +15,7 @@ import optimization.linesearch.WolfRuleLineSearch;
 import optimization.stopCriteria.CompositeStopingCriteria;
 import optimization.stopCriteria.NormalizedValueDifference;
 import util.LatticeUtils;
-import data.AnnotatedSentence;
 import data.Corpus;
-import data.QAPair;
 import data.Sentence;
 import data.VerbInflectionDictionary;
 import experiments.ExperimentUtils;
@@ -30,8 +23,8 @@ import experiments.ExperimentUtils;
 public class QGenCRF {
 	private Corpus baseCorpus; 
 	private VerbInflectionDictionary inflDict;
-	private QuestionIdDataset trainSet;
-	private HashMap<String, QuestionIdDataset> testSets;
+	private QGenDataset trainSet;
+	private HashMap<String, QGenDataset> testSets;
 	
 	String[][] latticeTemplate;
 	private static int minFeatureFreq = 5;
@@ -47,8 +40,8 @@ public class QGenCRF {
 	double[] parameters;
 	double[] empiricalCounts;
 	
-	public QGenCRF(Corpus baseCorpus, QuestionIdDataset trainSet,
-			HashMap<String, QuestionIdDataset> testSets) {
+	public QGenCRF(Corpus baseCorpus, QGenDataset trainSet,
+			HashMap<String, QGenDataset> testSets) {
 		this.baseCorpus = baseCorpus;
 		this.trainSet = trainSet;
 		this.testSets = testSets;
@@ -61,11 +54,11 @@ public class QGenCRF {
 		CompositeStopingCriteria stopping;
 		Optimizer optimizer;
 		OptimizerStats stats;
-		double prevStepSize = 1e-3;
+		double prevStepSize = 1e-4;
 		QGenCRFObjective objective;
-		int numIters = 300;
-		double stopThreshold = 1e-4;
-		double gaussianPrior = 100;
+		int numIters = 30;
+		double stopThreshold = 1e-3;
+		double gaussianPrior = 10;
 		
 		System.out.println("Start CRF training");
 		
@@ -116,7 +109,7 @@ public class QGenCRF {
 		for (int seq = 0; seq < 1; seq++) {
 			QGenSequence sequence = sequences.get(seq); 
 			QGenFactorGraph graph = new QGenFactorGraph(potentialFunction);
-			graph.computeScores(sequence, parameters, 1e-10);
+			graph.computeScores(sequence, parameters, 0);
 			BeamSearch bs = new BeamSearch(sequence, graph, potentialFunction,
 					beamSize);
 			PriorityQueue<Beam> kBest = bs.getTopK(topK);
@@ -138,21 +131,14 @@ public class QGenCRF {
 		potentialFunction = new QGenPotentialFunction();
 		
 		sequences = new ArrayList<QGenSequence>();
-		for (AnnotatedSentence sent : trainSet.sentences) {
-			for (int propHead : sent.qaLists.keySet()) {
-				for (QAPair qa : sent.qaLists.get(propHead)) {
-					sequences.add(initializeSequence(sent, propHead, qa, true));
-				}
-			}
+		for (QASample sample : trainSet.samples) {
+			Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
+			sequences.add(initializeSequence(sentence, sample, true));
 		}
-		for (QuestionIdDataset testSet : testSets.values()) {
-			for (AnnotatedSentence sent : testSet.sentences) {
-				for (int propHead : sent.qaLists.keySet()) {
-					for (QAPair qa : sent.qaLists.get(propHead)) {
-						sequences.add(initializeSequence(sent, propHead, qa,
-								false));
-					}
-				}
+		for (QGenDataset testSet : testSets.values()) {
+			for (QASample sample : testSet.samples) {
+				Sentence sentence = testSet.sentenceMap.get(sample.sentenceId);
+				sequences.add(initializeSequence(sentence, sample, false));
 			}
 		}
 		numSequences = sequences.size();
@@ -160,16 +146,16 @@ public class QGenCRF {
 				numSequences));
 	}
 	
-	private QGenSequence initializeSequence(AnnotatedSentence sent,
-			int propHead, QAPair qa, boolean isLabeled) {
+	private QGenSequence initializeSequence(Sentence sentence, QASample sample,
+			boolean isLabeled) {
 		String[][] lattice = potentialFunction.lattice;
-		String[] question = qa.questionWords;
+		String[] question = sample.question;
 		int[] latticeIds = new int[lattice.length],
 			  cliqueIds = new int[lattice.length];
 		for (int i = 0; i < lattice.length; i++) {
 			String token = question[i];
 			if (i == QGenSlots.TRGSlotId) {
-				token = getGenericTrg(sent.sentence, propHead,
+				token = getGenericTrg(sentence, sample.propHead,
 						question[QGenSlots.AUXSlotId], question[i]);
 			}
 			for (int j = 0; j < lattice[i].length; j++) {
@@ -182,7 +168,7 @@ public class QGenCRF {
 		for (int i = 0; i < lattice.length; i++) {
 			cliqueIds[i] = potentialFunction.getCliqueId(i, latticeIds);
 		}
-		return new QGenSequence(sequences.size(), sent.sentence, propHead,
+		return new QGenSequence(sequences.size(), sentence, sample,
 				latticeIds, cliqueIds, isLabeled);
 	}
 	

@@ -160,5 +160,28 @@ public class QASample implements java.io.Serializable {
 		// TODO:
 		return "";
 	}
+
+	public static QASample addQGenSample(
+			data.Sentence sentence,
+			int propHead,
+			String[] qwords,
+			ArrayList<Double> kBestScores,
+			ArrayList<Collection<TypedDependency>> kBestParses,
+			String[] postags,
+			String[] lemmas) {
+		return new QASample(
+				sentence,
+				propHead,
+				-1, /* question id */
+				qwords,
+				"",   /* question label */
+				-1,   /* question label id */
+				-1,  /* answer head */
+				kBestScores,
+				kBestParses,
+				postags,
+				lemmas,
+				true /* is a positive sample or not */);
+	}
 	
 }

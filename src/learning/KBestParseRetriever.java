@@ -54,7 +54,6 @@ public class KBestParseRetriever {
 		
 		this.cachedSentenceId = -1;
 	}
-	
 
 	public ArrayList<QASample> generateQuesitonIdSamples(
 			data.Sentence sentence,
@@ -87,6 +86,23 @@ public class KBestParseRetriever {
 					lemmas));
 		}
 		return samples;
+	}
+	
+
+
+	public QASample generateQGenSample(
+			data.Sentence sentence, int propHead, QAPair qa) {
+		if (cachedSentenceId != sentence.sentenceID) {
+			retrieveAndCacheSyntax(sentence);
+		}
+		return QASample.addQGenSample(
+				sentence,
+				propHead,
+				qa.questionWords,
+				kBestScores,
+				kBestParses,
+				postags,
+				lemmas);
 	}
 	
 	public ArrayList<QASample> generateSamplesWithParses(QAPair qa,
@@ -356,5 +372,6 @@ public class KBestParseRetriever {
 				"Extracted %d samples. %d positive, %d negative",
 					trainingSamples.size(), numPosSamples, numNegSamples));
 	}
+
 
 }

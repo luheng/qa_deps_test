@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import annotation.QuestionEncoder;
@@ -28,6 +29,7 @@ public class QuestionIdDataset {
 	public ArrayList<AnnotatedSentence> sentences;
 	public ArrayList<QAPair> questions;
 	public ArrayList<QASample> samples;
+	public HashMap<Integer, Sentence> sentenceMap;
 	public Feature[][] features;
 	public double[] labels;
 	
@@ -41,6 +43,7 @@ public class QuestionIdDataset {
 		this.sentences = new ArrayList<AnnotatedSentence>();
 		this.questions = new ArrayList<QAPair>();
 		this.samples = new ArrayList<QASample>();
+		this.sentenceMap = new HashMap<Integer, Sentence>();
 	}
 	
 	public HashSet<Integer> getSentenceIds() {
@@ -92,6 +95,10 @@ public class QuestionIdDataset {
 		reader.close();
 		System.out.println(String.format("Read %d sentences from %s.",
 				sentences.size(), filePath));
+		
+		for (AnnotatedSentence sent : sentences) {
+			sentenceMap.put(sent.sentence.sentenceID, sent.sentence);
+		}
 	}
 	
 	private HashSet<Integer> getNegativeLabels(HashSet<Integer> posLabels,

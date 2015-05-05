@@ -1,36 +1,17 @@
 package baselines;
 
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Random;
 
 import config.DataConfig;
 import config.QuestionGenConfig;
-import util.StringUtils;
-import annotation.QASlotAuxiliaryVerbs;
-import annotation.QASlotPlaceHolders;
-import annotation.QASlotQuestionWords;
-import annotation.QuestionEncoder;
 import learning.KBestParseRetriever;
-import learning.QASample;
 import learning.QGenCRF;
-import learning.QuestionIdDataset;
-import learning.QuestionIdFeatureExtractor;
-import data.AnnotatedSentence;
+import learning.QGenDataset;
 import data.Corpus;
-import data.CountDictionary;
-import data.QAPair;
-import data.Sentence;
 import data.VerbInflectionDictionary;
-import experiments.ExperimentUtils;
 
 public class BaselineQuestionGenExperiment {
 
@@ -39,25 +20,67 @@ public class BaselineQuestionGenExperiment {
 	private VerbInflectionDictionary inflDict;
 	private QGenCRF crf;
 	
-	private QuestionIdDataset trainSet;
-	private HashMap<String, QuestionIdDataset> testSets;
+	private QGenDataset trainSet;
+	private HashMap<String, QGenDataset> testSets;
+	
+	private final int kBest = 1; // 20
+	private boolean regenerateSamples = true;
+	
+	private String getSampleFileName(QGenDataset ds) {
+		return ds.datasetName + ".qgen.k" + kBest + ".smp";
+	}
 	
 	public BaselineQuestionGenExperiment() throws IOException {
 		config = new QuestionGenConfig();
 		baseCorpus = new Corpus("qa-exp-corpus");
 		
-		testSets = new HashMap<String, QuestionIdDataset>();
+		testSets = new HashMap<String, QGenDataset>();
 		// ********** Load QA Data ********************
 		if (config.trainWithWiki) {
-			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");
-			testSets.put("prop-train", new QuestionIdDataset(baseCorpus, "prop-train"));
+			trainSet = new QGenDataset(baseCorpus, "wiki1-train");
+			testSets.put("prop-train", new QGenDataset(baseCorpus, "prop-train"));
 			trainSet.loadData(DataConfig.get("wikiQATrainFilename"));
 			testSets.get("prop-train").loadData(DataConfig.get("propbankQATrainFilename"));
 		} else {
-			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
-			testSets.put("wiki1-train", new QuestionIdDataset(baseCorpus, "wiki1-train"));
+			trainSet = new QGenDataset(baseCorpus, "prop-train");
+			testSets.put("wiki1-train", new QGenDataset(baseCorpus, "wiki1-train"));
 			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
 			testSets.get("wiki1-train").loadData(DataConfig.get("wikiQATrainFilename"));
+		}
+		
+		// **************** Load samples ****************
+		if (regenerateSamples) {
+			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
+			trainSet.generateSamples(syntaxHelper);
+			for (QGenDataset ds : testSets.values()) {
+				ds.generateSamples(syntaxHelper);
+			}
+			ObjectOutputStream ostream = null;
+			try {
+				ostream = new ObjectOutputStream(
+						new FileOutputStream(getSampleFileName(trainSet)));
+				ostream.writeObject(trainSet.samples);
+				ostream.flush();
+				ostream.close();
+				for (QGenDataset testSet : testSets.values()) {
+					ostream = new ObjectOutputStream(
+							new FileOutputStream(getSampleFileName(testSet)));
+					ostream.writeObject(testSet.samples);
+					ostream.flush();
+					ostream.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+	 			trainSet.loadSamples(getSampleFileName(trainSet));
+	 			for (QGenDataset testSet : testSets.values()) {
+					testSet.loadSamples(getSampleFileName(testSet));
+				}
+			} catch (ClassNotFoundException | IOException e) {
+				e.printStackTrace();
+			}		
 		}
 	}
 	

@@ -145,12 +145,13 @@ public class QGenPotentialFunction {
 		}
 		// Extract emission features.
 		for (int seq = 0; seq < numSequences; seq++) {
+			QGenSequence sequence = sequences.get(seq);
 			for (int i = 0; i < seqLength; i++) {
 				emissionFeatures[seq][i] = new FeatureVector[latticeSizes[i]];
 				for (int s = 0; s < iterator[i][0]; s++) {
 					TIntDoubleHashMap fv =
 						featureExtractor.extractEmissionFeatures(
-							sequences.get(seq), lattice, i, s, true /* accept new */);
+							sequence, lattice, i, s, true /* accept new */);
 					emissionFeatures[seq][i][s] = new FeatureVector(fv);
 				}
 			}

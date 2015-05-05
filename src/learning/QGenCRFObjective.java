@@ -45,7 +45,7 @@ public class QGenCRFObjective extends Objective {
 			if (!sequence.isLabeled) {
 				continue;
 			}			
-			model.computeScores(sequence, parameters, 1e-10);
+			model.computeScores(sequence, parameters, 0);
 			model.computeMarginals();
 			model.addToExpectation(sequence, gradient);
 			labelLikelihood += model.logNorm;
