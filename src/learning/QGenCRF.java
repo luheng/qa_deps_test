@@ -7,7 +7,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.PriorityQueue;
 
+import learning.BeamSearch.Beam;
 import annotation.QASlotAuxiliaryVerbs;
 import optimization.gradientBasedMethods.LBFGS;
 import optimization.gradientBasedMethods.Optimizer;
@@ -104,6 +106,27 @@ public class QGenCRF {
 		System.out.println("Negative Labeled Likelihood::\t" +
 				objective.labelLikelihood);
 		System.out.println("*** Combined objective::\t" + obj);
+		
+		predict();
+	}
+	
+	public void predict() {
+		final int beamSize = 1000;
+		final int topK = 10;
+		for (int seq = 0; seq < 1; seq++) {
+			QGenSequence sequence = sequences.get(seq); 
+			QGenFactorGraph graph = new QGenFactorGraph(potentialFunction);
+			BeamSearch bs = new BeamSearch(sequence, graph, potentialFunction,
+					beamSize);
+			PriorityQueue<Beam> kBest = bs.getTopK(topK);
+			for (Beam beam : kBest) {
+				System.out.print(beam.loglik + "\t");
+				for (int i = 0; i < beam.ids.length; i++) {
+					System.out.print(potentialFunction.lattice[i][beam.ids[i]] + "\t");
+				}
+				System.out.println();
+			}
+		}
 	}
 	
 	private void initializeSequences() {
