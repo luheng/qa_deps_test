@@ -116,13 +116,16 @@ public class QGenCRF {
 		for (int seq = 0; seq < 1; seq++) {
 			QGenSequence sequence = sequences.get(seq); 
 			QGenFactorGraph graph = new QGenFactorGraph(potentialFunction);
+			graph.computeScores(sequence, parameters, 1e-10);
 			BeamSearch bs = new BeamSearch(sequence, graph, potentialFunction,
 					beamSize);
 			PriorityQueue<Beam> kBest = bs.getTopK(topK);
 			for (Beam beam : kBest) {
 				System.out.print(beam.loglik + "\t");
-				for (int i = 0; i < beam.ids.length; i++) {
-					System.out.print(potentialFunction.lattice[i][beam.ids[i]] + "\t");
+				for (int i = 0; i < QGenSlots.numSlots; i++) {
+					//System.out.println(i + ", " + beam.ids[i]);
+					int id = beam.ids[i + 2];
+					System.out.print(potentialFunction.lattice[i][id] + "\t");
 				}
 				System.out.println();
 			}

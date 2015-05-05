@@ -51,8 +51,11 @@ public class QGenPotentialFunction {
 		lattice[4] = Arrays.copyOf(QASlotPlaceHolders.values,
 								   QASlotPlaceHolders.values.length);
 		// 6. PP
-		lattice[5] = Arrays.copyOf(QASlotPrepositions.values,
-								   QASlotPrepositions.values.length);
+		lattice[5] = new String[QASlotPrepositions.values.length + 1];
+		lattice[5][0] = "";
+		for (int i = 0; i < QASlotPrepositions.values.length; i++) {
+			lattice[5][i+1] = QASlotPrepositions.values[i];
+		}
 		// 7. PH3
 		lattice[6] = Arrays.copyOf(QASlotPlaceHolders.ph3Values,
 								   QASlotPlaceHolders.ph3Values.length);
