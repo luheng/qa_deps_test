@@ -59,11 +59,11 @@ public class QGenCRF {
 		CompositeStopingCriteria stopping;
 		Optimizer optimizer;
 		OptimizerStats stats;
-		double prevStepSize = 0.1;
+		double prevStepSize = 1e-3;
 		QGenCRFObjective objective;
 		int numIters = 300;
 		double stopThreshold = 1e-4;
-		double gaussianPrior = 1.0;
+		double gaussianPrior = 100;
 		
 		System.out.println("Start CRF training");
 		

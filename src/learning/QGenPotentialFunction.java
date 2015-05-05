@@ -1,7 +1,6 @@
 package learning;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,7 +105,6 @@ public class QGenPotentialFunction {
 		return options;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void extractFeatures(
 			ArrayList<QGenSequence> sequences,
 			QGenFeatureExtractor featureExtractor) {
@@ -176,6 +174,21 @@ public class QGenPotentialFunction {
 			spp * iterator[slotId][0] * iterator[slotId][1];
 	}
 	
+	/**
+	 * 
+	 * @param slotId
+	 * @param cliqueId
+	 * @return int[] {s, sp, spp}
+	 */
+	public int[] getStateIds(int slotId, int cliqueId) {
+		int c = cliqueId;
+		int s = c % iterator[slotId][0];
+		c /= iterator[slotId][0];
+		int sp = c % iterator[slotId][1];
+		int spp = c / iterator[slotId][1];
+		return new int[] {s, sp, spp};
+	}
+	
 	public double computeCliqueScore(int seq, int slot, int[] states,
 			double[] parameters) {
 		int clique = getCliqueId(slot, states);
@@ -200,6 +213,23 @@ public class QGenPotentialFunction {
 		int clique = getCliqueId(slot, states);
 		FeatureVector tf = transitionFeatures[slot][clique],
 			      	  ef = emissionFeatures[seq][slot][states[slot]];
+		for (int i = 0; i < tf.length; i++) {
+			empirical[tf.ids[i]] += marginal * tf.vals[i];
+		}
+		for (int i = 0; i < ef.length; i++) {
+			empirical[ef.ids[i]] += marginal * ef.vals[i];
+		}	
+	}
+
+	public void addToEmpirical(int seq, int slot, int clique,
+			double[] empirical, double marginal) {
+		if (marginal == 0 || Double.isInfinite(marginal) ||
+				Double.isNaN(marginal)) {
+			return;
+		}
+		int state = clique % iterator[slot][0];
+		FeatureVector tf = transitionFeatures[slot][clique],
+			      	  ef = emissionFeatures[seq][slot][state];
 		for (int i = 0; i < tf.length; i++) {
 			empirical[tf.ids[i]] += marginal * tf.vals[i];
 		}

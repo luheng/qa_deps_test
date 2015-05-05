@@ -3,12 +3,12 @@ package learning;
 import util.LatticeHelper;
 
 public class QGenFactorGraph {
-	private static final int maxCliqueSize = 10000;
+	private static final int maxCliqueSize = 1000;
 	private QGenPotentialFunction potentialFunction;
 	
 	public double[][] cliqueScores;
 	public double[][] cliqueMarginals;
-	public double[][] stateMarginal;
+	public double[][] stateMarginals;
 	public double[][] alpha, beta, best;
 	public int[][][] prev;
 	public int[] decode;
@@ -21,7 +21,7 @@ public class QGenFactorGraph {
 		sequenceLength = QGenSlots.numSlots;
 		cliqueScores = new double[sequenceLength][];
 		cliqueMarginals = new double[sequenceLength][];
-		stateMarginal = new double[sequenceLength][];
+		stateMarginals = new double[sequenceLength][];
 		alpha = new double[sequenceLength][];
 		beta = new double[sequenceLength][];
 		int[] csizes = potentialFunction.cliqueSizes;
@@ -31,7 +31,7 @@ public class QGenFactorGraph {
 			cliqueMarginals[i] = new double[csizes[i]];
 			alpha[i] = new double[csizes[i]];
 			beta[i] = new double[csizes[i]];
-			stateMarginal[i] = new double[lsizes[i]];
+			stateMarginals[i] = new double[lsizes[i]];
 		}
 		dp = new double[maxCliqueSize];
 		decode = new int[sequenceLength];
@@ -72,20 +72,21 @@ public class QGenFactorGraph {
 		int N = sequenceLength - 1;
 		for (int sp = 0; sp < iterator[N][1]; sp++) {
 			for (int spp = 0; spp < iterator[N][2]; spp++) {
-				int cOld = spp * iterator[N][1] + sp;
-				beta[N][cOld] = 0;
-				dp[len++] = alpha[N][cOld];
+				int cLeft = spp * iterator[N][1] + sp;
+				beta[N][cLeft] = 0;
+				dp[len++] = alpha[N][cLeft];
 			}
 		}
 		logNorm = LatticeHelper.logsum(dp, len);
 
 		for (int i = sequenceLength - 1; i > 0; i--) {
 			for (int spp = 0; spp < iterator[i][2]; spp++) {
+				int c0 = spp * iterator[i][0] * iterator[i][1];
 				for (int sp = 0; sp < iterator[i][1]; sp++) {				
 					len = 0;
 					for (int s = 0; s < iterator[i][0]; s++) {
 						int cRight = sp * iterator[i][0] + s;
-						int c = iterator[i][1] * spp + cRight;
+						int c = c0 + cRight;
 						dp[len++] = beta[i][cRight] + cliqueScores[i][c];
 					}
 					int cLeft = spp * iterator[i][1] + sp;
@@ -102,19 +103,14 @@ public class QGenFactorGraph {
 						int cLeft = spp * iterator[i][1] + sp;
 						int c = cLeft * iterator[i][0] + s;
 						cliqueMarginals[i][c] =
+								(i > 0 ? alpha[i-1][cLeft] : 0) +
 								beta[i][cRight] + cliqueScores[i][c] - logNorm;
-						if (i > 0) {
-							// TODO: veriy this
-							cliqueMarginals[i][c] += alpha[i-1][cLeft];
-						}
-						
 					}
 					dp[len++] = alpha[i][cRight] + cliqueScores[i][cRight];
-					stateMarginal[i][s] = LatticeHelper.logsum(dp, len);
 				}
+				stateMarginals[i][s] = LatticeHelper.logsum(dp, len);
 			}
 		}
-		//System.out.println(logNorm);
 	}
 	
 	public void addToEmpirical(QGenSequence sequence, int[] gold,
@@ -134,8 +130,7 @@ public class QGenFactorGraph {
 				}
 				double marginal = Math.exp(cliqueMarginals[i][c]);
 				potentialFunction.addToEmpirical(
-					sequence.sequenceId, i, sequence.latticeIds,
-					empirical, marginal);
+					sequence.sequenceId, i, c, empirical, marginal);
 			}
 		}
 	}
@@ -145,7 +140,7 @@ public class QGenFactorGraph {
 			decode[i] = 0;
 			double maxq = Double.NEGATIVE_INFINITY;
 			for (int j = 0; j < potentialFunction.latticeSizes[i]; j++) {
-				double q = stateMarginal[i][j];
+				double q = stateMarginals[i][j];
 				if (q > maxq) {
 					decode[i] = j;
 					maxq = q;
