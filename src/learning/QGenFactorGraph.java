@@ -69,19 +69,19 @@ public class QGenFactorGraph {
 			}
 		}
 		len = 0;
-		int N = sequenceLength - 1;
-		for (int sp = 0; sp < iterator[N][1]; sp++) {
-			for (int spp = 0; spp < iterator[N][2]; spp++) {
-				int cLeft = spp * iterator[N][1] + sp;
-				beta[N][cLeft] = 0;
-				dp[len++] = alpha[N][cLeft];
+		int n = sequenceLength - 1;
+		for (int s = 0; s < iterator[n][0]; s++) {
+			for (int sp = 0; sp < iterator[n][1]; sp++) {
+				int c = sp * iterator[n][0] + s;
+				beta[n][c] = 0;
+				dp[len++] = alpha[n][c];
 			}
 		}
 		logNorm = LatticeHelper.logsum(dp, len);
 
-		for (int i = sequenceLength - 1; i > 0; i--) {
+		for (int i = n; i > 0; i--) {
 			for (int spp = 0; spp < iterator[i][2]; spp++) {
-				int c0 = spp * iterator[i][0] * iterator[i][1];
+				int c0 = spp * iterator[i][1] * iterator[i][0];
 				for (int sp = 0; sp < iterator[i][1]; sp++) {				
 					len = 0;
 					for (int s = 0; s < iterator[i][0]; s++) {
@@ -94,23 +94,37 @@ public class QGenFactorGraph {
 				}
 			}
 		}
-		for (int i = 0; i < sequenceLength; i++) {
+		for (int s = 0; s < iterator[0][0]; s++) {
+			int cliqueId = potentialFunction.getCliqueId(0, s, 0, 0);
+			cliqueMarginals[0][cliqueId] = alpha[0][s] + beta[0][s] - logNorm;
+		}
+		for (int i = 1; i < sequenceLength; i++) {
 			for (int s = 0; s < iterator[i][0]; s++) {
-				len = 0;
 				for (int sp = 0; sp < iterator[i][1]; sp++) {
 					int cRight = sp * iterator[i][0] + s;
 					for (int spp = 0; spp < iterator[i][2]; spp++) {
 						int cLeft = spp * iterator[i][1] + sp;
 						int c = cLeft * iterator[i][0] + s;
-						cliqueMarginals[i][c] =
-								(i > 0 ? alpha[i-1][cLeft] : 0) +
+						cliqueMarginals[i][c] = alpha[i-1][cLeft] +
 								beta[i][cRight] + cliqueScores[i][c] - logNorm;
 					}
-					dp[len++] = alpha[i][cRight] + cliqueScores[i][cRight];
+				}
+			}
+		}
+		for (int i = 0; i < sequenceLength; i++) {
+			for (int s = 0; s < iterator[i][0]; s++) {
+				stateMarginals[i][s] = 0;
+				len = 0;
+				for (int sp = 0; sp < iterator[i][1]; sp++) {
+					for (int spp = 0; spp < iterator[i][2]; spp++) {
+						int c = potentialFunction.getCliqueId(i, s, sp, spp);
+						dp[len++] = cliqueMarginals[i][c];
+					}
 				}
 				stateMarginals[i][s] = LatticeHelper.logsum(dp, len);
 			}
 		}
+		//potentialFunction.sanityCheck(this);
 	}
 	
 	public void addToEmpirical(QGenSequence sequence, int[] gold,

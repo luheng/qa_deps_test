@@ -237,4 +237,19 @@ public class QGenPotentialFunction {
 			empirical[ef.ids[i]] += marginal * ef.vals[i];
 		}	
 	}
+
+	public void sanityCheck(QGenFactorGraph graph) {
+
+		for (int i = 0; i < seqLength; i++) {
+			double stateSum = 0;
+			for (int j = 0; j < latticeSizes[i]; j++) {
+				double marg = Math.exp(graph.stateMarginals[i][j]);
+			//	System.out.print(lattice[i][j] + ":" + marg + "\t");
+				stateSum += marg;
+			}
+			System.out.println(stateSum);
+		}
+		System.out.println();
+		
+	}
 }
