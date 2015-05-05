@@ -24,7 +24,7 @@ public class BaselineQuestionGenExperiment {
 	private HashMap<String, QGenDataset> testSets;
 	
 	private final int kBest = 1; // 20
-	private boolean regenerateSamples = true;
+	private boolean regenerateSamples = false;
 	
 	private String getSampleFileName(QGenDataset ds) {
 		return ds.datasetName + ".qgen.k" + kBest + ".smp";
