@@ -242,8 +242,7 @@ public class QGenPotentialFunction {
 		}	
 	}
 
-	public void sanityCheck(QGenFactorGraph graph) {
-
+	public boolean sanityCheck(QGenFactorGraph graph) {
 		for (int i = 0; i < seqLength; i++) {
 			double stateSum = 0;
 			for (int j = 0; j < latticeSizes[i]; j++) {
@@ -251,9 +250,11 @@ public class QGenPotentialFunction {
 			//	System.out.print(lattice[i][j] + ":" + marg + "\t");
 				stateSum += marg;
 			}
-			System.out.println(stateSum);
+			//System.out.println(stateSum);
+			if (Math.abs(stateSum - 1.0) > 1e-6) {
+				return false;
+			}
 		}
-		System.out.println();
-		
+		return true;
 	}
 }

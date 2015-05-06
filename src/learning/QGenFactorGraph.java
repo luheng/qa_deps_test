@@ -124,7 +124,9 @@ public class QGenFactorGraph {
 				stateMarginals[i][s] = LatticeHelper.logsum(dp, len);
 			}
 		}
-		//potentialFunction.sanityCheck(this);
+		if (!potentialFunction.sanityCheck(this)) {
+			System.out.println("sanity check failed!");
+		}
 	}
 	
 	public void addToEmpirical(QGenSequence sequence, int[] gold,
@@ -162,8 +164,6 @@ public class QGenFactorGraph {
 			}
 		}
 	}
-	
-	// TODO: decode viterbi
 	
 	public double decodeAndEvaluate(int[] gold) {
 		decodePosterior();
