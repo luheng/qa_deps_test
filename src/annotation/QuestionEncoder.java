@@ -10,6 +10,19 @@ import data.Sentence;
  */
 public class QuestionEncoder {
 	
+	public static void normalize(String[] question) {
+		String ph2 = question[QASlots.PH2SlotId],
+			   pp  = question[QASlots.PPSlotId],
+			   ph3 = question[QASlots.PH3SlotId];
+		
+		if (QASlotPlaceHolders.valueSet.contains(ph3) && !ph3.isEmpty() &&
+			ph2.isEmpty() && pp.isEmpty()) {
+			question[QASlots.PH2SlotId] = question[QASlots.PH3SlotId];
+			question[QASlots.PH3SlotId] = "";
+		}
+	}
+	
+	
 	public static String encode(String[] question, Sentence sentence) {
 		String[] tokens = new String[sentence.length];
 		for (int i = 0; i < tokens.length; i++) {

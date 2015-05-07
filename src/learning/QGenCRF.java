@@ -6,6 +6,7 @@ import java.util.PriorityQueue;
 
 import learning.BeamSearch.Beam;
 import annotation.QASlotAuxiliaryVerbs;
+import annotation.QASlots;
 import optimization.gradientBasedMethods.LBFGS;
 import optimization.gradientBasedMethods.Optimizer;
 import optimization.gradientBasedMethods.stats.OptimizerStats;
@@ -70,7 +71,7 @@ public class QGenCRF {
 			if (!sequence.isLabeled) {
 				continue;
 			}
-			for (int i = 0; i < QGenSlots.numSlots; i++) {
+			for (int i = 0; i < QASlots.numSlots; i++) {
 				potentialFunction.addToEmpirical(sequence.sequenceId, i,
 						sequence.latticeIds, empiricalCounts, 1.0);
 			}
@@ -115,7 +116,7 @@ public class QGenCRF {
 			PriorityQueue<Beam> kBest = bs.getTopK(topK);
 			for (Beam beam : kBest) {
 				System.out.print(beam.loglik + "\t");
-				for (int i = 0; i < QGenSlots.numSlots; i++) {
+				for (int i = 0; i < QASlots.numSlots; i++) {
 					//System.out.println(i + ", " + beam.ids[i]);
 					int id = beam.ids[i + 2];
 					System.out.print(potentialFunction.lattice[i][id] + "\t");
@@ -154,9 +155,9 @@ public class QGenCRF {
 			  cliqueIds = new int[lattice.length];
 		for (int i = 0; i < lattice.length; i++) {
 			String token = question[i];
-			if (i == QGenSlots.TRGSlotId) {
+			if (i == QASlots.TRGSlotId) {
 				token = getGenericTrg(sentence, sample.propHead,
-						question[QGenSlots.AUXSlotId], question[i]);
+						question[QASlots.AUXSlotId], question[i]);
 			}
 			for (int j = 0; j < lattice[i].length; j++) {
 				if (lattice[i][j].equalsIgnoreCase(token)) {

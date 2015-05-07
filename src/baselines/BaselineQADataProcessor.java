@@ -1,5 +1,7 @@
 package baselines;
 
+import io.XSSFDataRetriever;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,15 +14,11 @@ import data.Corpus;
 import data.SRLCorpus;
 import data.WikipediaCorpus;
 import experiments.ExperimentUtils;
-import experiments.XSSFDataRetriever;
 
 public class BaselineQADataProcessor {
 
 	private static String[] kXssfInputFiles = {
-		//		"odesk/raw_annotation/odesk_r2_s90_breanna_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx",
-		//		"odesk/raw_annotation/odesk_r3_s100_b02_katie.xlsx",
-		//		"odesk/raw_annotation/odesk_r3_s100_b02_john.xlsx",
 				"odesk/raw_annotation/odesk_r3_s100_breanna_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r4_s100_ellen_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r5_p1_s50_breanna_fixed.xlsx",
@@ -63,9 +61,9 @@ public class BaselineQADataProcessor {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r025_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r026_ellen.xlsx",
 	};
-		
-	private static String kOutputPathPrefix = "data/odesk_wiki1";
-	//private static String kOutputPathPrefix = "data/propbank_test";
+
+	private static String kOutputPathPrefix = "data/propbank";
+	private static String kWikiOutputPathPrefix = "data/odesk_wiki1";
 		
 	private static final int randomSeed = 12345;
 	
@@ -134,13 +132,10 @@ public class BaselineQADataProcessor {
 	
 	
 	public static void main(String[] args) {
-		//SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus(
-		//		ExperimentUtils.conll2009TrainFilename, "PROPBANK");
+		//SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus("PROPBANK");
 		WikipediaCorpus wikiCorpus = new WikipediaCorpus("WIKI1");
 		
-		//processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.6);
-		processData(kWikifInputFiles, kOutputPathPrefix, wikiCorpus, 0.6);
-		
-		//	debugOutput(trainCorpus, annotatedSentences);
+		//processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.8);
+		processData(kWikifInputFiles, kWikiOutputPathPrefix, wikiCorpus, 0.8);
 	}
 }

@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
+import annotation.QASlots;
+
 public class BeamSearch {
 	QGenSequence sequence;
 	QGenFactorGraph graph;
@@ -23,7 +25,7 @@ public class BeamSearch {
 	}
 	
 	private void run() {
-		int seqLength = QGenSlots.numSlots;
+		int seqLength = QASlots.numSlots;
 		beams.add(new Beam(new int[] {0, 0}, 0.0));
 		ArrayList<Beam> newBeams = new ArrayList<Beam>();
 		for (int i = 0; i < seqLength; i++) {

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import annotation.QASlotPrepositions;
+import annotation.QASlots;
 import data.Corpus;
 import data.CountDictionary;
 import data.Sentence;
@@ -213,7 +214,7 @@ public class QGenFeatureExtractor {
 			makeConjunctionFeatures(unaryFeats, conjFeats);
 		}
 		
-		if (slotId == QGenSlots.TRGSlotId) {
+		if (slotId == QASlots.TRGSlotId) {
 			// TODO...
 		}
 		conjFeats.add("BIAS");
@@ -249,7 +250,7 @@ public class QGenFeatureExtractor {
 		QASample sample = sequence.sample;
 		ArrayList<Collection<TypedDependency>> parses = sample.kBestParses;
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
-		String opt = QGenSlots.slotNames[i] + lattice[i][s];
+		String opt = QASlots.slotNames[i] + lattice[i][s];
 		
 		for (int k = 0; k < parses.size(); k++) {
 			Collection<TypedDependency> deps = parses.get(k);

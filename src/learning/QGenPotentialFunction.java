@@ -11,6 +11,7 @@ import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlotPlaceHolders;
 import annotation.QASlotPrepositions;
 import annotation.QASlotQuestionWords;
+import annotation.QASlots;
 
 public class QGenPotentialFunction {
 	public static final int kSequenceOrder = 3;
@@ -33,7 +34,7 @@ public class QGenPotentialFunction {
 	}
 	
 	private void initializeLattice() {
-		seqLength = QGenSlots.numSlots;
+		seqLength = QASlots.numSlots;
 		lattice = new String[seqLength][];
 		// 1. WH
 		lattice[0] = Arrays.copyOf(QASlotQuestionWords.values,

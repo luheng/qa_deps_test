@@ -1,5 +1,6 @@
 package learning;
 
+import annotation.QASlots;
 import util.LatticeHelper;
 
 public class QGenFactorGraph {
@@ -18,7 +19,7 @@ public class QGenFactorGraph {
 	
 	public QGenFactorGraph(QGenPotentialFunction potentialFunction) {
 		this.potentialFunction = potentialFunction;
-		sequenceLength = QGenSlots.numSlots;
+		sequenceLength = QASlots.numSlots;
 		cliqueScores = new double[sequenceLength][];
 		cliqueMarginals = new double[sequenceLength][];
 		stateMarginals = new double[sequenceLength][];

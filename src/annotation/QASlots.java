@@ -1,6 +1,6 @@
-package learning;
+package annotation;
 
-public class QGenSlots {
+public class QASlots {
 	public static final int WHSlotId = 0;
 	public static final int AUXSlotId = 1;
 	public static final int PH1SlotId = 2;

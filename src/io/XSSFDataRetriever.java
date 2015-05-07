@@ -1,6 +1,4 @@
-package experiments;
-
-import gnu.trove.list.array.TIntArrayList;
+package io;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,6 +17,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import util.LatticeUtils;
+import annotation.QuestionEncoder;
 import annotation.SRLAnnotationValidator;
 import data.AnnotatedSentence;
 import data.Corpus;
@@ -29,33 +28,12 @@ import data.SRLSentence;
 import data.Sentence;
 
 public class XSSFDataRetriever {
-
-	private static String xlsxFilePath =
-		//	"odesk/r2_s100_new_with_samples copy.xlsx";
-		//	"odesk/raw_annotation/odesk_r3_s100_breanna_fixed.xlsx";
-		//	"odesk/raw_annotation/odesk_r3_s100_breanna.xlsx";
-		//	"odesk/reviewed_annotation/r2_s100_new_with_samples_breanna_luheng_updated.xlsx";
-		//	"odesk/training/r2_s100_new_with_samples donna_20150404.xlsx";
-		//	"odesk/raw_annotation/odesk_r6_p1_s50_francine_fixed.xlsx";
-		//	"odesk/training/odesk_r3_s100_katie.xlsx";
-		//	"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx";
-		//	"odesk/reviewed_annotation/odesk_r3_s100_john.xlsx";
-			"odesk/raw_annotation/odesk_r15_p2_s50_john_fixed.xlsx";
-		//	"odesk/raw_annotation/odesk_r6_p2_s50_tracy_fixed.xlsx";
-
 	
 	private static int getHeaderId(String header) {
 		if (!header.contains("_")) {
 			return -1;
 		}
 		return Integer.parseInt(header.substring(header.indexOf('_') + 1));
-	}
-	
-	public static void readXSSFAnnotations(
-			String filePath, Corpus corpus,
-			HashMap<Integer, AnnotatedSentence> annotatedSentences)
-					throws IOException {
-		readXSSFAnnotations(filePath, corpus, annotatedSentences, null);
 	}
 	
 	public static void readXSSFAnnotation(
@@ -134,6 +112,10 @@ public class XSSFDataRetriever {
 		        			question[c-1] = row.getCell(c).getStringCellValue();        		
 		        		}
 		        	}
+		        	// Normalizing question:
+		        	//   If ph3 in {someone, something}, and ph2=null, pp=null,
+		        	//   ph3 is moved to ph2
+		        	QuestionEncoder.normalize(question);
 		        	QAPair qa = new QAPair(sent, propHead, question,
 		        			"" /* answer */,
 		        			null /* cf source */);
@@ -163,136 +145,6 @@ public class XSSFDataRetriever {
 		}
 	}
 	
-	public static void readXSSFAnnotations(
-			String filePath, Corpus corpus,
-			HashMap<Integer, AnnotatedSentence> annotatedSentences,
-			int[] sheetIds) throws IOException {
-		assert (annotatedSentences != null);
-		
-        XSSFWorkbook workbook =
-        		new XSSFWorkbook(new FileInputStream(new File(filePath)));
-        
-        int unitId = -1, sentId = -1, propHead = -1, totalNumQAs = 0,
-        	qaPerUnit = 0;
-        boolean hasEmptyAnswer = false;
-        String prevSheetName = "";
-        Sentence sent = null;
-        
-        if (sheetIds == null) {
-        	sheetIds = new int[workbook.getNumberOfSheets()];
-        	for (int i = 0; i < sheetIds.length; i++) {
-        		sheetIds[i] = i;
-        	}
-        }
-        
-        for (int sn : sheetIds) {
-        	XSSFSheet sheet = workbook.getSheetAt(sn);    
-	        for (int r = 0; r <= sheet.getLastRowNum(); r++) {
-	        	XSSFRow row = sheet.getRow(r);
-	        	if (row == null || row.getLastCellNum() == 0 ||
-	        		row.getCell(0) == null) {
-	        		continue;
-	        	}
-	        	String header = row.getCell(0).getStringCellValue();
-	        	if (header.startsWith("UNIT")) {
-	        		if (unitId > -1) {
-	        			if (qaPerUnit == 0) {
-	        				System.out.println(String.format(
-	        						"Empty unit at:\t%s, UNIT_%05d",
-	        						prevSheetName, unitId));
-	        			}
-	        			if (hasEmptyAnswer) {
-	        				System.out.println(String.format(
-	        						"Unanswered question at:\t%s, UNIT_%05d",
-	        						prevSheetName, unitId));
-	        			}
-	        		}
-	        		unitId = getHeaderId(header);
-	        		qaPerUnit = 0;
-	        		hasEmptyAnswer = false;
-	        		prevSheetName = sheet.getSheetName();
-	        	} else if (header.startsWith("SENT")) {
-	        		sentId = getHeaderId(header);
-	        		if (corpus.sentences.size() <= sentId) {
-		        		String sentStr = row.getCell(1).toString().trim();
-	        			TIntArrayList tids = new TIntArrayList();
-	        			for (String token : sentStr.split("\\s+")) {
-	        				tids.add(corpus.wordDict.addString(token));
-	        			}
-	        			sentId = corpus.sentences.size();
-	        			corpus.sentences.add(
-	        					new Sentence(tids.toArray(), corpus, sentId));
-	        		}
-	        		sent = corpus.getSentence(sentId);
-	        		if (!annotatedSentences.containsKey(sentId)) {
-	        			annotatedSentences.put(
-	        					sentId, new AnnotatedSentence(sent));
-	        		}
-	        	} else if (header.startsWith("TRG")) {
-	        		propHead = getHeaderId(header);
-	        		annotatedSentences.get(sentId).addProposition(propHead);
-	        	} 
-	        	if (!header.startsWith("QA") ||
-	        		row.getCell(1) == null ||
-	        		row.getCell(1).toString().isEmpty()) {
-	        		continue;
-	        	}
-	        	String[] question = new String[7];
-	        	for (int c = 1; c <= 7; c++) {
-	        		if (row.getCell(c) == null) {
-	        			question[c-1] = "";
-	        			continue;
-	        		} else {
-	        			question[c-1] = row.getCell(c).getStringCellValue();        		
-	        		}
-	        	}
-	        	QAPair qa = new QAPair(sent, propHead, question,
-	        			"" /* answer */, null /* cf source */);
-	        	int ansPerQuestion = 0;
-	        	for (int c = 9; c <= 13; c++) {
-	        		if (row.getCell(c) == null) {
-	        			continue;
-	        		}
-	        		String ans = row.getCell(c).toString();
-	        		if (!ans.isEmpty()) {
-	        			if (qa.addAnswer(ans)) {
-	        				ansPerQuestion ++;
-	        			} else {
-	        				System.out.println("unaligned answer:\t" + ans);
-	        			}
-	        		}
-	        	}
-	        	if (row.getCell(14) != null) {
-	        		qa.comment = row.getCell(14).getStringCellValue().trim();
-	        	}
-	        	if (ansPerQuestion == 0) {
-	        		hasEmptyAnswer = true;
-	        		continue;
-	        	}
-	        	if (!question[0].isEmpty() && !question[3].isEmpty()) {
-	        		annotatedSentences.get(sentId).addQAPair(propHead, qa);
-		        	totalNumQAs ++;
-		        	qaPerUnit ++;
-	        	}
-	        }
-        }
-        workbook.close();
-        
-        if (qaPerUnit == 0) {
-			System.out.println(String.format(
-					"Empty unit at:\t%s, UNIT_%05d",
-					prevSheetName, unitId));
-		}
-		if (hasEmptyAnswer) {
-			System.out.println(String.format(
-					"Unanswered question at:\t%s, UNIT_%05d",
-					prevSheetName, unitId));
-		}
-       
-        System.out.println(String.format("%d units read from %s, covering %d sentences.",
-        		unitId, filePath, annotatedSentences.size()));
-        System.out.println(String.format("Total number of QAs: %d", totalNumQAs));
-	}
 	
 	public static void aggregateAnnotations(
 			Corpus corpus, HashMap<Integer, AnnotatedSentence> annotations) {
@@ -530,28 +382,5 @@ public class XSSFDataRetriever {
 				System.out.println();
 			}
 		}
-	}
-	
-	public static void main(String[] args) {
-		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
-		HashMap<Integer, AnnotatedSentence> annotations =
-				new HashMap<Integer, AnnotatedSentence>();
-				
-		try {
-			readXSSFAnnotations(
-					xlsxFilePath,
-					trainCorpus,
-					annotations);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return;
-		}
-		
-		SRLAnnotationValidator tester = new SRLAnnotationValidator();
-		tester.computeSRLAccuracy(annotations.values(), trainCorpus);
-		tester.ignoreLabels = true;
-		tester.computeSRLAccuracy(annotations.values(), trainCorpus);
-		
-	//	debugOutput(trainCorpus, annotatedSentences);
 	}
 }
