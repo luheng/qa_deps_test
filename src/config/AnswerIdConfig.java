@@ -42,11 +42,20 @@ public class AnswerIdConfig {
 		kBest = Integer.parseInt(properties.getProperty("kBest"));
 		featureKBest = Integer.parseInt(properties.getProperty("featureKBest"));
 		
-		regenerateSamples = Boolean.parseBoolean("regenerateSamples");
-		trainWithWiki = Boolean.parseBoolean("trainWithWiki");
-		useSpanBasedSamples = Boolean.parseBoolean("useSpanBasedSamples");
-		useLexicalFeatures = Boolean.parseBoolean("useLexicalFeatures");
-		useDependencyFeatures = Boolean.parseBoolean("useDependencyFeatures");
+		regenerateSamples = Boolean.parseBoolean(properties.getProperty("regenerateSamples"));
+		trainWithWiki = Boolean.parseBoolean(properties.getProperty("trainWithWiki"));
+		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
+		useLexicalFeatures = Boolean.parseBoolean(properties.getProperty("useLexicalFeatures"));
+		useDependencyFeatures = Boolean.parseBoolean(properties.getProperty("useDependencyFeatures"));
+		/*
+		for (Object k : properties.keySet()) {
+			String prop = (String) k;
+			System.out.println(prop + "\t" + properties.getProperty(prop));
+		}
+		System.out.println(regenerateSamples);
+		*/
 	}
+	
+	
 
 }

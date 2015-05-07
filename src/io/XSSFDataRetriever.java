@@ -249,7 +249,9 @@ public class XSSFDataRetriever {
 		
 		// Output to text file.
 		BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath));
-		int numSentsWritten = 0;
+		int numSentsWritten = 0,
+			numPropsWritten = 0,
+			numQAsWritten = 0;
 		for (int sid : sentIds) {
 			AnnotatedSentence annotSent = annotations.get(sid);
 			Sentence sent = annotSent.sentence;
@@ -272,6 +274,9 @@ public class XSSFDataRetriever {
 			for (int propHead : propIds) {
 				String prop = sent.getTokenString(propHead).toLowerCase();
 				ArrayList<QAPair> qaList = annotSent.qaLists.get(propHead);
+				if (qaList.size() == 0) {
+					continue;
+				}
 				writer.write(String.format("%d\t%s\t%d\n",
 						propHead, prop, qaList.size()));
 				for (QAPair qa : qaList) {
@@ -281,15 +286,20 @@ public class XSSFDataRetriever {
 					}
 					writer.write("\n");
 				}
+				numQAsWritten += qaList.size();
 			}
 			writer.write("\n");
 			numSentsWritten ++;
+			numPropsWritten += numProps;
 		}
 		writer.close();
 		System.out.println(String.format(
-				"Skipped %d empty sentences. Successfully wrote %d sentences to %s.",
+				"Skipped %d empty sentences. " +
+				"Successfully wrote %d sentences, %d proposition and %d QAs to %s.",
 				sentIds.length - numSentsWritten,
 				numSentsWritten,
+				numPropsWritten,
+				numQAsWritten,
 				outputPath));
 	}
 	

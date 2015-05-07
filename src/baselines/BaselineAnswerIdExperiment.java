@@ -60,10 +60,10 @@ public class BaselineAnswerIdExperiment {
 			testSets.get("prop-train").loadData(DataConfig.get("propbankQATrainFilename"));
 		} else {
 			trainSet = new AnswerIdDataset(baseCorpus, "prop-train");
-			testSets.put("wiki1-train", new AnswerIdDataset(baseCorpus, "wiki1-train"));
+			testSets.put("prop-dev", new AnswerIdDataset(baseCorpus, "prop-dev"));
 			
 			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
-			testSets.get("wiki1-train").loadData(DataConfig.get("wikiQATrainFilename"));
+			testSets.get("prop-dev").loadData(DataConfig.get("propbankQADevFilename"));
 		}
 		
 		// *********** Generate training/test samples **********

@@ -78,7 +78,7 @@ public class BaselineQADataProcessor {
 	private static void processData(String[] inputFiles,
 			String outputPathPrefix,
 			Corpus baseCorpus,
-			double splitRatio) {
+			double trainRatio, double devRatio) {
 		HashMap<Integer, AnnotatedSentence> annotations =
 				new HashMap<Integer, AnnotatedSentence>();
 		try {
@@ -98,14 +98,20 @@ public class BaselineQADataProcessor {
 		ArrayList<Integer> sentIds = new ArrayList<Integer>();
 		sentIds.addAll(annotations.keySet());
 		Collections.shuffle(sentIds, new Random(randomSeed));
-		int numTrains = (int) (sentIds.size() * splitRatio);
+		
+		int numTrains = (int) (sentIds.size() * trainRatio);
+		int numDevs = (int) (sentIds.size() * devRatio);
 		HashMap<Integer, AnnotatedSentence>
 				trainSents = new HashMap<Integer, AnnotatedSentence>(),
+				devSents =  new HashMap<Integer, AnnotatedSentence>(),
 				testSents = new HashMap<Integer, AnnotatedSentence>();
+		
 		for (int i = 0; i < sentIds.size(); i++) {
 			int sentId = sentIds.get(i);
 			if (i < numTrains) {
 				trainSents.put(sentId, annotations.get(sentId));
+			} else if (i < numTrains + numDevs) {
+				devSents.put(sentId, annotations.get(sentId));
 			} else {
 				testSents.put(sentId, annotations.get(sentId));
 			}
@@ -116,6 +122,10 @@ public class BaselineQADataProcessor {
 					outputPathPrefix + ".train.qa",
 					baseCorpus,
 					trainSents);
+			XSSFDataRetriever.outputAnnotations(
+					outputPathPrefix + ".dev.qa",
+					baseCorpus,
+					devSents);
 			XSSFDataRetriever.outputAnnotations(
 					outputPathPrefix + ".test.qa",
 					baseCorpus,
@@ -140,10 +150,11 @@ public class BaselineQADataProcessor {
 	
 	
 	public static void main(String[] args) {
-		//SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus("PROPBANK");
-		WikipediaCorpus wikiCorpus = new WikipediaCorpus("WIKI1");
+		SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus("PROPBANK");
+		// processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.8);
+		processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.6, 0.2);
 		
-		//processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.8);
-		processData(kWikifInputFiles, kWikiOutputPathPrefix, wikiCorpus, 0.8);
+		//WikipediaCorpus wikiCorpus = new WikipediaCorpus("WIKI1");
+		//processData(kWikifInputFiles, kWikiOutputPathPrefix, wikiCorpus, 0.8);
 	}
 }
