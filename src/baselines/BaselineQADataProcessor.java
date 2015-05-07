@@ -40,7 +40,8 @@ public class BaselineQADataProcessor {
 		};
 	
 	private static String[] kWikifInputFiles = {
-		"odesk_wiki/raw_annotation/odesk_wiki1_r000_katie.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r000_katie_new.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r001_katie.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r002_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r003_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r004_sarah.xlsx",
@@ -54,16 +55,23 @@ public class BaselineQADataProcessor {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r012_maria.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r013_john.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r014_john.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r017 donna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r019_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r020_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r021_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r022_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r023_tracy.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r024_tracy.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r025_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r026_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r027_john.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r028_sarah.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r031_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r032_ellen.xlsx",
 	};
 
 	private static String kOutputPathPrefix = "data/propbank";
-	private static String kWikiOutputPathPrefix = "data/odesk_wiki1";
+	private static String kWikiOutputPathPrefix = "data/wiki1";
 		
 	private static final int randomSeed = 12345;
 	
