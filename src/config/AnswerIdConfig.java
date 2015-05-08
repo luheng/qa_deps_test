@@ -35,7 +35,7 @@ public class AnswerIdConfig {
 			e.printStackTrace();
 		}
 		
-		featureOutputPath = properties.getProperty("featureOutptuPath");
+		featureOutputPath = properties.getProperty("featureOutputPath");
 		randomSeed = Integer.parseInt(properties.getProperty("randomSeed"));
 		cvFolds = Integer.parseInt(properties.getProperty("cvFolds"));
 		minFeatureFreq = Integer.parseInt(properties.getProperty("minFeatureFreq"));
@@ -47,15 +47,10 @@ public class AnswerIdConfig {
 		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
 		useLexicalFeatures = Boolean.parseBoolean(properties.getProperty("useLexicalFeatures"));
 		useDependencyFeatures = Boolean.parseBoolean(properties.getProperty("useDependencyFeatures"));
-		/*
-		for (Object k : properties.keySet()) {
-			String prop = (String) k;
-			System.out.println(prop + "\t" + properties.getProperty(prop));
-		}
-		System.out.println(regenerateSamples);
-		*/
 	}
 	
-	
-
+	public String toString() {
+		// TODO
+		return "";
+	}
 }

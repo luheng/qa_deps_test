@@ -118,6 +118,11 @@ public class QuestionEncoder {
 		return label;
 	}
 	
+	/**
+	 * 
+	 * @param question
+	 * @return String[] : [Wh, arg#, arg_label, pp, modal, negation]
+	 */
 	public static String[] encode(String[] question) {	
 		assert (question.length == 7);
 		String wh  = question[0],
@@ -128,65 +133,37 @@ public class QuestionEncoder {
 			   pp  = question[5],
 			   ph3 = question[6];
 		boolean nullPh1 = ph1.isEmpty(),
-				nullPh2 = ph2.isEmpty(), // || ph2.equals("somewhere"),
-				nullPh3 = ph3.isEmpty(), // || ph3.equals("somewhere"),
+				nullPh2 = ph2.isEmpty(),
+				nullPh3 = ph3.isEmpty(),
 				nullPP = pp.isEmpty();
 		boolean verbalPh3 = (ph3.equals("do") || ph3.equals("doing") || ph3.equals("be"));
-		boolean passiveVoice = isPassiveVoice(aux, trg);
-		if (wh.equals("whom")) {
-			wh = "who";
-		}
+		boolean passiveVoice = isPassiveVoice(aux, trg),
+				activeVoice = !passiveVoice;
+		
 		String[] labels = new String[4];
 		Arrays.fill(labels, "");
 		labels[0] = wh;
 		if (isWhoWhat(wh)) {
-			if (nullPh1 && !passiveVoice) {
-				// e.g. Who built something? What dropped?
+			if (activeVoice && nullPh1) {
 				labels[1] = "0";
-			} else if (nullPh2 && nullPh1 && passiveVoice) {
-				// e.g. Who is killed? Who is expected to do something?
-				//      What is given? What is given by someone?
-				//      What is given to someone?
+			} else if ((activeVoice && nullPh2) || (passiveVoice && nullPh1)) {
 				labels[1] = "1";
-			} else if (nullPh2 && !nullPh1 && !passiveVoice) {
-				// e.g. Who did someone kill?
-				//      What did someone give (to someone)?
-				labels[1] = "1";
-			} else if (!nullPh2 && nullPh1 && passiveVoice) {
-				// e.g. Who is given something?
-				//      Who is given something by someone?
-				labels[1] = "2";
-			} else if (verbalPh3 && !nullPh1) {
-				// e.g. What does someone expect someone to do?
-				//      What was someone expected to do?
-				//      What did someone threaten to do?
-				// label = wh + "_do";
-				labels[1] = "2";
-		    } else if (nullPh3 && !nullPh2 && !nullPh1) {
-				// e.g. Who did someone give something to?
-		    	labels[1] = "2";
-			} else if (nullPh3 && nullPh2 && !nullPh1 && passiveVoice) {
-				// e.g. What is something capped to?
-				//      Who is something baked for?
-				//      What is something being driven for?
-				//      What is someone given?
-				//      What is someone named?
+			} else if ((activeVoice && !nullPh1 && !nullPh2) ||
+    				   (passiveVoice && !nullPh1 && nullPh2)) {
 				labels[1] = "2";
 			} else {
-				labels[1] = "3"; // Unknown
+				labels[1] = "?";
 			}
-			if (labels[1].equals("2") && !nullPP && nullPh3) {
-				labels[2] = pp;
-			}
-		} else {
-			if (!nullPP && nullPh3) {
-				labels[2] = pp;
-			}
+		} 
+		if (!nullPP && nullPh3) {
+			labels[2] = pp;
 		}
-		
-		if (aux.contains("not") || aux.contains("n\'t")) {
-			labels[3] = "N";
+		if (verbalPh3) {
+			labels[2] = "do";
 		}
+		labels[3] = pp;
+		labels[4] = aux.contains(" ") ? aux.split(" ")[0] : "";
+		labels[5] = (aux.contains("not") || aux.contains("n\'t") ? "neg" : "";
 		return labels;
 	}
 	
