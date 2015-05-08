@@ -2,6 +2,7 @@ package annotation;
 
 import java.util.Arrays;
 
+import util.StringUtils;
 import data.QAPair;
 import data.Sentence;
 
@@ -140,7 +141,7 @@ public class QuestionEncoder {
 		boolean passiveVoice = isPassiveVoice(aux, trg),
 				activeVoice = !passiveVoice;
 		
-		String[] labels = new String[4];
+		String[] labels = new String[6];
 		Arrays.fill(labels, "");
 		labels[0] = wh;
 		if (isWhoWhat(wh)) {
@@ -154,6 +155,9 @@ public class QuestionEncoder {
 			} else {
 				labels[1] = "?";
 			}
+			// if (activeVoice && !nullPh1 && !nullPh2 && nullPP && nullPh3) {
+			// 	System.out.println(StringUtils.join("\t", question));
+			// 	}
 		} 
 		if (!nullPP && nullPh3) {
 			labels[2] = pp;
@@ -252,6 +256,4 @@ public class QuestionEncoder {
 		return wh.equalsIgnoreCase("who") || wh.equalsIgnoreCase("what") ||
 			   wh.equalsIgnoreCase("whom");		
 	}
-
-
 }

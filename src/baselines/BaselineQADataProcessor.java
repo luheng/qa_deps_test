@@ -150,11 +150,10 @@ public class BaselineQADataProcessor {
 	
 	
 	public static void main(String[] args) {
-		SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus("PROPBANK");
-		// processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.8);
-		processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.6, 0.2);
+		//SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus("PROPBANK");		
+		//processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.6, 0.2);
 		
-		//WikipediaCorpus wikiCorpus = new WikipediaCorpus("WIKI1");
-		//processData(kWikifInputFiles, kWikiOutputPathPrefix, wikiCorpus, 0.8);
+		WikipediaCorpus wikiCorpus = new WikipediaCorpus("WIKI1");
+		processData(kWikifInputFiles, kWikiOutputPathPrefix, wikiCorpus, 0.6, 0.2 );
 	}
 }

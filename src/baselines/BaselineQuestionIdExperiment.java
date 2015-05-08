@@ -70,10 +70,10 @@ public class BaselineQuestionIdExperiment {
 			testSets.get("prop-train").loadData(DataConfig.get("propbankQATrainFilename"));
 		} else {
 			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
-			testSets.put("wiki1-train", new QuestionIdDataset(baseCorpus, "wiki1-train"));
+			testSets.put("prop-dev", new QuestionIdDataset(baseCorpus, "prop-dev"));
 			
 			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
-			testSets.get("wiki1-train").loadData(DataConfig.get("wikiQATrainFilename"));
+			testSets.get("prop-dev").loadData(DataConfig.get("propbankQADevFilename"));
 		}
 
 		// Each QA is associcated with a set of question labels, each label has different granularity.
@@ -93,7 +93,7 @@ public class BaselineQuestionIdExperiment {
 				for (String qlabel : qlabels) {
 					int qid = qdict.lookupString(qlabel);
 					if (qid < 0) {
-						System.out.println("Unseen question labels:\t" + qlabel);
+			//			System.out.println("Unseen question labels:\t" + qlabel);
 						numUnseenQuestionLabels ++;
 					}
 				}

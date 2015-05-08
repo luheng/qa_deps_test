@@ -51,19 +51,21 @@ public class BaselineAnswerIdExperiment {
 		config = new AnswerIdConfig();
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new HashMap<String, AnswerIdDataset>();
-		// ********** Load QA Data ********************
+		// ********** Config and load QA Data ********************
 		if (config.trainWithWiki) {
-			trainSet = new AnswerIdDataset(baseCorpus, "wiki1-train");
-			testSets.put("prop-train", new AnswerIdDataset(baseCorpus, "prop-train"));
-			
-			trainSet.loadData(DataConfig.get("wikiQATrainFilename"));
-			testSets.get("prop-train").loadData(DataConfig.get("propbankQATrainFilename"));
+			trainSet = new AnswerIdDataset(baseCorpus, "wiki1-train");			
+			for (String ds : new String[] {"wiki1-dev", "prop-train", "prop-dev"}) {
+				testSets.put(ds, new AnswerIdDataset(baseCorpus, ds));
+			}
 		} else {
 			trainSet = new AnswerIdDataset(baseCorpus, "prop-train");
-			testSets.put("prop-dev", new AnswerIdDataset(baseCorpus, "prop-dev"));
-			
-			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
-			testSets.get("prop-dev").loadData(DataConfig.get("propbankQADevFilename"));
+			for (String ds : new String[] {"prop-dev", "wiki1-train", "wiki1-dev"}) {
+				testSets.put(ds, new AnswerIdDataset(baseCorpus, ds));
+			}
+		}
+		trainSet.loadData(DataConfig.getDataset(trainSet.datasetName));
+		for (String ds : testSets.keySet()) {
+			testSets.get(ds).loadData(DataConfig.getDataset(ds));
 		}
 		
 		// *********** Generate training/test samples **********
