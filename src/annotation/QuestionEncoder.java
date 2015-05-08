@@ -163,7 +163,7 @@ public class QuestionEncoder {
 		}
 		labels[3] = pp;
 		labels[4] = aux.contains(" ") ? aux.split(" ")[0] : "";
-		labels[5] = (aux.contains("not") || aux.contains("n\'t") ? "neg" : "";
+		labels[5] = (aux.contains("not") || aux.contains("n\'t")) ? "neg" : "";
 		return labels;
 	}
 	
