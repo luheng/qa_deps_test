@@ -103,7 +103,6 @@ public class QuestionIdDataset {
 	
 	private HashSet<Integer> getNegativeLabels(HashSet<Integer> posLabels,
 			CountDictionary qlabelDict) {
-		// TODO: random sampling according to label distribution.
 		HashSet<Integer> negLabels = new HashSet<Integer>();
 		for (int qid = 0; qid < qlabelDict.size(); qid++) {
 			if (!posLabels.contains(qid)) {
@@ -120,13 +119,11 @@ public class QuestionIdDataset {
 		for (AnnotatedSentence annotSent : sentences) {
 			for (int propHead : annotSent.qaLists.keySet()) {
 				ArrayList<QAPair> qaList = annotSent.qaLists.get(propHead);
+				CountDictionary cd = QuestionEncoder.encode(annotSent.sentence,
+						propHead, qaList);
 				HashSet<Integer> qlabelIds = new HashSet<Integer>();
-				for (QAPair qa : qaList) {
-					String[] qlabels = QuestionEncoder.encode(qa.questionWords);
-					for (String qlabel : qlabels) {
-						int qid = qlabelDict.lookupString(qlabel);
-						qlabelIds.add(qid);
-					}
+				for (String qlabel : cd.getStrings()) {
+					qlabelIds.add(qlabelDict.lookupString(qlabel));
 				}
 				qlabelIds.remove(-1);
 				ArrayList<QASample> newSamples =

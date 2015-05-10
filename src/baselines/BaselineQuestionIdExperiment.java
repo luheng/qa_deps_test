@@ -12,15 +12,16 @@ import java.util.HashMap;
 import java.util.Random;
 
 import config.DataConfig;
+import config.QuestionIdConfig;
 import util.StringUtils;
 import annotation.QuestionEncoder;
 import learning.KBestParseRetriever;
 import learning.QASample;
 import learning.QuestionIdDataset;
 import learning.QuestionIdFeatureExtractor;
+import data.AnnotatedSentence;
 import data.Corpus;
 import data.CountDictionary;
-import data.QAPair;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
@@ -31,21 +32,7 @@ import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 
 public class BaselineQuestionIdExperiment {
-
-	private String featureOutputPath = "feature_weights.tsv";
-	
-	private final int randomSeed = 12345;
-	private final int cvFolds = 5;
-	private final int minFeatureFreq = 3;
-	private final int minLabelFreq = 5;
-	private final int kBest = 1; // 20
-	
-	private boolean regenerateSamples = true;
-	private boolean trainWithWiki = false;
-	private boolean useLexicalFeatures = true;
-	private boolean useDependencyFeatures = true;
-	
-	private double evalThreshold = 0.4999;
+	private QuestionIdConfig config;
 	
 	private Corpus baseCorpus; 
 	private QuestionIdFeatureExtractor featureExtractor;
@@ -54,64 +41,64 @@ public class BaselineQuestionIdExperiment {
 	private HashMap<String, QuestionIdDataset> testSets;
 	
 	private String getSampleFileName(QuestionIdDataset ds) {
-		return ds.datasetName + ".qgen.k" + kBest + ".smp";
+		return ds.datasetName + ".qgen.k" + config.kBest + ".smp";
 	}
 	
 	public BaselineQuestionIdExperiment() throws IOException {
+		config = new QuestionIdConfig();
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new HashMap<String, QuestionIdDataset>();
+
 		
 		// ********** Load QA Data ********************
-		if (trainWithWiki) {
-			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");
-			testSets.put("prop-train", new QuestionIdDataset(baseCorpus, "prop-train"));
-			
-			trainSet.loadData(DataConfig.get("wikiQATrainFilename"));
-			testSets.get("prop-train").loadData(DataConfig.get("propbankQATrainFilename"));
+		if (config.trainWithWiki) {
+			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");			
+			for (String ds : new String[] {"wiki1-dev", "prop-train", "prop-dev"}) {
+				testSets.put(ds, new QuestionIdDataset(baseCorpus, ds));
+			}
 		} else {
 			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
-			testSets.put("prop-dev", new QuestionIdDataset(baseCorpus, "prop-dev"));
-			
-			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
-			testSets.get("prop-dev").loadData(DataConfig.get("propbankQADevFilename"));
-		}
-
-		// Each QA is associcated with a set of question labels, each label has different granularity.
-		CountDictionary tempQDict = new CountDictionary();
-		for (QAPair qa : trainSet.questions) {
-			String[] qlabels = QuestionEncoder.getMultiQuestionLabels(qa.questionWords, qa);
-			for (String qlabel : qlabels) {
-				tempQDict.addString(qlabel);
+			for (String ds : new String[] {"prop-dev", "wiki1-train", "wiki1-dev"}) {
+				testSets.put(ds, new QuestionIdDataset(baseCorpus, ds));
 			}
 		}
-		System.out.println("Saw " + tempQDict.size() + " distinct question labels.");
-		CountDictionary qdict = new CountDictionary(tempQDict, minLabelFreq);
+		trainSet.loadData(DataConfig.getDataset(trainSet.datasetName));
+		for (String ds : testSets.keySet()) {
+			testSets.get(ds).loadData(DataConfig.getDataset(ds));
+		}
+		
+		CountDictionary qdict = new CountDictionary();
+		for (AnnotatedSentence sent : trainSet.sentences) {
+			for (int propHead : sent.qaLists.keySet()) {
+				CountDictionary cd = QuestionEncoder.encode(sent.sentence, 
+						propHead, sent.qaLists.get(propHead));
+				for (int i = 0; i < cd.size(); i++) {
+					qdict.addString(cd.getString(i));
+				}
+			}
+		}
+		System.out.println("Saw " + qdict.size() + " distinct question labels.");
 		int numUnseenQuestionLabels = 0;
 		for (QuestionIdDataset testSet : testSets.values()) {
-			for (QAPair qa : testSet.questions) {
-				String[] qlabels = QuestionEncoder.getMultiQuestionLabels(qa.questionWords, qa);
-				for (String qlabel : qlabels) {
-					int qid = qdict.lookupString(qlabel);
-					if (qid < 0) {
-			//			System.out.println("Unseen question labels:\t" + qlabel);
-						numUnseenQuestionLabels ++;
+			for (AnnotatedSentence sent : testSet.sentences) {
+				for (int propHead : sent.qaLists.keySet()) {
+					CountDictionary cd = QuestionEncoder.encode(sent.sentence, 
+							propHead, sent.qaLists.get(propHead));
+					for (int i = 0; i < cd.size(); i++) {
+						String qlabel = cd.getString(i);
+						if (!qdict.contains(qlabel)) {
+							++ numUnseenQuestionLabels;
+						}
+						qdict.addString(cd.getString(i));
 					}
 				}
 			}
 		}
 		System.out.println("Number of unseen labels:\t" + numUnseenQuestionLabels);
-		int numKeptLabels = 0;
-		for (int i = 0; i < qdict.size(); i++) {
-			if (qdict.getCount(i) >= minLabelFreq) {
-				numKeptLabels ++;
-			}
-		}
-		System.out.println("Number of labels:\t" + numKeptLabels);
-		
-		
+	
 		// *********** Generate training/test samples **********
-		if (regenerateSamples) {
-			KBestParseRetriever syntaxHelper = new KBestParseRetriever(kBest);
+		if (config.regenerateSamples) {
+			KBestParseRetriever syntaxHelper = new KBestParseRetriever(config.kBest);
 			trainSet.generateSamples(syntaxHelper, qdict);
 			for (QuestionIdDataset ds : testSets.values()) {
 				ds.generateSamples(syntaxHelper, qdict);
@@ -146,13 +133,12 @@ public class BaselineQuestionIdExperiment {
 		}		
 	
 		// ********** Extract features ***************
-		// TODO: question id feature extractor ..
 		featureExtractor = new QuestionIdFeatureExtractor(
 				baseCorpus,
-				kBest,
-				minFeatureFreq,
-				useLexicalFeatures,
-				useDependencyFeatures);
+				config.kBest,
+				config.minFeatureFreq,
+				config.useLexicalFeatures,
+				config.useDependencyFeatures);
 		featureExtractor.extractFeatures(trainSet.samples);
 		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (QuestionIdDataset ds : testSets.values()) {
@@ -168,7 +154,7 @@ public class BaselineQuestionIdExperiment {
 		
 		for (LiblinearHyperParameters prm : cvPrms) {
 			System.out.println(prm.toString());
-			double res = crossValidate(trainSet, cvFolds, prm);
+			double res = crossValidate(trainSet, config.cvFolds, prm);
 			cvResults.add(res);
 		}
 		for (int i = 0; i < cvResults.size(); i++) {
@@ -203,7 +189,7 @@ public class BaselineQuestionIdExperiment {
 		BufferedWriter writer = null;
 		try {
 			writer = new BufferedWriter(
-					new FileWriter(new File(featureOutputPath)));
+					new FileWriter(new File(config.featureOutputPath)));
 			for (int fid = 0; fid < model.getNrFeature(); fid++) {
 				double fweight = model.getFeatureWeights()[fid + 1];
 				writer.write(String.format("%s\t%.6f\n",
@@ -255,7 +241,7 @@ public class BaselineQuestionIdExperiment {
 			double[] prob = new double[2];
 			Linear.predictProbability(model, features[i], prob);
 			int gold = sample.isPositiveSample ? 1 : -1;
-			int pred = prob[0] > evalThreshold ? 1 : -1;
+			int pred = prob[0] > config.evalThreshold ? 1 : -1;
 			f1.numGold += (gold > 0 ? 1 : 0);
 			f1.numProposed += (pred > 0 ? 1 : 0);
 			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);
@@ -282,7 +268,7 @@ public class BaselineQuestionIdExperiment {
 		for (int i = 0; i < ds.questions.size(); i++) {
 			shuffledIds.add(i);
 		}
-		Collections.shuffle(shuffledIds, new Random(randomSeed));
+		Collections.shuffle(shuffledIds, new Random(config.randomSeed));
 		int sampleSize = shuffledIds.size();
 		int foldSize = sampleSize / cvFolds;
 	
@@ -345,7 +331,6 @@ public class BaselineQuestionIdExperiment {
 			e.printStackTrace();
 			return;
 		}
-		
 		ArrayList<LiblinearHyperParameters> cvPrms =
 				new ArrayList<LiblinearHyperParameters>();
 		

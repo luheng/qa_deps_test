@@ -1,8 +1,10 @@
 package annotation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import util.StringUtils;
+import data.CountDictionary;
 import data.QAPair;
 import data.Sentence;
 
@@ -221,6 +223,107 @@ public class QuestionEncoder {
 			}
 		}
 		return labels;
+	}
+	
+	/**
+	 * 
+	 * @param sentence
+	 * @param propHead
+	 * @param qaList
+	 */
+	public static CountDictionary encode(Sentence sentence, int propHead,
+			ArrayList<QAPair> qaList) {
+		CountDictionary slotCount = new CountDictionary();
+		for (QAPair qa : qaList) {
+			String[] question = qa.questionWords;
+			assert (question.length == 7);
+			String wh  = question[0],
+				   aux = question[1],
+				   ph1 = question[2],
+				   trg = question[3],
+				   ph2 = question[4],
+				   pp  = question[5],
+				   ph3 = question[6];
+			boolean nullPh1 = ph1.isEmpty(),
+					nullPh2 = ph2.isEmpty(),
+					nullPh3 = ph3.isEmpty(),
+					nullPP = pp.isEmpty();
+			boolean verbalPh3 = (ph3.equals("do") || ph3.equals("doing") ||
+								 ph3.equals("be"));
+			boolean passiveVoice = isPassiveVoice(aux, trg),
+					activeVoice = !passiveVoice;
+			String whSlot = wh.equals("who") ? "someone" : "something";
+			
+			String[] labels = new String[6];
+			Arrays.fill(labels, "");
+			labels[0] = wh;
+			if (isWhoWhat(wh)) {
+				if (activeVoice && nullPh1) {
+					slotCount.addString("S_" + whSlot);
+					if (!nullPh2) {
+						slotCount.addString("O1_" + ph2);
+					}
+				} else if (activeVoice && !nullPh1 && nullPh2) {
+					slotCount.addString("O1_" + whSlot);
+					slotCount.addString("S_" + ph1);
+				} else if ((activeVoice && !nullPh1 && !nullPh2) ||
+						   (passiveVoice && !nullPh1)) {
+					if (verbalPh3) {
+						slotCount.addString("O_do_" + whSlot);
+					} else if (!nullPP) {
+						if (passiveVoice && pp.equals("by")) {
+							slotCount.addString("S_" + whSlot);
+						} else {
+							slotCount.addString("O_" + pp + "_" + whSlot);
+						}
+					} else {
+						slotCount.addString("O2_" + whSlot);
+					}
+					if (activeVoice) {
+						slotCount.addString("S_" + ph1);
+					} else {
+						slotCount.addString("O1_" + ph1);
+					}
+					if (!nullPh2) {
+						slotCount.addString("O1_" + ph2);			
+					}
+				} else if (passiveVoice && nullPh1) {
+					slotCount.addString("O1_" + whSlot);
+					if (!nullPh2) {
+						slotCount.addString("O2_" + ph2);
+					}
+				}
+				// PP and Ph3
+				if (nullPh3) {
+					continue;
+				}
+				if (activeVoice && nullPh1 && !nullPh2 && nullPP) {
+					if (!ph3.contains("do") && !ph3.contains("be")) {
+						slotCount.addString("O2_" + ph3);
+					}
+				} else {
+					if (ph3.equals("do something")) {
+						slotCount.addString("O_do");
+					} else if (!nullPP &&
+							!ph3.contains("do") && !ph3.contains("be")) {
+						if (passiveVoice && pp.equals("by")) {
+							slotCount.addString("S_" + ph3);
+						} else {
+							slotCount.addString("O_" + pp + "_" + ph3);
+						}
+					} else if (ph3.equals("somewhere")) {
+						slotCount.addString("O_somewhere");
+					}
+				} 
+			} else {
+				if (!nullPP && nullPh3) {
+					slotCount.addString("M_" + pp + "_" + wh);
+				} else {
+					slotCount.addString("M_" + wh);
+				}
+			}
+		}
+		return slotCount;
 	}
 	
 	private static String nonEmptyOr(String str, String r1, String r2) {

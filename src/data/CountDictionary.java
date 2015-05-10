@@ -143,6 +143,10 @@ public class CountDictionary {
 		return strings;
 	}
 	
+	public ArrayList<String> getStrings() {
+		return index2str;
+	}
+	
 	public int getTotalCount() {
 		int totalCount = 0;
 		for (int c : index2count) {
