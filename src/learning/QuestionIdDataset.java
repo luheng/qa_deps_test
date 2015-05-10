@@ -10,9 +10,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import annotation.QASlotPrepositions;
 import annotation.QuestionEncoder;
 import data.AnnotatedSentence;
 import data.Corpus;
@@ -46,12 +48,12 @@ public class QuestionIdDataset {
 		this.sentenceMap = new HashMap<Integer, Sentence>();
 	}
 	
-	public HashSet<Integer> getSentenceIds() {
-		HashSet<Integer> sentIds = new HashSet<Integer>();
-		for (QAPair qa : questions) {
-			sentIds.add(qa.sentence.sentenceID);
-		}
-		return sentIds;
+	public Collection<Integer> getSentenceIds() {
+		return sentenceMap.keySet();
+	}
+	
+	public Sentence getSentence(int sentId) {
+		return sentenceMap.get(sentId);
 	}
 
 	public void loadData(String filePath) throws IOException {
@@ -101,10 +103,18 @@ public class QuestionIdDataset {
 		}
 	}
 	
-	private HashSet<Integer> getNegativeLabels(HashSet<Integer> posLabels,
-			CountDictionary qlabelDict) {
+	private HashSet<Integer> getNegativeLabels(Sentence sent,
+			HashSet<Integer> posLabels, CountDictionary qlabelDict) {
 		HashSet<Integer> negLabels = new HashSet<Integer>();
 		for (int qid = 0; qid < qlabelDict.size(); qid++) {
+			String[] qlabelInfo = qlabelDict.getString(qid).split("_");
+			if (qlabelInfo.length == 3 && !qlabelInfo[1].equals("do")) {
+				String pp = qlabelInfo[1];
+				if (!sent.containsToken(pp) &&
+					!QASlotPrepositions.mostFrequentPPSet.contains(pp)) {
+					continue;
+				}
+			}
 			if (!posLabels.contains(qid)) {
 				negLabels.add(qid);
 			}
@@ -117,10 +127,11 @@ public class QuestionIdDataset {
 		// For each <sentence, target> pair, generate a set of samples
 		int numTargetWords = 0, numPositiveSamples = 0;
 		for (AnnotatedSentence annotSent : sentences) {
+			Sentence sent = annotSent.sentence;
 			for (int propHead : annotSent.qaLists.keySet()) {
 				ArrayList<QAPair> qaList = annotSent.qaLists.get(propHead);
-				CountDictionary cd = QuestionEncoder.encode(annotSent.sentence,
-						propHead, qaList);
+				CountDictionary cd = QuestionEncoder.encode(sent, propHead,
+						qaList);
 				HashSet<Integer> qlabelIds = new HashSet<Integer>();
 				for (String qlabel : cd.getStrings()) {
 					qlabelIds.add(qlabelDict.lookupString(qlabel));
@@ -128,10 +139,10 @@ public class QuestionIdDataset {
 				qlabelIds.remove(-1);
 				ArrayList<QASample> newSamples =
 						syntaxHelper.generateQuesitonIdSamples(
-								annotSent.sentence,
+								sent,
 								propHead,
 								qlabelIds,
-								getNegativeLabels(qlabelIds, qlabelDict),
+								getNegativeLabels(sent, qlabelIds, qlabelDict),
 								qlabelDict);
 				for (QASample sample : newSamples) {
 					samples.add(sample);

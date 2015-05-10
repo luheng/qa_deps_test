@@ -34,4 +34,6 @@ public class QASlotPrepositions {
 		"about",
 	//	"of"
 	};
+	public static final HashSet<String> mostFrequentPPSet =
+			StringUtils.asSet(mostFrequentPPs);
 }

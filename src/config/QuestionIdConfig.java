@@ -10,6 +10,7 @@ public class QuestionIdConfig {
 	public int randomSeed;
 	public int cvFolds;
 	public int minFeatureFreq;
+	public int minQuestionLabelFreq;
 	public int kBest;
 	public int featureKBest;
 				
@@ -40,6 +41,7 @@ public class QuestionIdConfig {
 		randomSeed = Integer.parseInt(properties.getProperty("randomSeed"));
 		cvFolds = Integer.parseInt(properties.getProperty("cvFolds"));
 		minFeatureFreq = Integer.parseInt(properties.getProperty("minFeatureFreq"));
+		minQuestionLabelFreq = Integer.parseInt(properties.getProperty("minQuestionLabelFreq"));
 		kBest = Integer.parseInt(properties.getProperty("kBest"));
 		featureKBest = Integer.parseInt(properties.getProperty("featureKBest"));
 		evalThreshold = Double.parseDouble(properties.getProperty("evalThreshold"));

@@ -22,6 +22,7 @@ import learning.QuestionIdFeatureExtractor;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.CountDictionary;
+import data.Sentence;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
@@ -30,12 +31,15 @@ import de.bwaldvogel.liblinear.Problem;
 import de.bwaldvogel.liblinear.SolverType;
 import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
+import gnu.trove.map.hash.TIntDoubleHashMap;
 
 public class BaselineQuestionIdExperiment {
 	private QuestionIdConfig config;
 	
 	private Corpus baseCorpus; 
 	private QuestionIdFeatureExtractor featureExtractor;
+	
+	CountDictionary qdict;
 	
 	private QuestionIdDataset trainSet;
 	private HashMap<String, QuestionIdDataset> testSets;
@@ -67,35 +71,31 @@ public class BaselineQuestionIdExperiment {
 			testSets.get(ds).loadData(DataConfig.getDataset(ds));
 		}
 		
-		CountDictionary qdict = new CountDictionary();
+		qdict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
 				CountDictionary cd = QuestionEncoder.encode(sent.sentence, 
 						propHead, sent.qaLists.get(propHead));
-				for (int i = 0; i < cd.size(); i++) {
-					qdict.addString(cd.getString(i));
+				for (String qlabel : cd.getStrings()) {
+					qdict.addString(qlabel);
 				}
 			}
 		}
-		System.out.println("Saw " + qdict.size() + " distinct question labels.");
-		int numUnseenQuestionLabels = 0;
 		for (QuestionIdDataset testSet : testSets.values()) {
 			for (AnnotatedSentence sent : testSet.sentences) {
 				for (int propHead : sent.qaLists.keySet()) {
 					CountDictionary cd = QuestionEncoder.encode(sent.sentence, 
 							propHead, sent.qaLists.get(propHead));
-					for (int i = 0; i < cd.size(); i++) {
-						String qlabel = cd.getString(i);
-						if (!qdict.contains(qlabel)) {
-							++ numUnseenQuestionLabels;
-						}
-						qdict.addString(cd.getString(i));
+					for (String qlabel : cd.getStrings()) {
+						qdict.addString(qlabel);
 					}
 				}
 			}
 		}
-		System.out.println("Number of unseen labels:\t" + numUnseenQuestionLabels);
-	
+		qdict = new CountDictionary(qdict, config.minQuestionLabelFreq);
+		qdict.prettyPrint();
+		
+		
 		// *********** Generate training/test samples **********
 		if (config.regenerateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(config.kBest);
@@ -184,21 +184,11 @@ public class BaselineQuestionIdExperiment {
 			System.out.println(String.format("Testing accuracy on %s:\t%s",
 					ds.datasetName,
 					StringUtils.doubleArrayToString("\t", accuracy)));
-		}
-		
-		BufferedWriter writer = null;
-		try {
-			writer = new BufferedWriter(
-					new FileWriter(new File(config.featureOutputPath)));
-			for (int fid = 0; fid < model.getNrFeature(); fid++) {
-				double fweight = model.getFeatureWeights()[fid + 1];
-				writer.write(String.format("%s\t%.6f\n",
-						featureExtractor.featureDict.getString(fid), fweight));
+			if (ds.datasetName.contains("dev")) {
+				generateQuestions(ds.samples, ds.features, ds, model);
 			}
-			writer.close();
-		} catch (IOException e) {
 		}
-		
+	
 	}
 	
 	private Model train(Feature[][] features, double[] labels,
@@ -260,6 +250,47 @@ public class BaselineQuestionIdExperiment {
 			}
 		}
 		*/
+	}
+	
+	private void generateQuestions(
+			ArrayList<QASample> samples,
+			Feature[][] features,
+			QuestionIdDataset ds,
+			Model model) {
+		HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>> results =
+			new HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>>();
+		
+		for (int i = 0; i < samples.size(); i++) {
+			QASample sample = samples.get(i);
+			double[] prob = new double[2];
+			Linear.predictProbability(model, features[i], prob);
+			
+			int sentId = sample.sentenceId;
+			int propHead = sample.propHead;
+		
+			if (!results.containsKey(sentId)) {
+				results.put(sentId, new HashMap<Integer, TIntDoubleHashMap>());
+			}
+			if (!results.get(sentId).containsKey(propHead)) {
+				results.get(sentId).put(propHead, new TIntDoubleHashMap());
+			}
+			results.get(sentId).get(propHead).put(sample.questionLabelId,
+					prob[0]);
+			
+		}
+		for (int sentId : results.keySet()) {
+			for (int propHead : results.get(sentId).keySet()) {
+				Sentence sent = ds.getSentence(sentId);
+				System.out.println(sent.getTokensString());
+				System.out.println(sent.getTokenString(propHead));
+				TIntDoubleHashMap slots = results.get(sentId).get(propHead);
+				for (int id : slots.keys()) {
+					String qlabel = qdict.getString(id);
+					System.out.println(String.format(qlabel + "\t" + slots.get(id)));
+				}
+				System.out.println();
+			}
+		}
 	}
 	
 	private double crossValidate(QuestionIdDataset ds, int cvFolds,
@@ -334,8 +365,8 @@ public class BaselineQuestionIdExperiment {
 		ArrayList<LiblinearHyperParameters> cvPrms =
 				new ArrayList<LiblinearHyperParameters>();
 		
-		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
-		//cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
 		
 		LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
