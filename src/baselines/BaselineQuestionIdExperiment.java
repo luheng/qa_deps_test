@@ -22,6 +22,7 @@ import learning.QuestionIdFeatureExtractor;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.CountDictionary;
+import data.QAPair;
 import data.Sentence;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.Linear;
@@ -38,6 +39,7 @@ public class BaselineQuestionIdExperiment {
 	
 	private Corpus baseCorpus; 
 	private QuestionIdFeatureExtractor featureExtractor;
+	private QuestionGenerator qgen;
 	
 	CountDictionary qdict;
 	
@@ -52,7 +54,6 @@ public class BaselineQuestionIdExperiment {
 		config = new QuestionIdConfig();
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new HashMap<String, QuestionIdDataset>();
-
 		
 		// ********** Load QA Data ********************
 		if (config.trainWithWiki) {
@@ -179,6 +180,8 @@ public class BaselineQuestionIdExperiment {
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
 				StringUtils.doubleArrayToString("\t", accuracy)));
+		
+		qgen = new QuestionGenerator(baseCorpus, qdict);
 		for (QuestionIdDataset ds : testSets.values()) {
 			accuracy = predictAndEvaluate(ds, model, "");
 			System.out.println(String.format("Testing accuracy on %s:\t%s",
@@ -267,7 +270,6 @@ public class BaselineQuestionIdExperiment {
 			
 			int sentId = sample.sentenceId;
 			int propHead = sample.propHead;
-		
 			if (!results.containsKey(sentId)) {
 				results.put(sentId, new HashMap<Integer, TIntDoubleHashMap>());
 			}
@@ -278,17 +280,26 @@ public class BaselineQuestionIdExperiment {
 					prob[0]);
 			
 		}
-		for (int sentId : results.keySet()) {
+		for (AnnotatedSentence annotSent : ds.sentences) {
+			int sentId = annotSent.sentence.sentenceID;
+			if (!results.containsKey(sentId)) {
+				continue;
+			}
+			
 			for (int propHead : results.get(sentId).keySet()) {
 				Sentence sent = ds.getSentence(sentId);
 				System.out.println(sent.getTokensString());
 				System.out.println(sent.getTokenString(propHead));
-				TIntDoubleHashMap slots = results.get(sentId).get(propHead);
-				for (int id : slots.keys()) {
-					String qlabel = qdict.getString(id);
-					System.out.println(String.format(qlabel + "\t" + slots.get(id)));
+				System.out.println("=========== annotated ==============");
+				for (QAPair qa : annotSent.qaLists.get(propHead)) {
+					System.out.println(qa.getQuestionString() + "\t" + qa.getAnswerString());
 				}
-				System.out.println();
+				System.out.println("=========== generated ==============");
+				ArrayList<String[]> questions = qgen.generateQuestions(
+						sent, propHead, results);
+				for (String[] question : questions) {
+					System.out.println(StringUtils.join("\t", question));
+				}
 			}
 		}
 	}

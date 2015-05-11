@@ -3,7 +3,6 @@ package annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import util.StringUtils;
 import data.CountDictionary;
 import data.QAPair;
 import data.Sentence;
@@ -33,7 +32,7 @@ public class QuestionEncoder {
 		}
 		return encode(question, tokens);
 	}
-	
+	 
 	/**
 	 * 
 	 * @param question 
@@ -269,12 +268,12 @@ public class QuestionEncoder {
 				} else if ((activeVoice && !nullPh1 && !nullPh2) ||
 						   (passiveVoice && !nullPh1)) {
 					if (verbalPh3) {
-						slotCount.addString("O_do_" + whSlot);
+						slotCount.addString("O2_do_" + whSlot);
 					} else if (!nullPP) {
 						if (passiveVoice && pp.equals("by")) {
 							slotCount.addString("S_" + whSlot);
 						} else {
-							slotCount.addString("O_" + pp + "_" + whSlot);
+							slotCount.addString("O2_" + pp + "_" + whSlot);
 						}
 					} else {
 						slotCount.addString("O2_" + whSlot);
@@ -297,22 +296,22 @@ public class QuestionEncoder {
 				if (nullPh3) {
 					continue;
 				}
-				if (activeVoice && nullPh1 && !nullPh2 && nullPP) {
+				if (ph3.equals("somewhere")) {
+					slotCount.addString(nullPP ? "M_where" : "M_" + pp + "_where");
+				}  else if (activeVoice && nullPh1 && !nullPh2 && nullPP) {
 					if (!ph3.contains("do") && !ph3.contains("be")) {
 						slotCount.addString("O2_" + ph3);
 					}
 				} else {
 					if (ph3.equals("do something")) {
-						slotCount.addString("O_do");
+						slotCount.addString("O2_do_something");
 					} else if (!nullPP &&
 							!ph3.contains("do") && !ph3.contains("be")) {
 						if (passiveVoice && pp.equals("by")) {
 							slotCount.addString("S_" + ph3);
 						} else {
-							slotCount.addString("O_" + pp + "_" + ph3);
+							slotCount.addString("O2_" + pp + "_" + ph3);
 						}
-					} else if (ph3.equals("somewhere")) {
-						slotCount.addString("O_somewhere");
 					}
 				} 
 			} else {

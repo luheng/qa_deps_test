@@ -68,6 +68,8 @@ public class BaselineQADataProcessor {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r028_sarah.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r031_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r032_ellen.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r033_katie.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r034_katie.xlsx",
 	};
 
 	private static String kOutputPathPrefix = "data/propbank";
