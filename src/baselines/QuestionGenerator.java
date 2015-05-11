@@ -39,12 +39,15 @@ public class QuestionGenerator {
 			String qlabel = qdict.getString(id);
 			String[] qinfo = qlabel.split("_");
 			String qkey, qval;
-			if (qinfo.length == 2 && qinfo[0] != "M") {
+			if (qinfo[0].equals("M")) {
+				qkey = qlabel;
+				qval = "";
+			} else if (qinfo.length == 2) {
 				qkey = qinfo[0];
 				qval = qinfo[1];
 			} else {
 				qkey = qinfo[0] + "_" + qinfo[1];
-				qval = (qinfo.length == 2 ? "." : qinfo[2]); 
+				qval = qinfo[2]; 
 			}
 			
 			if (!slotScore.containsKey(qkey) || slotScore.get(qkey) < score) {
@@ -86,9 +89,12 @@ public class QuestionGenerator {
 				hasObj1 = slotValue.containsKey("O1");
 		
 		for (String qkey : slotValue.keySet()) {
+			String[] question = new String[QASlots.numSlots];
+			for (int i = 0; i < QASlots.numSlots; i++) {
+				question[i] = "";
+			}
 			if (qkey.equals("S")) {
-				String[] question = new String[QASlots.numSlots];
-				question[0] = slotValue.get("S").equals("someone") ? "Who" : "What";
+				question[0] = slotValue.get("S").equals("someone") ? "who" : "what";
 				question[1] = "";
 				question[2] = "";
 				question[3] = verb;
@@ -99,9 +105,7 @@ public class QuestionGenerator {
 					question[5] = "to";
 					question[6] = "do something";
 				}
-				questions.add(question);
 			} else if (qkey.equals("O1")) {
-				String[] question = new String[QASlots.numSlots];
 				question[0] = slotValue.get("O1").equals("someone") ? "who" : "what";
 				if (hasSubj) {
 					question[1] = "did";
@@ -120,9 +124,7 @@ public class QuestionGenerator {
 					question[5] = "";
 					question[6] = "";
 				}
-				questions.add(question);
 			} else if (qkey.equals("O2_do")) {
-				String[] question = new String[QASlots.numSlots];
 				question[0] = "what";
 				question[1] = "is";
 				question[2] = slotValue.get("O1");
@@ -130,33 +132,35 @@ public class QuestionGenerator {
 				question[4] = "";
 				question[5] = "to";
 				question[6] = "do";
-				questions.add(question);
 			} else if (qkey.startsWith("O2_")) {
-				String[] question = new String[QASlots.numSlots];
-				question[0] = "what";
+				question[0] = slotValue.get(qkey).equals("someone") ? "who" : "what";
 				question[1] = "is";
 				question[2] = slotValue.get("O1");
 				question[3] = infl[4];
 				question[4] = "";
 				question[5] = qkey.split("_")[1];
 				question[6] = "";
-				questions.add(question);
-			} else if (qkey.startsWith("M")) {
-				String[] question = new String[QASlots.numSlots];
-				question[0] = qkey.split("_")[1];
+			} else if (qkey.startsWith("M_")) {
+				String[] qinfo = qkey.split("_");
+				question[0] = qinfo[1];
 				question[1] = "is";
 				question[2] = slotValue.get("O1");
 				question[3] = infl[4];
 				question[4] = "";
-				if (slotValue.containsKey("O2_do")) {
+				if (qinfo.length > 2) {
+					question[5] = qinfo[2];
+					question[6] = "";
+				} else if (slotValue.containsKey("O2_do")) {
 					question[5] = "to";
 					question[6] = "do something";
 				} else {
 					question[5] = "";
 					question[6] = "";
 				}
-				questions.add(question);
+			} else {
+				continue;
 			}
+			questions.add(question);
 		}
 		return questions;
 	}

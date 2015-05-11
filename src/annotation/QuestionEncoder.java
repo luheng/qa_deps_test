@@ -316,7 +316,7 @@ public class QuestionEncoder {
 				} 
 			} else {
 				if (!nullPP && nullPh3) {
-					slotCount.addString("M_" + pp + "_" + wh);
+					slotCount.addString("M_" + wh + "_" + pp);
 				} else {
 					slotCount.addString("M_" + wh);
 				}
