@@ -72,6 +72,7 @@ public class QuestionGenerator {
 		for (String qkey : slotValue.keySet()) {
 			// Try to find matching template
 			String[] bestTemp = null;
+			int numCoresCovered = 0, tempFreq = 0;
 			for (String tempStr : tempDict.getStrings()) {
 				String[] temp = tempStr.split("\t");
 				if (!temp[0].split("_")[0].equals(qkey.split("_")[0])) {
@@ -79,13 +80,18 @@ public class QuestionGenerator {
 				}
 				// System.out.println(tempStr);
 				boolean match = true;
+				int numCores = qkey.startsWith("ARG") ? 1 : 0;
 				for (int i = 1; i <= 3; i++) {
 					if (!temp[i].equals("_") && !slotKeys.containsKey(temp[i])) {
 						match = false;
 					}
+					if (temp[i].startsWith("ARG")) {
+						++ numCores;
+					}
 				}
-				if (match) {
+				if (match && numCores > numCoresCovered) {
 					bestTemp = tempStr.split("\t");
+					numCoresCovered = numCores;
 					break;
 				}
 			}
