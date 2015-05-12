@@ -267,7 +267,9 @@ public class BaselineQuestionIdExperiment {
 			QASample sample = samples.get(i);
 			double[] prob = new double[2];
 			Linear.predictProbability(model, features[i], prob);
-			
+			if (prob[0] < config.evalThreshold) {
+				continue;
+			}
 			int sentId = sample.sentenceId;
 			int propHead = sample.propHead;
 			if (!results.containsKey(sentId)) {
@@ -288,6 +290,11 @@ public class BaselineQuestionIdExperiment {
 			
 			for (int propHead : results.get(sentId).keySet()) {
 				Sentence sent = ds.getSentence(sentId);
+				ArrayList<String[]> questions = qgen.generateQuestions(
+						sent, propHead, results);
+				if (questions == null) {
+					continue;
+				}
 				System.out.println(sent.getTokensString());
 				System.out.println(sent.getTokenString(propHead));
 				System.out.println("=========== annotated ==============");
@@ -295,11 +302,10 @@ public class BaselineQuestionIdExperiment {
 					System.out.println(qa.getQuestionString() + "\t" + qa.getAnswerString());
 				}
 				System.out.println("=========== generated ==============");
-				ArrayList<String[]> questions = qgen.generateQuestions(
-						sent, propHead, results);
 				for (String[] question : questions) {
 					System.out.println(StringUtils.join("\t", question));
 				}
+				System.out.println();
 			}
 		}
 	}

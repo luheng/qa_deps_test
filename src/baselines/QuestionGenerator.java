@@ -1,6 +1,7 @@
 package baselines;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import annotation.QASlots;
@@ -32,8 +33,7 @@ public class QuestionGenerator {
 		
 		for (int id : slots.keys()) {
 			double score = slots.get(id);
-			if (id >= qdict.size() ||
-				score < 0.1) {
+			if (id >= qdict.size()) {
 				continue;
 			}
 			String qlabel = qdict.getString(id);
@@ -81,7 +81,12 @@ public class QuestionGenerator {
 		// Now truly, generate the questions.
 		// 1. Subj questions
 		String verb = sentence.getTokenString(propHead);
-		int inflId = inflDict.getBestInflectionId(verb);
+		System.out.println(verb);
+		int inflId = inflDict.getBestInflectionId(verb.toLowerCase());
+		// FIXME
+		if (inflId < 0) {
+			return null;
+		}
 		String[] infl = inflDict.inflections.get(inflId);
 		ArrayList<String[]> questions = new ArrayList<String[]>();
 		
@@ -90,12 +95,12 @@ public class QuestionGenerator {
 		
 		for (String qkey : slotValue.keySet()) {
 			String[] question = new String[QASlots.numSlots];
-			for (int i = 0; i < QASlots.numSlots; i++) {
-				question[i] = "";
-			}
+			Arrays.fill(question, "");
 			if (qkey.equals("S")) {
 				question[0] = slotValue.get("S").equals("someone") ? "who" : "what";
-				question[1] = "";
+				if (verb.endsWith("ing")) {
+					question[1] = "is";
+				}
 				question[2] = "";
 				question[3] = verb;
 				if (hasObj1) {
@@ -114,7 +119,7 @@ public class QuestionGenerator {
 				} else {
 					question[1] = "is";
 					question[2] = "";
-					question[3] = infl[4];
+					question[3] = verb.endsWith("ing") ? "being " + infl[4] : infl[4];
 				}
 				question[4] = "";
 				if (slotValue.containsKey("O2_do")) {
@@ -143,9 +148,15 @@ public class QuestionGenerator {
 			} else if (qkey.startsWith("M_")) {
 				String[] qinfo = qkey.split("_");
 				question[0] = qinfo[1];
-				question[1] = "is";
-				question[2] = slotValue.get("O1");
-				question[3] = infl[4];
+				if (hasSubj) {
+					question[1] = verb.endsWith("ing") ? "is" : "did";
+					question[2] = slotValue.get("S");
+					question[3] = verb.endsWith("ing") ? verb : infl[0];
+				} else {
+					question[1] = "is";
+					question[2] = slotValue.get("O1");
+					question[3] = verb.endsWith("ing") ? "being " + infl[4] : infl[4];
+				}
 				question[4] = "";
 				if (qinfo.length > 2) {
 					question[5] = qinfo[2];
@@ -160,7 +171,15 @@ public class QuestionGenerator {
 			} else {
 				continue;
 			}
-			questions.add(question);
+			boolean hasNull = false;
+			for (String q : question) {
+				if (q == null) {
+					hasNull = true;
+				}
+			}
+			if (!hasNull) {
+				questions.add(question);
+			}
 		}
 		return questions;
 	}
