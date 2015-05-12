@@ -112,6 +112,18 @@ public class QuestionIdFeatureExtractor {
 		return rels;
 	}
 	
+	private static HashSet<String> getQLabelFeatures(String qlabel) {
+		HashSet<String> feats = new HashSet<String>();
+		String qkey = qlabel.split("=")[0];    
+		String qval = qlabel.split("=")[1];    // i.e. someone, something
+		String qtype = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. ARG0, 
+		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
+		feats.add("QKey=" + qkey);
+		feats.add("QType=" + qtype);
+		feats.add("QPP=" + qpp);
+		feats.add("QVal=" + qval);
+		return feats;
+	}
 	
 	private TIntDoubleHashMap extractFeatures(CountDictionary fdict,
 			QASample sample, boolean acceptNew) {
@@ -129,17 +141,6 @@ public class QuestionIdFeatureExtractor {
 		int propId = sample.propHead;
 		String prop = tokens[propId];
 		String plemma = inflDict.getBestBaseVerb(prop);
-		
-		String qlabel = sample.questionLabel;
-		String qkey = qlabel.split("=")[0];    
-		String qval = qlabel.split("=")[1];    // i.e. someone, something
-		String qcat = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. ARG0, 
-		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
-		
-		int kBest = useDependencyFeatures ?
-				Math.min(numBestParses, sample.kBestParses.size()) : 0;
-		
-		// ***************** Proposition features ********************		
 		String pvoice = "Aktv";
 		for (TypedDependency dep : lookupChildrenByParent(sample.kBestParses.get(0), propId)) {
 			if (dep.reln().toString().equals("auxpass")) {
@@ -148,6 +149,17 @@ public class QuestionIdFeatureExtractor {
 			}
 		}
 		
+		String qlabel = sample.questionLabel;
+		String qkey = qlabel.split("=")[0]; 
+		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
+		HashSet<String> qfeats = getQLabelFeatures(qlabel);
+		
+		int kBest = useDependencyFeatures ?
+				Math.min(numBestParses, sample.kBestParses.size()) : 0;
+		
+		// ***************** Proposition features ********************		
+		
+		
 		// TODO: possible features
 		// 1. predicate, lemma, voice
 		// 2. predicate children
@@ -155,16 +167,11 @@ public class QuestionIdFeatureExtractor {
 		// 4. predicate voice
 		// 5. pp in qlabel
 		// 6. negation in sentence
-		
-		fv.adjustOrPutValue(fdict.addString("PTOK_QL=" + prop + "_" + qkey, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PTOK_iF=" + prop + "_" + qval, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PTOK_QL=" + prop + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM_WH=" + plemma + "_" + qkey, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM_IF=" + plemma + "_" + qval, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM_QL=" + plemma + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PV_WH=" + pvoice + "_" + qkey, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PV_WH=" + pvoice + "_" + qval, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PV_QL=" + pvoice + "_" + qlabel, acceptNew), 1, 1);
+		for (String qfeat : qfeats) {
+			fv.adjustOrPutValue(fdict.addString("PTOK=" + prop + "#" + qfeat, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma + "#" + qfeat, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+		}
 		
 		for (int i = 0; i < kBest; i++) {
 			Collection<TypedDependency> deps = sample.kBestParses.get(i);
@@ -172,112 +179,83 @@ public class QuestionIdFeatureExtractor {
 			for (TypedDependency dep : lookupParentsByChild(deps, propId)) {
 				String relStr = dep.reln().toString();
 				String govTok = dep.gov().word();
-				fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PFUNkb_WH=" + relStr + "_" + qkey, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PGOVkb_WH=" + govTok + "_" + qkey, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PFUNkb_IF=" + relStr + "_" + qval, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PGOVkb_IF=" + govTok + "_" + qval, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PFUNkb_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PGOVkb_QL=" + govTok + "_" + qlabel, acceptNew), 1, 1);
-				if (i == 0) {
-					fv.adjustOrPutValue(fdict.addString("PFUN1b=" + relStr, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PGOV1b=" + govTok, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PFUN1b_WH=" + relStr + "_" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PGOV1b_WH=" + govTok + "_" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PFUN1b_IF=" + relStr + "_" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PGOV1b_IF=" + govTok + "_" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PFUN1b_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PGOV1b_QL=" + govTok + "_" + qlabel, acceptNew), 1, 1);
-					
+				for (String qfeat : qfeats) {
+					fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr + "#" + qfeat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok + "#" + qfeat, acceptNew), 1, 1);
+					if (i == 0) {
+						fv.adjustOrPutValue(fdict.addString("PFUN1b=" + relStr + "#" + qfeat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("PGOV1b=" + govTok + "#" + qfeat, acceptNew), 1, 1);						
+					}
 				}
 			}
 			// Predicate children
 			for (TypedDependency dep : lookupChildrenByParent(deps, propId)) {
 				String relStr = dep.reln().toString();
 				String modTok = dep.gov().word();
-				String modPos = sample.postags[dep.dep().index() - 1];
-				fv.adjustOrPutValue(fdict.addString("PCRelkb=" + relStr, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCPoskb=" + modPos, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCTokkb=" + modTok, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCRelkb_WH=" + relStr + "_" + qkey, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCPoskb_WH=" + modPos + "_" + qkey, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCTokkb_WH=" + modTok + "_" + qkey, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCRelkb_IF=" + relStr + "_" + qval, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCPoskb_IF=" + modPos + "_" + qval, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCTokkb_IF=" + modTok + "_" + qval, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCRelkb_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCPoskb_QL=" + modPos + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PCTokkb_QL=" + modTok + "_" + qlabel, acceptNew), 1, 1);
-			
-				if (i == 0) {
-					fv.adjustOrPutValue(fdict.addString("PCRel1b=" + relStr, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCPos1b=" + modPos, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCTok1b=" + modTok, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCRel1b_WH=" + relStr + "_" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCPos1b_WH=" + modPos + "_" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCTok1b_WH=" + modTok + "_" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCRel1b_IF=" + relStr + "_" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCPos1b_IF=" + modPos + "_" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCTok1b_IF=" + modTok + "_" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCRel1b_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCPos1b_QL=" + modPos + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PCTok1b_QL=" + modTok + "_" + qlabel, acceptNew), 1, 1);
-				
+				int modIdx = dep.dep().index() - 1;
+				String modPos = sample.postags[modIdx];
+				for (String qfeat : qfeats) {
+					fv.adjustOrPutValue(fdict.addString("PCRelkb=" + relStr + "#" + qfeat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("PCPoskb=" + modPos + "#" + qfeat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("PCTokkb=" + modTok + "#" + qfeat, acceptNew), 1, 1);
+					if (modIdx < propId) {
+						fv.adjustOrPutValue(fdict.addString("LfCRelkb=" + relStr + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("LfCPoskb=" + modPos + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("LfCTokkb=" + modTok + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+					} else {
+						fv.adjustOrPutValue(fdict.addString("RtCRelkb=" + relStr + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("RtCPoskb=" + modPos + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("RtCTokkb=" + modTok + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+					}
+					if (i == 0) {
+						fv.adjustOrPutValue(fdict.addString("PCRel1b=" + relStr + "#" + qfeat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("PCPos1b=" + modPos + "#" + qfeat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("PCTok1b=" + modTok + "#" + qfeat, acceptNew), 1, 1);
+					}
 				}
 			}
 		}
 		
 		// *************** Words in the sentence ****************
 		for (int i = 0; i < length; i++) {
+			// FIXME: into args: window size.
+			if (Math.abs(i - propId) > 15 || i == propId) {
+				continue;
+			}
 			String utag = univDict.getUnivPostag(postags[i]);
-			if (utag.equals("PRT")) {
-				boolean matchPP = qlabel.contains(tokens[i]);
-				fv.adjustOrPutValue(fdict.addString("hasPP_WH=" + qkey, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("hasPP_IF=" + qval, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("hasPP_QL=" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PP_WH=" + tokens[i] + "_" + qkey, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PP_IF=" + tokens[i] + "_" + qval, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PP_QL=" + tokens[i] + "_" + qlabel, acceptNew), 1, 1);
-				if (matchPP) {
-					fv.adjustOrPutValue(fdict.addString("matchPP_WH=" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("matchPP_IF=" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("matchPP_QL=" + qlabel, acceptNew), 1, 1);
-				}
+			ArrayList<TypedDependency> depPath = lookupDepPath(
+					sample.kBestParses.get(0), i, propId);
+			String rels = getRelPathString(depPath, i);
+			boolean isPP = utag.equals("PRT");
+			boolean matchPP = isPP && tokens[i].equals(qpp);
+			for (String qfeat : qfeats) {
+				fv.adjustOrPutValue(fdict.addString("RelPath=" + rels + "#" + qfeat, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("Pos=" + postags[i] + "#" + qfeat, acceptNew), 1, 1);
 				if (i < propId) {
-					fv.adjustOrPutValue(fdict.addString("hasPPleft_WH=" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("hasPPleft_IF=" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("hasPPleft_QL=" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PPleft_WH=" + tokens[i] + "_" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PPleft_IF=" + tokens[i] + "_" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PPleft_QL=" + tokens[i] + "_" + qlabel, acceptNew), 1, 1);
-					if (matchPP) {
-						fv.adjustOrPutValue(fdict.addString("matchPleft_WH=" + qkey, acceptNew), 1, 1);
-						fv.adjustOrPutValue(fdict.addString("matchPleft_IF=" + qval, acceptNew), 1, 1);
-						fv.adjustOrPutValue(fdict.addString("matchPPleft_QL=" + qlabel, acceptNew), 1, 1);
-					}
+					fv.adjustOrPutValue(fdict.addString("LfPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
 				} else {
-					fv.adjustOrPutValue(fdict.addString("hasPPright_WH=" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("hasPPright_IF=" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("hasPPright_QL=" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PPright_WH=" + tokens[i] + "_" + qkey, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PPright_IF=" + tokens[i] + "_" + qval, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PPright_QL=" + tokens[i] + "_" + qlabel, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("RtPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+				}
+				if (isPP) {
+					fv.adjustOrPutValue(fdict.addString("PP=" + tokens[i] + "#" + qfeat, acceptNew), 1, 1);
 					if (matchPP) {
-						fv.adjustOrPutValue(fdict.addString("matchPPright_WH=" + qkey, acceptNew), 1, 1);
-						fv.adjustOrPutValue(fdict.addString("matchPPright_IF=" + qval, acceptNew), 1, 1);
-						fv.adjustOrPutValue(fdict.addString("matchPPright_QL=" + qlabel, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("matchPP" + "#" + qfeat, acceptNew), 1, 1);
 					}
+				}
+				if (isPP && i == propId + 1) {
+					fv.adjustOrPutValue(fdict.addString("VPP=" + tokens[i] + "#" + qfeat, acceptNew), 1, 1);
+					if (matchPP) {
+						fv.adjustOrPutValue(fdict.addString("matchVPP" + "#" + qfeat, acceptNew), 1, 1);
+					}
+					
 				}
 			}
 		}
 		
 		// *************** Question *******************
-		// Question word and label
-		fv.adjustOrPutValue(fdict.addString("WH=" + qkey, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("IF=" + qval, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("QL=" + qlabel, acceptNew), 1, 1);
-		
+		for (String qfeat : qfeats) {
+			fv.adjustOrPutValue(fdict.addString(qfeat, acceptNew), 1, 1);
+		}
 		// *************** Bias feature ... ***************
 		fv.adjustOrPutValue(fdict.addString("BIAS=.", acceptNew), 1, 1);
 		fv.remove(-1);

@@ -2,7 +2,6 @@ package annotation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 
 import data.CountDictionary;
 import data.QAPair;
@@ -296,15 +295,13 @@ public class QuestionEncoder {
 					slots[0] = addSlotLabel("ARG2", pp, whSlot2, slotDict);
 					slots[1] = addSlotLabel("ARG1", "", ph1, slotDict);					
 				}
-				if (!nullPh3 && !verbalPh3) {
-					if (ph3.equals("somewhere")) {
-						slots[3] = addSlotLabel("WHERE", pp, ".", slotDict);
-					} else if (passiveVoice && pp.equals("by") &&
-							(ph3.equals("someone") || ph3.equals("something"))) {
-						slots[3] = addSlotLabel("ARG0", "", ph3, slotDict);
-					} else {
-						slots[3] = addSlotLabel("ARG2", pp, ph3, slotDict);
-					}
+				if (ph3.equals("somewhere")) {
+					slots[3] = addSlotLabel("WHERE", pp, ".", slotDict);
+				} else if (passiveVoice && pp.equals("by") &&
+						(ph3.equals("someone") || ph3.equals("something"))) {
+					slots[3] = addSlotLabel("ARG0", "", ph3, slotDict);
+				} else if (!verbalPh3){
+					slots[3] = addSlotLabel("ARG2", pp, ph3, slotDict);
 				}
 			} else {
 				slots[0] = addSlotLabel(wh.toUpperCase(), "", ".", slotDict);
@@ -325,10 +322,6 @@ public class QuestionEncoder {
 			}
 			slots[4] = (activeVoice ? "active" : "passive");
 			String tempStr = StringUtils.join("\t", "_", slots);
-			/*if (wh.equals("who")) {
-				System.out.println(qa.getQuestionString());
-				System.out.println(tempStr + "\n");
-			}*/
 			if (tempDict != null) {
 				tempDict.addString(tempStr);
 			}

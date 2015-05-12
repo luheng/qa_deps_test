@@ -164,22 +164,26 @@ public class BaselineQuestionIdExperiment {
 				trainSet.features,
 				trainSet.labels,
 				numFeatures, prm);
+		
+		qgen = new QuestionGenerator(baseCorpus, slotDict, tempDict);		
+		for (QuestionIdDataset ds : testSets.values()) {
+			if (ds.datasetName.contains("dev")) {
+				generateQuestions(ds.samples, ds.features, ds, model);
+			}
+		}
+		
 		double[] accuracy = predictAndEvaluate(trainSet, model, "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
 				StringUtils.doubleArrayToString("\t", accuracy)));
 		
-		qgen = new QuestionGenerator(baseCorpus, slotDict, tempDict);
+
 		for (QuestionIdDataset ds : testSets.values()) {
 			accuracy = predictAndEvaluate(ds, model, "");
 			System.out.println(String.format("Testing accuracy on %s:\t%s",
 					ds.datasetName,
 					StringUtils.doubleArrayToString("\t", accuracy)));
-			if (ds.datasetName.contains("dev")) {
-				generateQuestions(ds.samples, ds.features, ds, model);
-			}
 		}
-	
 	}
 	
 	private Model train(Feature[][] features, double[] labels,
