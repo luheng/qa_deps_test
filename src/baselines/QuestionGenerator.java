@@ -3,13 +3,13 @@ package baselines;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import annotation.QASlots;
 import data.Corpus;
 import data.CountDictionary;
 import data.Sentence;
 import data.VerbInflectionDictionary;
+import util.StringUtils;
 import experiments.ExperimentUtils;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
@@ -66,6 +66,9 @@ public class QuestionGenerator {
 			slotKeys.put(qkey.contains("_") ? qkey.split("_")[0] + "_PP" : qkey,
 						 qkey);
 		}
+		// System.out.println(StringUtils.join("\t", slotValue.keySet().toArray()));
+		// System.out.println(StringUtils.join("\t", slotKeys.keySet().toArray()));
+		
 		for (String qkey : slotValue.keySet()) {
 			// Try to find matching template
 			String[] bestTemp = null;
@@ -74,8 +77,9 @@ public class QuestionGenerator {
 				if (!temp[0].split("_")[0].equals(qkey.split("_")[0])) {
 					continue;
 				}
+				// System.out.println(tempStr);
 				boolean match = true;
-				for (int i = 1; i < temp.length; i++) {
+				for (int i = 1; i <= 3; i++) {
 					if (!temp[i].equals("_") && !slotKeys.containsKey(temp[i])) {
 						match = false;
 					}
@@ -128,9 +132,7 @@ public class QuestionGenerator {
 				question[5] = ph3Key.split("_")[1];
 			}
 			// PH3
-			question[6] = ph3Slot;
-			
-			
+			question[6] = ph3Slot;	
 			questions.add(question);
 		}
 		return questions;
