@@ -45,9 +45,9 @@ public class QuestionAnalyzer {
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
 				ArrayList<QAPair> qaList = sent.qaLists.get(propHead);
-				CountDictionary sc = 
-						QuestionEncoder.encode(sent.sentence, propHead,
-								sent.qaLists.get(propHead));
+			//	CountDictionary sc = 
+				//		QuestionEncoder.encode(sent.sentence, propHead,
+					//			sent.qaLists.get(propHead));
 				/*
 				System.out.println(sent.sentence.getTokensString());
 				for (QAPair qa : qaList) {
@@ -56,9 +56,9 @@ public class QuestionAnalyzer {
 				sc.prettyPrint();
 				System.out.println("\n");
 				*/
-				for (int i = 0; i < sc.size(); i++) {
-					slots.addString(sc.getString(i));
-				}
+			//	for (int i = 0; i < sc.size(); i++) {
+			//		slots.addString(sc.getString(i));
+			//	}
 			}
 		}
 		slots.prettyPrint();

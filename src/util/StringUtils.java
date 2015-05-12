@@ -18,6 +18,19 @@ public class StringUtils {
 		return joined;
 	}
 	
+	public static String join(String delimiter, String padding,
+			Object[] objects) {
+		String joined = "";
+		for (int i = 0; i < objects.length; i++) {
+			if (!joined.isEmpty()) {
+				joined += delimiter;
+			}
+			String ostr = objects[i].toString();
+			joined += (ostr.isEmpty() ? padding : ostr);
+		}
+		return joined;
+	}
+	
 	public static String join(String delimiter, ArrayList<String> stringArr) {
 		String joined = "";
 		for (String str : stringArr) {

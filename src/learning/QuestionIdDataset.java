@@ -171,10 +171,10 @@ public class QuestionIdDataset {
 			Sentence sent = annotSent.sentence;
 			for (int propHead : annotSent.qaLists.keySet()) {
 				ArrayList<QAPair> qaList = annotSent.qaLists.get(propHead);
-				CountDictionary cd = QuestionEncoder.encode(sent, propHead,
-						qaList);
+				CountDictionary slotDict = new CountDictionary();
+				QuestionEncoder.encode(sent, propHead, qaList, slotDict, null);
 				HashSet<Integer> qlabelIds = new HashSet<Integer>();
-				for (String qlabel : cd.getStrings()) {
+				for (String qlabel : slotDict.getStrings()) {
 					qlabelIds.add(qlabelDict.lookupString(qlabel));
 				}
 				qlabelIds.remove(-1);

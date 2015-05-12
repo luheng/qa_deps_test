@@ -135,7 +135,6 @@ public class QuestionIdFeatureExtractor {
 		String qval = qlabel.split("=")[1];    // i.e. someone, something
 		String qcat = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. ARG0, 
 		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
-		String[] qlabelInfo = qlabel.split("_");
 		
 		int kBest = useDependencyFeatures ?
 				Math.min(numBestParses, sample.kBestParses.size()) : 0;

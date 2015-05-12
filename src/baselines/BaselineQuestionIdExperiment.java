@@ -38,7 +38,7 @@ public class BaselineQuestionIdExperiment {
 	private QuestionIdFeatureExtractor featureExtractor;
 	private QuestionGenerator qgen;
 	
-	CountDictionary qdict;
+	CountDictionary slotDict, tempDict;
 	
 	private QuestionIdDataset trainSet;
 	private HashMap<String, QuestionIdDataset> testSets;
@@ -69,26 +69,28 @@ public class BaselineQuestionIdExperiment {
 			testSets.get(ds).loadData(DataConfig.getDataset(ds));
 		}
 		
-		qdict = new CountDictionary();
+		slotDict = new CountDictionary();
+		tempDict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
-				CountDictionary cd = QuestionEncoder.encode(sent.sentence, 
-						propHead, sent.qaLists.get(propHead));
-				for (String qlabel : cd.getStrings()) {
-					qdict.addString(qlabel);
-				}
+				QuestionEncoder.encode(
+						sent.sentence, 
+						propHead,
+						sent.qaLists.get(propHead),
+						slotDict,
+						tempDict);
 			}
 		}
-		qdict = new CountDictionary(qdict, config.minQuestionLabelFreq);
-		qdict.prettyPrint();
-		
+		slotDict = new CountDictionary(slotDict, config.minQuestionLabelFreq);
+		slotDict.prettyPrint();
+		tempDict.prettyPrint();
 		
 		// *********** Generate training/test samples **********
 		if (config.regenerateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(config.kBest);
-			trainSet.generateSamples(syntaxHelper, qdict);
+			trainSet.generateSamples(syntaxHelper, slotDict);
 			for (QuestionIdDataset ds : testSets.values()) {
-				ds.generateSamples(syntaxHelper, qdict);
+				ds.generateSamples(syntaxHelper, slotDict);
 			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;
@@ -167,14 +169,14 @@ public class BaselineQuestionIdExperiment {
 				trainSet.datasetName,
 				StringUtils.doubleArrayToString("\t", accuracy)));
 		
-		qgen = new QuestionGenerator(baseCorpus, qdict);
+		qgen = new QuestionGenerator(baseCorpus, slotDict);
 		for (QuestionIdDataset ds : testSets.values()) {
 			accuracy = predictAndEvaluate(ds, model, "");
 			System.out.println(String.format("Testing accuracy on %s:\t%s",
 					ds.datasetName,
 					StringUtils.doubleArrayToString("\t", accuracy)));
 			if (ds.datasetName.contains("dev")) {
-				generateQuestions(ds.samples, ds.features, ds, model);
+			//	generateQuestions(ds.samples, ds.features, ds, model);
 			}
 		}
 	
