@@ -3,6 +3,7 @@ package baselines;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import annotation.QASlots;
 import data.Corpus;
@@ -15,28 +16,140 @@ import gnu.trove.map.hash.TIntDoubleHashMap;
 public class QuestionGenerator {
 
 	VerbInflectionDictionary inflDict = null;
-	CountDictionary qdict = null;
+	CountDictionary slotDict = null, tempDict = null;
 	
-	public QuestionGenerator(Corpus corpus, CountDictionary qdict) {
+	public QuestionGenerator(Corpus corpus, CountDictionary qdict, CountDictionary tempDict) {
 		inflDict = ExperimentUtils.loadInflectionDictionary(corpus);		
-		this.qdict = qdict;
+		this.slotDict = qdict;
+		this.tempDict = tempDict;
 	}
 	
+	/**
+	 * This might look more data-driven.
+	 * @param sentence
+	 * @param propHead
+	 * @param results
+	 * @return
+	 */
+	public ArrayList<String[]> generateQuestions2(
+			Sentence sentence,
+			int propHead,
+			HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>> results) {
+		assert (tempDict != null);
+		HashMap<String, String> slotValue = new HashMap<String, String>();
+		HashMap<String, Double> slotScore = new HashMap<String, Double>();
+		TIntDoubleHashMap slots = results.get(sentence.sentenceID).get(propHead);
+		for (int id : slots.keys()) {
+			double score = slots.get(id);
+			if (id >= slotDict.size()) {
+				continue;
+			}
+			String qlabel = slotDict.getString(id);
+			String[] qinfo = qlabel.split("=");
+			String qkey = qinfo[0], qval = qinfo[1];
+			if (!slotScore.containsKey(qkey) || slotScore.get(qkey) < score) {
+				slotValue.put(qkey, qval);
+				slotScore.put(qkey, score);
+			}
+	
+		}
+		
+		// Now truly, generate the questions.
+		// 1. Subj questions
+		String verb = sentence.getTokenString(propHead);
+		System.out.println(verb);
+		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
+		ArrayList<String[]> questions = new ArrayList<String[]>();
+	
+		HashMap<String, String> slotKeys = new HashMap<String, String>();
+		for (String qkey : slotValue.keySet()) {
+			slotKeys.put(qkey.contains("_") ? qkey.split("_")[0] + "_PP" : qkey,
+						 qkey);
+		}
+		for (String qkey : slotValue.keySet()) {
+			// Try to find matching template
+			String[] bestTemp = null;
+			for (String tempStr : tempDict.getStrings()) {
+				String[] temp = tempStr.split("\t");
+				if (!temp[0].split("_")[0].equals(qkey.split("_")[0])) {
+					continue;
+				}
+				boolean match = true;
+				for (int i = 1; i < temp.length; i++) {
+					if (!temp[i].equals("_") && !slotKeys.containsKey(temp[i])) {
+						match = false;
+					}
+				}
+				if (match) {
+					bestTemp = tempStr.split("\t");
+					break;
+				}
+			}
+			if (bestTemp == null) {
+				continue;
+			}
+			
+			String whSlot = slotValue.get(qkey);
+			String ph3Key = "", ph3Slot = "";
+			if (!bestTemp[3].equals("_")) {
+				ph3Key = bestTemp[3].contains("PP") ? slotKeys.get(bestTemp[3]) : bestTemp[3];
+				ph3Slot = ph3Key.startsWith("WHERE") ? "somewhere" : slotValue.get(ph3Key.split("_")[0]);
+			}
+					
+			String[] question = new String[QASlots.numSlots];
+			Arrays.fill(question, "");
+			// WH
+			if (qkey.startsWith("ARG")) {
+				question[0] = whSlot.equals("someone") ? "who" : "what";
+			} else {
+				question[0] = qkey.toLowerCase();
+			}
+			// AUX+TRG
+			if (bestTemp[4].equals("active")) {
+				if (qkey.startsWith("ARG0")) {
+					question[1] = verb.endsWith("ing") ? "is" : "";
+					question[3] = verb;
+				} else {
+					question[1] = "did";
+					question[3] = infl[0];
+				}
+			} else {
+				question[1] = "is";
+				question[3] = verb.endsWith("ing") ? "being " + infl[4] : infl[4];
+			}
+			// PH1
+			question[2] = bestTemp[1].equals("_") ? "" : slotValue.get(bestTemp[1]);
+			// PH2
+			question[4] = bestTemp[2].equals("_") ? "" : slotValue.get(bestTemp[2]);
+			// PP
+			if (qkey.contains("_")) {
+				question[5] = qkey.split("_")[1];
+			} else if (ph3Key.contains("_")) {
+				question[5] = ph3Key.split("_")[1];
+			}
+			// PH3
+			question[6] = ph3Slot;
+			
+			
+			questions.add(question);
+		}
+		return questions;
+	}
+	
+	@Deprecated
 	public ArrayList<String[]> generateQuestions(
 			Sentence sentence,
 			int propHead,
 			HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>> results) {
-		
 		HashMap<String, String> slotValue = new HashMap<String, String>();
 		HashMap<String, Double> slotScore = new HashMap<String, Double>();
 		TIntDoubleHashMap slots = results.get(sentence.sentenceID).get(propHead);
-		
 		for (int id : slots.keys()) {
 			double score = slots.get(id);
-			if (id >= qdict.size()) {
+			if (id >= slotDict.size()) {
 				continue;
 			}
-			String qlabel = qdict.getString(id);
+			String qlabel = slotDict.getString(id);
 			String[] qinfo = qlabel.split("_");
 			String qkey, qval;
 			if (qinfo[0].equals("M")) {
@@ -76,7 +189,6 @@ public class QuestionGenerator {
 		for (String qkey : slotValue.keySet()) {
 			System.out.println(qkey + "\t" + slotValue.get(qkey) + "\t" + slotScore.get(qkey));
 		}*/
-		
 		
 		// Now truly, generate the questions.
 		// 1. Subj questions

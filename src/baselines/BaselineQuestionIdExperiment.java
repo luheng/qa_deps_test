@@ -169,14 +169,14 @@ public class BaselineQuestionIdExperiment {
 				trainSet.datasetName,
 				StringUtils.doubleArrayToString("\t", accuracy)));
 		
-		qgen = new QuestionGenerator(baseCorpus, slotDict);
+		qgen = new QuestionGenerator(baseCorpus, slotDict, tempDict);
 		for (QuestionIdDataset ds : testSets.values()) {
 			accuracy = predictAndEvaluate(ds, model, "");
 			System.out.println(String.format("Testing accuracy on %s:\t%s",
 					ds.datasetName,
 					StringUtils.doubleArrayToString("\t", accuracy)));
 			if (ds.datasetName.contains("dev")) {
-			//	generateQuestions(ds.samples, ds.features, ds, model);
+				generateQuestions(ds.samples, ds.features, ds, model);
 			}
 		}
 	
@@ -278,7 +278,7 @@ public class BaselineQuestionIdExperiment {
 			
 			for (int propHead : results.get(sentId).keySet()) {
 				Sentence sent = ds.getSentence(sentId);
-				ArrayList<String[]> questions = qgen.generateQuestions(
+				ArrayList<String[]> questions = qgen.generateQuestions2(
 						sent, propHead, results);
 				if (questions == null) {
 					continue;
