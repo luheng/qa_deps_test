@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import util.StringUtils;
 import experiments.ExperimentUtils;
 
 public class VerbInflectionDictionary {
@@ -66,6 +65,8 @@ public class VerbInflectionDictionary {
 	}
 	
 	public int getBestInflectionId(String verb) {
+		
+		
 		ArrayList<Integer> inflIds = inflMap.get(verb);
 		if (inflIds == null) {
 			return -1;
@@ -79,6 +80,32 @@ public class VerbInflectionDictionary {
 			}
 		}
 		return bestId;
+	}
+	
+	public String[] getBestInflections(String verb) {
+		String verbPrefix = "";
+		if (verb.contains("-")) {
+			int idx = verb.indexOf('-');
+			verbPrefix = verb.substring(0, idx + 1);
+			verb = verb.substring(idx + 1);
+		}
+		ArrayList<Integer> inflIds = inflMap.get(verb);
+		if (inflIds == null) {
+			return null;
+		}
+		int bestId = -1, bestCount = -1;
+		for (int i = 0; i < inflIds.size(); i++) {
+			int count = inflCount[inflIds.get(i)];
+			if (count > bestCount) {
+				bestId = inflIds.get(i);
+				bestCount = count;
+			}
+		}
+		String[] infl = new String[5];
+		for (int i = 0; i < 5; i++) {
+			infl[i] = verbPrefix + inflections.get(bestId)[i];
+		}
+		return infl;
 	}
 	
 	public String getBestBaseVerb(String verb) {

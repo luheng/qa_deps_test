@@ -103,20 +103,61 @@ public class QuestionIdDataset {
 		}
 	}
 	
+	public static HashSet<String> getSlotLabels(Sentence sent) {
+		HashSet<String> slots = new HashSet<String>();
+		HashSet<String> ppOpts = getPPOptions(sent);
+		String[] ph3Opts = new String[] {"someone", "something",
+				"do something", "doing something" // "be something", "being something"
+		};
+		for (String ph : new String[] {"someone", "something"}) {
+			slots.add("ARG_0" + "=" + ph);
+			slots.add("ARG_1" + "=" + ph);
+		}
+		for (String ph : ph3Opts) {
+			slots.add("ARG_2" + "=" + ph);
+		}
+		for (String pp : ppOpts) {
+			for (String ph : ph3Opts) {
+				slots.add("ARG_" + pp + "=" + ph);
+			}
+			for (String mod : new String[]{
+					"WHERE", "WHEN", "WHY", "HOW", "HOW MUCH"}) {
+				slots.add(mod + "_" + pp + "=.");
+			}
+		}
+		return slots;
+	}
+	
+	private static HashSet<String> getPPOptions(Sentence sent) {
+		HashSet<String> opSet = new HashSet<String>();
+		for (int i = 0; i < sent.length; i++) {
+			String tok = sent.getTokenString(i).toLowerCase();
+			if (QASlotPrepositions.ppSet.contains(tok)) {
+				opSet.add(tok);
+				if (i < sent.length - 1) {
+					String tok2 = sent.getTokenString(i + 1).toLowerCase();
+					if (QASlotPrepositions.ppSet.contains(tok2)) {
+						opSet.add(tok + " " + tok2);
+					}
+				}
+			}
+		}
+		for (String pp : QASlotPrepositions.mostFrequentPPs) {
+			opSet.add(pp);
+		}
+		return opSet;
+	}
+	
 	private HashSet<Integer> getNegativeLabels(Sentence sent,
 			HashSet<Integer> posLabels, CountDictionary qlabelDict) {
 		HashSet<Integer> negLabels = new HashSet<Integer>();
 		for (int qid = 0; qid < qlabelDict.size(); qid++) {
-			String[] qlabelInfo = qlabelDict.getString(qid).split("_");
-			if (qlabelInfo.length == 3 && !qlabelInfo[1].equals("do")) {
-				String pp = qlabelInfo[1];
-				if (!sent.containsToken(pp) &&
-					!QASlotPrepositions.mostFrequentPPSet.contains(pp)) {
-					continue;
+			String[] info = qlabelDict.getString(qid).split("=")[0].split("_");
+			String qsub = info.length > 1 ? info[1] : "";
+			if (qsub.isEmpty() || getPPOptions(sent).contains(qsub)) {
+				if (!posLabels.contains(qid)) {
+					negLabels.add(qid);
 				}
-			}
-			if (!posLabels.contains(qid)) {
-				negLabels.add(qid);
 			}
 		}
 		return negLabels;

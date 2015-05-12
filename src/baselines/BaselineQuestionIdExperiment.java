@@ -1,9 +1,6 @@
 package baselines;
 
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -79,17 +76,6 @@ public class BaselineQuestionIdExperiment {
 						propHead, sent.qaLists.get(propHead));
 				for (String qlabel : cd.getStrings()) {
 					qdict.addString(qlabel);
-				}
-			}
-		}
-		for (QuestionIdDataset testSet : testSets.values()) {
-			for (AnnotatedSentence sent : testSet.sentences) {
-				for (int propHead : sent.qaLists.keySet()) {
-					CountDictionary cd = QuestionEncoder.encode(sent.sentence, 
-							propHead, sent.qaLists.get(propHead));
-					for (String qlabel : cd.getStrings()) {
-						qdict.addString(qlabel);
-					}
 				}
 			}
 		}

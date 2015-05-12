@@ -225,7 +225,6 @@ public class QuestionEncoder {
 	}
 	
 	/**
-	 * 
 	 * @param sentence
 	 * @param propHead
 	 * @param qaList
@@ -248,7 +247,7 @@ public class QuestionEncoder {
 					nullPh3 = ph3.isEmpty(),
 					nullPP = pp.isEmpty();
 			boolean verbalPh3 = (ph3.equals("do") || ph3.equals("doing") ||
-								 ph3.equals("be"));
+								 ph3.equals("be") || ph3.equals("being"));
 			boolean passiveVoice = isPassiveVoice(aux, trg),
 					activeVoice = !passiveVoice;
 			String whSlot = wh.equals("who") ? "someone" : "something";
@@ -258,71 +257,65 @@ public class QuestionEncoder {
 			labels[0] = wh;
 			if (isWhoWhat(wh)) {
 				if (activeVoice && nullPh1) {
-					slotCount.addString("S_" + whSlot);
-					if (!nullPh2) {
-						slotCount.addString("O1_" + ph2);
-					}
+					// WH->ARG[0], PH2->ARG[1], PH3->ARG[2/pp]
+					addSlotLabel("ARG0", whSlot, slotCount);
+					addSlotLabel("ARG1", ph2, slotCount);
 				} else if (activeVoice && !nullPh1 && nullPh2) {
-					slotCount.addString("O1_" + whSlot);
-					slotCount.addString("S_" + ph1);
-				} else if ((activeVoice && !nullPh1 && !nullPh2) ||
-						   (passiveVoice && !nullPh1)) {
-					if (verbalPh3) {
-						slotCount.addString("O2_do_" + whSlot);
-					} else if (!nullPP) {
-						if (passiveVoice && pp.equals("by")) {
-							slotCount.addString("S_" + whSlot);
-						} else {
-							slotCount.addString("O2_" + pp + "_" + whSlot);
-						}
-					} else {
-						slotCount.addString("O2_" + whSlot);
-					}
-					if (activeVoice) {
-						slotCount.addString("S_" + ph1);
-					} else {
-						slotCount.addString("O1_" + ph1);
-					}
-					if (!nullPh2) {
-						slotCount.addString("O1_" + ph2);			
-					}
+					// WH->ARG[1], PH1->ARG[0], PH3->ARG[2/pp]
+					addSlotLabel("ARG1", whSlot, slotCount);
+					addSlotLabel("ARG0", ph1, slotCount);
+				} else if (activeVoice && !nullPh1 && !nullPh2) {
+					// WH->ARG[2/pp], PH1->ARG[0], PH2->ARG[1]
+					addSlotLabel((nullPP ? "ARG2" : "ARG_" + pp),
+						(verbalPh3 ? ph3 + " something" : whSlot), slotCount);
+					addSlotLabel("ARG0", ph1, slotCount);
+					addSlotLabel("ARG1", ph2, slotCount);
 				} else if (passiveVoice && nullPh1) {
-					slotCount.addString("O1_" + whSlot);
-					if (!nullPh2) {
-						slotCount.addString("O2_" + ph2);
-					}
+					// WH->ARG[1], PH2->ARG[2]
+					addSlotLabel("ARG1", whSlot, slotCount);
+					addSlotLabel("ARG2", ph2, slotCount);
+				} else if (passiveVoice && !nullPh1) {
+					// WH->ARG[2/pp], PH1->ARG[1]
+					addSlotLabel((nullPP ? "ARG2" : "ARG_" + pp),
+						(verbalPh3 ? ph3 + " something" : whSlot), slotCount);
+					addSlotLabel("ARG1", ph1, slotCount);					
 				}
-				// PP and Ph3
-				if (nullPh3) {
+				if (nullPh3 || verbalPh3) {
 					continue;
 				}
 				if (ph3.equals("somewhere")) {
-					slotCount.addString(nullPP ? "M_where" : "M_" + pp + "_where");
-				}  else if (activeVoice && nullPh1 && !nullPh2 && nullPP) {
-					if (!ph3.contains("do") && !ph3.contains("be")) {
-						slotCount.addString("O2_" + ph3);
-					}
+					addSlotLabel(nullPP ? "WHERE" : "WHERE_" + pp, ".", slotCount);
+				} else if (passiveVoice && pp.equals("by") &&
+						(ph3.equals("someone") || ph3.equals("something"))) {
+					addSlotLabel("ARG0", ph3, slotCount);
 				} else {
-					if (ph3.equals("do something")) {
-						slotCount.addString("O2_do_something");
-					} else if (!nullPP &&
-							!ph3.contains("do") && !ph3.contains("be")) {
-						if (passiveVoice && pp.equals("by")) {
-							slotCount.addString("S_" + ph3);
-						} else {
-							slotCount.addString("O2_" + pp + "_" + ph3);
-						}
-					}
-				} 
+					addSlotLabel(nullPP ? "ARG2" : "ARG_" + pp, ph3, slotCount);
+				}
 			} else {
+				addSlotLabel(wh.toUpperCase(), ".", slotCount);
 				if (!nullPP && nullPh3) {
-					slotCount.addString("M_" + wh + "_" + pp);
+					addSlotLabel(wh.toUpperCase() + "_" + pp, ".", slotCount);
+				}
+				if (activeVoice) {
+					// PH1->ARG[0], PH2->ARG[1], PH3->ARG[2]
+					addSlotLabel("ARG0", ph1, slotCount);
+					addSlotLabel("ARG1", ph2, slotCount);
+					addSlotLabel(nullPP ? "ARG2" : "ARG_" + pp, ph3, slotCount);
 				} else {
-					slotCount.addString("M_" + wh);
+					// PH1->ARG[1], PH2->ARG[2]
+					addSlotLabel("ARG1", ph1, slotCount);
+					addSlotLabel("ARG2", ph2, slotCount);
 				}
 			}
 		}
 		return slotCount;
+	}
+	
+	private static void addSlotLabel(String qkey, String qval,
+			CountDictionary qlabels) {
+		if (qval != null && !qval.isEmpty()) {
+			qlabels.addString(qkey + "=" + qval);
+		}
 	}
 	
 	private static String nonEmptyOr(String str, String r1, String r2) {

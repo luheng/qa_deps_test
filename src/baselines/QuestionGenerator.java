@@ -82,12 +82,7 @@ public class QuestionGenerator {
 		// 1. Subj questions
 		String verb = sentence.getTokenString(propHead);
 		System.out.println(verb);
-		int inflId = inflDict.getBestInflectionId(verb.toLowerCase());
-		// FIXME
-		if (inflId < 0) {
-			return null;
-		}
-		String[] infl = inflDict.inflections.get(inflId);
+		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
 		ArrayList<String[]> questions = new ArrayList<String[]>();
 		
 		boolean hasSubj = slotValue.containsKey("S"),
