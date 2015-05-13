@@ -55,12 +55,12 @@ public class BaselineQuestionIdExperiment {
 		// ********** Load QA Data ********************
 		if (config.trainWithWiki) {
 			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");			
-			for (String ds : new String[] {"wiki1-dev", "prop-train", "prop-dev"}) {
+			for (String ds : new String[] {"wiki1-dev", "prop-dev"}) {
 				testSets.put(ds, new QuestionIdDataset(baseCorpus, ds));
 			}
 		} else {
 			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
-			for (String ds : new String[] {"prop-dev", "wiki1-train", "wiki1-dev"}) {
+			for (String ds : new String[] {"prop-dev", "wiki1-dev"}) {
 				testSets.put(ds, new QuestionIdDataset(baseCorpus, ds));
 			}
 		}
@@ -377,6 +377,9 @@ public class BaselineQuestionIdExperiment {
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
 		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 1.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 10.0, 1e-2));
+		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-2));
 		
 		LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
 		exp.trainAndPredict(bestPar);

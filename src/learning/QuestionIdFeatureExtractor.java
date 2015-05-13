@@ -120,8 +120,13 @@ public class QuestionIdFeatureExtractor {
 		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
 		feats.add("QKey=" + qkey);
 		feats.add("QType=" + qtype);
-		feats.add("QPP=" + qpp);
-		feats.add("QVal=" + qval);
+		if (!qpp.isEmpty()) {
+			feats.add("QPP=" + qpp);
+		}
+		if (!qval.equals(".")) {
+			feats.add("QVal=" + qval);
+		}
+		feats.add("QLab=" + qlabel);
 		return feats;
 	}
 	
@@ -167,6 +172,9 @@ public class QuestionIdFeatureExtractor {
 		// 4. predicate voice
 		// 5. pp in qlabel
 		// 6. negation in sentence
+	//	fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
+	//	fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
+	//	fv.adjustOrPutValue(fdict.addString("PV=" + pvoice, acceptNew), 1, 1);
 		for (String qfeat : qfeats) {
 			fv.adjustOrPutValue(fdict.addString("PTOK=" + prop + "#" + qfeat, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma + "#" + qfeat, acceptNew), 1, 1);
@@ -179,6 +187,8 @@ public class QuestionIdFeatureExtractor {
 			for (TypedDependency dep : lookupParentsByChild(deps, propId)) {
 				String relStr = dep.reln().toString();
 				String govTok = dep.gov().word();
+			//	fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr, acceptNew), 1, 1);
+			//	fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok, acceptNew), 1, 1);
 				for (String qfeat : qfeats) {
 					fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr + "#" + qfeat, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok + "#" + qfeat, acceptNew), 1, 1);
@@ -279,7 +289,8 @@ public class QuestionIdFeatureExtractor {
 				featureDict.addString(tempFeatureDict.getString(fid), cnt);
 			}
 		}
-		System.out.println(String.format("%d features before filtering. %d features after filtering.",
+		System.out.println(String.format(
+				"%d features before filtering. %d features after filtering.",
 				tempFeatureDict.size(), featureDict.size()));
 	}
 	
