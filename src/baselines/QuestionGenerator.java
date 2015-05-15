@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import learning.QASample;
+import annotation.AuxiliaryVerbIdentifier;
 import annotation.QASlots;
 import data.Corpus;
 import data.CountDictionary;
 import data.Sentence;
 import data.VerbInflectionDictionary;
-import util.StringUtils;
 import experiments.ExperimentUtils;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
@@ -22,6 +23,35 @@ public class QuestionGenerator {
 		inflDict = ExperimentUtils.loadInflectionDictionary(corpus);		
 		this.slotDict = qdict;
 		this.tempDict = tempDict;
+	}
+	
+	public static void qgenTest(Sentence sentence, int propHead, QASample sample) {
+		String verb = sentence.getTokenString(propHead);
+		// Find auxiliary verb
+		String aux = "";
+		/*
+		for (TypedDependency dep : sample.kBestParses.get(0)) {
+			if (dep.gov().index() == propHead + 1 &&
+				dep.reln().toString().equals("auxpass"))  {
+				aux = sentence.getTokenString(dep.dep().index() - 1);
+			}
+		}
+		*/
+		for (int i = propHead - 1; i >= 0 && i >= propHead - 3; i--) {
+			String tok = sentence.getTokenString(i);
+			if (tok.equals("\'s")) {
+				continue;
+			}
+			if (AuxiliaryVerbIdentifier.isAuxiliaryVerb(sentence, i) ||
+				tok.equals("not") || tok.equals("n\'t")) {
+				aux = tok + " " + aux;
+			}
+		}
+		aux = aux.trim();
+		//System.out.println(sentence.getTokensString());
+		if (aux.length() > 0) {
+			System.out.println(aux + " "  +verb);
+		}
 	}
 	
 	/**
@@ -57,7 +87,6 @@ public class QuestionGenerator {
 		// Now truly, generate the questions.
 		// 1. Subj questions
 		String verb = sentence.getTokenString(propHead);
-		System.out.println(verb);
 		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
 		ArrayList<String[]> questions = new ArrayList<String[]>();
 	

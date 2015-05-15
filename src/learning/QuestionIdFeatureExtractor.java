@@ -127,6 +127,7 @@ public class QuestionIdFeatureExtractor {
 			feats.add("QVal=" + qval);
 		}
 		feats.add("QLab=" + qlabel);
+		feats.add(qkey.startsWith("ARG") ? "isCore" : "isMod");
 		return feats;
 	}
 	
@@ -172,9 +173,9 @@ public class QuestionIdFeatureExtractor {
 		// 4. predicate voice
 		// 5. pp in qlabel
 		// 6. negation in sentence
-	//	fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
-	//	fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
-	//	fv.adjustOrPutValue(fdict.addString("PV=" + pvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV=" + pvoice, acceptNew), 1, 1);
 		for (String qfeat : qfeats) {
 			fv.adjustOrPutValue(fdict.addString("PTOK=" + prop + "#" + qfeat, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma + "#" + qfeat, acceptNew), 1, 1);
@@ -187,8 +188,8 @@ public class QuestionIdFeatureExtractor {
 			for (TypedDependency dep : lookupParentsByChild(deps, propId)) {
 				String relStr = dep.reln().toString();
 				String govTok = dep.gov().word();
-			//	fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr, acceptNew), 1, 1);
-			//	fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok, acceptNew), 1, 1);
 				for (String qfeat : qfeats) {
 					fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr + "#" + qfeat, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok + "#" + qfeat, acceptNew), 1, 1);
@@ -229,23 +230,24 @@ public class QuestionIdFeatureExtractor {
 		// *************** Words in the sentence ****************
 		for (int i = 0; i < length; i++) {
 			// FIXME: into args: window size.
-			if (Math.abs(i - propId) > 15 || i == propId) {
+			/*if (Math.abs(i - propId) > 15 || i == propId) {
 				continue;
-			}
+			}*/
 			String utag = univDict.getUnivPostag(postags[i]);
-			ArrayList<TypedDependency> depPath = lookupDepPath(
-					sample.kBestParses.get(0), i, propId);
-			String rels = getRelPathString(depPath, i);
+			//ArrayList<TypedDependency> depPath = lookupDepPath(
+			//		sample.kBestParses.get(0), i, propId);
+			//String rels = getRelPathString(depPath, i);
 			boolean isPP = utag.equals("PRT");
 			boolean matchPP = isPP && tokens[i].equals(qpp);
 			for (String qfeat : qfeats) {
-				fv.adjustOrPutValue(fdict.addString("RelPath=" + rels + "#" + qfeat, acceptNew), 1, 1);
+				/*fv.adjustOrPutValue(fdict.addString("RelPath=" + rels + "#" + qfeat, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("Pos=" + postags[i] + "#" + qfeat, acceptNew), 1, 1);
 				if (i < propId) {
 					fv.adjustOrPutValue(fdict.addString("LfPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
 				} else {
 					fv.adjustOrPutValue(fdict.addString("RtPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
 				}
+				*/
 				if (isPP) {
 					fv.adjustOrPutValue(fdict.addString("PP=" + tokens[i] + "#" + qfeat, acceptNew), 1, 1);
 					if (matchPP) {
