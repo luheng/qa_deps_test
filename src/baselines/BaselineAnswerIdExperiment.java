@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 
 import config.AnswerIdConfig;
@@ -70,14 +71,14 @@ public class BaselineAnswerIdExperiment {
 			trainSet.generateSamples(syntaxHelper, config.useSpanBasedSamples);
 			ostream = new ObjectOutputStream(
 					new FileOutputStream(dataPath + getSampleFileName(trainSet)));
-			ostream.writeObject(trainSet.getSamples());
+			ostream.writeObject(trainSet.samples);
 			ostream.flush();
 			ostream.close();
 			for (AnswerIdDataset ds : testSets) {
 				ds.generateSamples(syntaxHelper, config.useSpanBasedSamples);
 				ostream = new ObjectOutputStream(
 						new FileOutputStream(dataPath + getSampleFileName(ds)));
-				ostream.writeObject(ds.getSamples());
+				ostream.writeObject(ds.samples);
 				ostream.flush();
 				ostream.close();
 			}
@@ -96,7 +97,7 @@ public class BaselineAnswerIdExperiment {
 				config.minFeatureFreq,
 				config.useLexicalFeatures,
 				config.useDependencyFeatures);
-		featureExtractor.extractFeatures(trainSet.getSamples());
+		featureExtractor.extractFeatures(trainSet.samples);
 		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (AnswerIdDataset ds : testSets) {
 			ds.extractFeaturesAndLabels(featureExtractor);
@@ -107,9 +108,9 @@ public class BaselineAnswerIdExperiment {
 		// 1. Different datasets should have disjoint sentence Ids.
 		System.out.println("======= Sanity Check1: Sentence Overlap =======");
 		int overlap = 0;
-		HashSet<Integer> sids = trainSet.getSentenceIds();
+		Collection<Integer> sids = trainSet.getSentenceIds();
 		for (AnswerIdDataset ds : testSets) {
-			HashSet<Integer> sids2 = ds.getSentenceIds();
+			Collection<Integer> sids2 = ds.getSentenceIds();
 			for (int sid : sids2) {
 				if (sids.contains(sid)) {
 					System.out.println("Overlap!!\t" + sid);
@@ -130,8 +131,8 @@ public class BaselineAnswerIdExperiment {
 	public double[][] trainAndPredict(LiblinearHyperParameters prm) {
 		int numFeatures = featureExtractor.numFeatures();
 		Model model = train(
-				trainSet.getFeatures(),
-				trainSet.getLabels(),
+				trainSet.features,
+				trainSet.labels,
 				numFeatures, prm);
 		double[][] results = new double[testSets.size() + 1][];
 		results[0] = predictAndEvaluate(trainSet, model, "");
@@ -174,8 +175,8 @@ public class BaselineAnswerIdExperiment {
 			Model model,
 			String debugFilePath) {
 		return predictAndEvaluate(
-				ds.getSamples(),
-				ds.getFeatures(),
+				ds.samples,
+				ds.features,
 				ds,
 				model,
 				debugFilePath);
@@ -189,7 +190,7 @@ public class BaselineAnswerIdExperiment {
 			String debugFilePath) {
 		int[][] answerFlags = ds.getAnswerFlags();
 		int[][] answerHeads = ds.getAnswerHeads();
-		ArrayList<QAPair> questions = ds.getQuestions();
+		ArrayList<QAPair> questions = ds.questions;
 		
 		int numQuestions = answerFlags.length;
 		HashSet<Integer> evalQIds = new HashSet<Integer>();

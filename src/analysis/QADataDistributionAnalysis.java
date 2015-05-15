@@ -1,6 +1,6 @@
 package analysis;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 import data.Corpus;
 import learning.AnswerIdDataset;
@@ -9,12 +9,12 @@ public class QADataDistributionAnalysis {
 	 
 	// TODO: vocab size, nr. ood words, sentence length, avg nr. propositions, avg. nr qas
 	public static void analyze(AnswerIdDataset ds) {
-		Corpus corpus = ds.getCorpus();
+		Corpus corpus = ds.corpus;
 		System.out.println(String.format("Dataset: %s; Base corpus: %s",
 				ds.datasetName, corpus.corpusName));
 
 		// *************** Vocabulary size ****************
-		HashSet<Integer> sentIds = ds.getSentenceIds();
+		Collection<Integer> sentIds = ds.getSentenceIds();
 		System.out.println(String.format("Vocab size:\t%d" ,
 				corpus.wordDict.size()));
 
