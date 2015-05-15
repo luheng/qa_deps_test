@@ -108,7 +108,8 @@ public class BaselineAnswerIdExperiment {
 		// 1. Different datasets should have disjoint sentence Ids.
 		System.out.println("======= Sanity Check1: Sentence Overlap =======");
 		int overlap = 0;
-		Collection<Integer> sids = trainSet.getSentenceIds();
+		HashSet<Integer> sids = new HashSet<Integer>();
+		sids.addAll(trainSet.getSentenceIds());
 		for (AnswerIdDataset ds : testSets) {
 			Collection<Integer> sids2 = ds.getSentenceIds();
 			for (int sid : sids2) {
@@ -116,8 +117,8 @@ public class BaselineAnswerIdExperiment {
 					System.out.println("Overlap!!\t" + sid);
 					overlap++;
 				}
-				sids.add(sid);
 			}
+			sids.addAll(sids2);
 		}
 		if (overlap == 0) {
 			System.out.println("======= Sanity Check1 Passed: No Overlap =======");
