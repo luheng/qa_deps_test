@@ -239,11 +239,8 @@ public class QuestionEncoder {
 	}
 	
 	public static void encode(
-			Sentence sentence,
-			int propHead,
-			ArrayList<QAPair> qaList,
-			CountDictionary slotDict,
-			CountDictionary tempDict) {	
+			Sentence sentence, int propHead, ArrayList<QAPair> qaList,
+			CountDictionary slotDict, CountDictionary tempDict) {	
 		for (QAPair qa : qaList) {
 			String[] question = qa.questionWords;
 			assert (question.length == 7);
@@ -326,6 +323,119 @@ public class QuestionEncoder {
 				tempDict.addString(tempStr);
 			}
 		}
+	}
+	
+	private static String getLabel(String qlabel, String pp, String qval) {
+		if (qval == null || qval.isEmpty()) {
+			return "";
+		}
+		String label = (pp.isEmpty() ? qlabel : qlabel + "_" + pp);
+		return label + "=" + qval;
+	}
+	
+	public static String[] getLabels(String[] question) {	
+		assert (question.length == 7);
+		String wh  = question[0],
+			   aux = question[1],
+			   ph1 = question[2],
+			   trg = question[3],
+			   ph2 = question[4],
+			   pp  = question[5],
+			   ph3 = question[6];
+		boolean nullPh1 = ph1.isEmpty(),
+				nullPh2 = ph2.isEmpty(),
+				nullPh3 = ph3.isEmpty(),
+				nullPP = pp.isEmpty();
+		boolean verbalPh3 = (ph3.equals("do") || ph3.equals("doing") ||
+							 ph3.equals("be") || ph3.equals("being"));
+		boolean passiveVoice = isPassiveVoice(aux, trg),
+				activeVoice = !passiveVoice;
+		String whSlot = wh.equals("who") ? "someone" : "something",
+			   whSlot2 = verbalPh3 ? ph3 + " something" : whSlot;
+		
+		// Template format [wh, ph1, ph2, ph3, voice]
+		String[] slots = new String[5];
+		Arrays.fill(slots, "");
+
+		if (isWhoWhat(wh)) {
+			if (activeVoice && nullPh1) {
+				slots[0] = getLabel("ARG0", "", whSlot);
+				slots[2] = getLabel("ARG1", "", ph2);
+			} else if (activeVoice && !nullPh1 && nullPh2) {
+				slots[0] = getLabel("ARG1", "", whSlot);
+				slots[1] = getLabel("ARG0", "", ph1);
+			} else if (activeVoice && !nullPh1 && !nullPh2) {
+				slots[0] = getLabel("ARG2", pp, whSlot2);
+				slots[1] = getLabel("ARG0", "", ph1);
+				slots[2] = getLabel("ARG1", "", ph2);
+			} else if (passiveVoice && nullPh1) {
+				slots[0] = getLabel("ARG1", "", whSlot);
+				slots[2] = getLabel("ARG2", "", ph2);
+			} else if (passiveVoice && !nullPh1) {
+				slots[0] = getLabel("ARG2", pp, whSlot2);
+				slots[1] = getLabel("ARG1", "", ph1);
+			}
+			if (ph3.equals("somewhere")) {
+				slots[3] = getLabel("WHERE", pp, ".");
+			} else if (passiveVoice && pp.equals("by") &&
+					(ph3.equals("someone") || ph3.equals("something"))) {
+				slots[3] = getLabel("ARG0", "", ph3);
+			} else if (!verbalPh3){
+				slots[3] = getLabel("ARG2", pp, ph3);
+			}
+		} else {
+			slots[0] = getLabel(wh.toUpperCase(), "", ".");
+			if (!nullPP && nullPh3) {
+				slots[0] = getLabel(wh.toUpperCase(), pp, ".");
+			}
+			if (activeVoice) {
+				slots[1] = getLabel("ARG0", "", ph1);
+				slots[2] = getLabel("ARG1", "", ph2);
+				slots[3] = getLabel("ARG2", pp, ph3);
+			} else {
+				slots[1] = getLabel("ARG1", "", ph1);
+				slots[2] = getLabel("ARG2", "", ph2);
+				slots[3] = getLabel("ARG2", pp, ph3);
+			}
+		}
+		slots[4] = (activeVoice ? "active" : "passive");
+		return slots;
+	}
+	
+	public static String getQuestionLabel(String[] question) {	
+		assert (question.length == 7);
+		String wh  = question[0],
+			   aux = question[1],
+			   ph1 = question[2],
+			   trg = question[3],
+			   ph2 = question[4],
+			   pp  = question[5],
+			   ph3 = question[6];
+		boolean nullPh1 = ph1.isEmpty(),
+				nullPh2 = ph2.isEmpty();
+		boolean verbalPh3 = (ph3.equals("do") || ph3.equals("doing") ||
+							 ph3.equals("be") || ph3.equals("being"));
+		boolean passiveVoice = isPassiveVoice(aux, trg),
+				activeVoice = !passiveVoice;
+		String whSlot = wh.equals("who") ? "someone" : "something",
+			   whSlot2 = verbalPh3 ? ph3 + " something" : whSlot;
+		
+		if (isWhoWhat(wh)) {
+			if (activeVoice && nullPh1) {
+				return getLabel("ARG0", "", whSlot);
+			}
+			if (activeVoice && !nullPh1 && nullPh2) {
+				return getLabel("ARG1", "", whSlot);
+			}
+			if (activeVoice && !nullPh1 && !nullPh2) {
+				return getLabel("ARG2", pp, whSlot2);
+			}
+			if (passiveVoice && nullPh1) {
+				return getLabel("ARG1", "", whSlot);
+			}
+			return getLabel("ARG2", pp, whSlot2);
+		}
+		return getLabel(wh.toUpperCase(), "", ".");
 	}
 	
 	private static String nonEmptyOr(String str, String r1, String r2) {

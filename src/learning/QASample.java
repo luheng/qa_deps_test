@@ -59,7 +59,8 @@ public class QASample implements java.io.Serializable {
 			Sentence sentence,
 			int propHead,
 			int questionId,
-			String[] question,
+			//String[] question,
+			String questionLabel,
 			int answerHead,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
@@ -69,8 +70,8 @@ public class QASample implements java.io.Serializable {
 				sentence,
 				propHead,
 				questionId,
-				question,
-				"", /* question label */
+				null, /* question */
+				questionLabel,
 				-1, /* question label id */
 				answerHead,
 				kBestScores,
@@ -84,7 +85,8 @@ public class QASample implements java.io.Serializable {
 			Sentence sentence,
 			int propHead,
 			int questionId,
-			String[] question,
+			//String[] question,
+			String questionLabel,
 			int answerHead,
 			ArrayList<Double> kBestScores,
 			ArrayList<Collection<TypedDependency>> kBestParses,
@@ -94,8 +96,8 @@ public class QASample implements java.io.Serializable {
 				sentence,
 				propHead,
 				questionId,
-				question,
-				"", /* question label */
+				null, /* question */
+				questionLabel,
 				-1, /* question label id */
 				answerHead,
 				kBestScores,

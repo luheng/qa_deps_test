@@ -22,7 +22,8 @@ public class QuestionIdDataset extends QADataset {
 		super(corpus, name);
 	}
 	
-	public static HashSet<String> getSlotLabels(Sentence sent) {
+	@SuppressWarnings("unused")
+	private static HashSet<String> getSlotLabels(Sentence sent) {
 		HashSet<String> slots = new HashSet<String>();
 		HashSet<String> ppOpts = getPPOptions(sent);
 		String[] ph3Opts = new String[] {

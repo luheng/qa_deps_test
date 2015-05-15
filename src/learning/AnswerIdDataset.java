@@ -28,11 +28,16 @@ public class AnswerIdDataset extends QADataset {
 								boolean generateSpanBasedSamples) {
 		int numPositiveSamples = 0;
 		for (int i = 0; i < questions.size(); i++) {
-			ArrayList<QASample> newSamples = generateSpanBasedSamples ? 
-					syntaxHelper.generateSamplesFromSpans(questions.get(i),
-							i /* question id */) :
-					syntaxHelper.generateSamplesWithParses(questions.get(i),
-							i /* question id */);				
+			ArrayList<QASample> newSamples = null;
+			if (generateSpanBasedSamples) {
+				newSamples = syntaxHelper.generateSamplesFromSpans(
+									questions.get(i),
+									i /* question id */);
+			} else {
+				newSamples= syntaxHelper.generateSamplesWithParses(
+									questions.get(i),
+									i /* question id */);
+			}
 			for (QASample sample : newSamples) {
 				samples.add(sample);
 				numPositiveSamples += (sample.isPositiveSample ? 1 : 0);

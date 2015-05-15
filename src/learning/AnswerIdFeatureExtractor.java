@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import annotation.QuestionEncoder;
 import data.Corpus;
 import data.CountDictionary;
 import data.VerbInflectionDictionary;
@@ -118,7 +117,6 @@ public class AnswerIdFeatureExtractor {
 		// *************** Information used to extract features **********
 		
 		int length = sample.tokens.length;
-		String[] question = sample.question;
 		String[] tokens = new String[length];
 		for (int i = 0; i < length; i++) {
 			tokens[i] = sample.tokens[i].toLowerCase();
@@ -131,9 +129,14 @@ public class AnswerIdFeatureExtractor {
 		String plemma = inflDict.getBestBaseVerb(prop);
 		String answer = tokens[answerId];
 		String apos = postags[answerId];
-		String wh = question[0].toLowerCase();
-		String qlabel = QuestionEncoder.encode(question, tokens).toLowerCase();
-		String qvoice = (QuestionEncoder.isPassiveVoice(question) ? "Psv" : "Aktv");
+		String qlabel = sample.questionLabel;
+		String qkey = qlabel.split("=")[0];
+		String qval = qlabel.split("=")[1];
+		String wh = qkey.split("_")[0];
+		if (wh.startsWith("A")) {
+			wh = qval.equals("someone") ? "WHO" : "WHAT";
+		}
+
 		int kBest = useDependencyFeatures ?
 				Math.min(numBestParses, sample.kBestParses.size()) : 0;
 		
@@ -150,18 +153,18 @@ public class AnswerIdFeatureExtractor {
 		fv.adjustOrPutValue(fdict.addString("PLEM_APOS=" + plemma + "_" + apos, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("PLEM_APOS_WH=" + plemma + "_" + apos + "_" + wh, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("PLEM_APOS_QL=" + plemma + "_" + apos + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM_APOS_QV=" + plemma + "_" + apos + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PLEM_APOS_QV=" + plemma + "_" + apos + "_" + qkey, acceptNew), 1, 1);
 
 		fv.adjustOrPutValue(fdict.addString("PV_APOS=" + pvoice + "_" + apos, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("PV_APOS_WH=" + pvoice + "_" + apos + "_" + wh, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("PV_APOS_QL=" + pvoice + "_" + apos + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PV_APOS_QV=" + pvoice + "_" + apos + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("PV_APOS_QV=" + pvoice + "_" + apos + "_" + qkey, acceptNew), 1, 1);
 		
 		if (useLexicalFeatures) {
 			fv.adjustOrPutValue(fdict.addString("PTOK_APOS=" + prop + "_" + apos, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PTOK_APOS_WH=" + prop + "_" + apos + "_" + wh, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PTOK_APOS_QL=" + prop + "_" + apos + "_" + qlabel, acceptNew), 1, 1);
-			fv.adjustOrPutValue(fdict.addString("PTOK_APOS_QV=" + prop + "_" + apos + "_" + qvoice, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("PTOK_APOS_QV=" + prop + "_" + apos + "_" + qkey, acceptNew), 1, 1);
 			
 			fv.adjustOrPutValue(fdict.addString("PTOK_ATOK=" + prop + "_" + answer, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PLEM_ATOK=" + plemma + "_" + answer, acceptNew), 1, 1);
@@ -169,13 +172,13 @@ public class AnswerIdFeatureExtractor {
 			fv.adjustOrPutValue(fdict.addString("PLEM_ATOK_WH=" + plemma + "_" + answer + "_" + wh, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PTOK_ATOK_QL=" + prop + "_" + answer + "_" + qlabel, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PLEM_ATOK_QL=" + plemma + "_" + answer + "_" + qlabel, acceptNew), 1, 1);
-			fv.adjustOrPutValue(fdict.addString("PLEM_ATOK_QV=" + plemma + "_" + answer + "_" + qvoice, acceptNew), 1, 1);
-			fv.adjustOrPutValue(fdict.addString("PTOK_ATOK_QV=" + prop + "_" + answer + "_" + qvoice, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("PLEM_ATOK_QV=" + plemma + "_" + answer + "_" + qkey, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("PTOK_ATOK_QV=" + prop + "_" + answer + "_" + qkey, acceptNew), 1, 1);
 			
 			fv.adjustOrPutValue(fdict.addString("PV_ATOK=" + pvoice + "_" + answer, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PV_ATOK_WH=" + pvoice + "_" + answer + "_" + wh, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PV_ATOK_QL=" + pvoice + "_" + answer + "_" + qlabel, acceptNew), 1, 1);
-			fv.adjustOrPutValue(fdict.addString("PV_ATOK_QV=" + pvoice + "_" + answer + "_" + qvoice, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("PV_ATOK_QV=" + pvoice + "_" + answer + "_" + qkey, acceptNew), 1, 1);
 		}
 		
 		// Parents and parent edge labels of proposition in kbest parses.
@@ -190,8 +193,8 @@ public class AnswerIdFeatureExtractor {
 				fv.adjustOrPutValue(fdict.addString("PGOVkb_WH=" + govTok + "_" + wh, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("PFUNkb_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("PGOVkb_QL=" + govTok + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PFUNkb_QV=" + relStr + "_" + qvoice, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PGOVkb_QV=" + govTok + "_" + qvoice, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("PFUNkb_QV=" + relStr + "_" + qkey, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("PGOVkb_QV=" + govTok + "_" + qkey, acceptNew), 1, 1);
 				if (i == 0) {
 					fv.adjustOrPutValue(fdict.addString("PFUN1b=" + relStr, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PGOV1b=" + govTok, acceptNew), 1, 1);
@@ -199,8 +202,8 @@ public class AnswerIdFeatureExtractor {
 					fv.adjustOrPutValue(fdict.addString("PGOV1b_WH=" + govTok + "_" + wh, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PFUN1b_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PGOV1b_QL=" + govTok + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PFUN1b_QV=" + relStr + "_" + qvoice, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PGOV1b_QV=" + govTok + "_" + qvoice, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("PFUN1b_QV=" + relStr + "_" + qkey, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("PGOV1b_QV=" + govTok + "_" + qkey, acceptNew), 1, 1);
 				}
 			}
 		}
@@ -211,12 +214,12 @@ public class AnswerIdFeatureExtractor {
 		fv.adjustOrPutValue(fdict.addString("APOS=" + apos, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("APOS_WH=" + apos + "_" + wh, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("APOS_QL=" + apos + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("APOS_QV=" + apos + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("APOS_QV=" + apos + "_" + qkey, acceptNew), 1, 1);
 		if (useLexicalFeatures) {
 			fv.adjustOrPutValue(fdict.addString("ATOK=" + answer, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("ATOK_WH=" + answer + "_" + wh, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("ATOK_QL=" + answer + "_" + qlabel, acceptNew), 1, 1);
-			fv.adjustOrPutValue(fdict.addString("ATOK_QV=" + answer + "_" + qvoice, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("ATOK_QV=" + answer + "_" + qkey, acceptNew), 1, 1);
 		}
 		
 		// ****************** Argument syntactic context ************************
@@ -230,43 +233,43 @@ public class AnswerIdFeatureExtractor {
 				fv.adjustOrPutValue(fdict.addString("AFUNkb=" + relStr, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("AFUNkb_WH=" + relStr + "_" + wh, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("AFUNkb_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("AFUNkb_QV=" + relStr + "_" + qvoice, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("AFUNkb_QV=" + relStr + "_" + qkey, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("AGOVPoskb=" + govPos, acceptNew), 1, 1);					
 				fv.adjustOrPutValue(fdict.addString("AGOVPoskb_WH=" + govPos + "_" + wh, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("AGOVPoskb_QL=" + govPos + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("AGOVPoskb_QV=" + govPos + "_" + qvoice, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("AGOVPoskb_QV=" + govPos + "_" + qkey, acceptNew), 1, 1);
 				if (i == 0) {
 					fv.adjustOrPutValue(fdict.addString("AFUN1b=" + relStr, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("AFUN1b_WH=" + relStr + "_" + wh, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("AFUN1b_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("AFUN1b_QV=" + relStr + "_" + qvoice, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("AFUN1b_QV=" + relStr + "_" + qkey, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("AGOVPos1b=" + govTok, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("AGOVPos1b_WH=" + govPos + "_" + wh, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("AGOVPos1b_QL=" + govPos + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("AGOVPos1b_QV=" + govPos + "_" + qvoice, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("AGOVPos1b_QV=" + govPos + "_" + qkey, acceptNew), 1, 1);
 				}
 				// If proposition is syntactic parent of answer in any of the k-best parses
 				if (dep.gov().index() == propId + 1) {
 					fv.adjustOrPutValue(fdict.addString("PisPr(A)=True", acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PisPr(A)=True_WH=" + wh, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PisPr(A)=True_QL=" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PisPr(A)=True_QV=" + qvoice, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("PisPr(A)=True_QV=" + qkey, acceptNew), 1, 1);
 					
 					fv.adjustOrPutValue(fdict.addString("PisPr(A)=" + relStr, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PisPr(A)_WH=" + relStr + "_" + wh, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PisPr(A)_QL=" + relStr + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PisPr(A)_QV=" + relStr + "_" + qvoice, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("PisPr(A)_QV=" + relStr + "_" + qkey, acceptNew), 1, 1);
 				}
 				if (useLexicalFeatures) {
 					fv.adjustOrPutValue(fdict.addString("AGOVkb=" + govTok, acceptNew), 1, 1);					
 					fv.adjustOrPutValue(fdict.addString("AGOVkb_WH=" + govTok + "_" + wh, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("AGOVkb_QL=" + govTok + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("AGOVkb_QV=" + govTok + "_" + qvoice, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("AGOVkb_QV=" + govTok + "_" + qkey, acceptNew), 1, 1);
 					if (i == 0) {
 						fv.adjustOrPutValue(fdict.addString("AGOV1b=" + govTok, acceptNew), 1, 1);
 						fv.adjustOrPutValue(fdict.addString("AGOV1b_WH=" + govTok + "_" + wh, acceptNew), 1, 1);
 						fv.adjustOrPutValue(fdict.addString("AGOV1b_QL=" + govTok + "_" + qlabel, acceptNew), 1, 1);
-						fv.adjustOrPutValue(fdict.addString("AGOV1b_QV=" + govTok + "_" + qvoice, acceptNew), 1, 1);
+						fv.adjustOrPutValue(fdict.addString("AGOV1b_QV=" + govTok + "_" + qkey, acceptNew), 1, 1);
 					}
 				}
 			}
@@ -288,8 +291,8 @@ public class AnswerIdFeatureExtractor {
 			fv.adjustOrPutValue(fdict.addString("ARChPOSkb_WH=" + rcPos + "_" + wh, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("ALChPOSkb_QL=" + lcPos + "_" + qlabel, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("ARChPOSkb_QL=" + rcPos + "_" + qlabel, acceptNew), 1, 1);
-			fv.adjustOrPutValue(fdict.addString("ALChPOSkb_QV=" + lcPos + "_" + qvoice, acceptNew), 1, 1);
-			fv.adjustOrPutValue(fdict.addString("ARChPOSkb_QV=" + rcPos + "_" + qvoice, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("ALChPOSkb_QV=" + lcPos + "_" + qkey, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("ARChPOSkb_QV=" + rcPos + "_" + qkey, acceptNew), 1, 1);
 			if (i == 0) {
 				fv.adjustOrPutValue(fdict.addString("ALChPOS1b=" + lcPos, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("ARChPOS1b=" + rcPos, acceptNew), 1, 1);
@@ -297,8 +300,8 @@ public class AnswerIdFeatureExtractor {
 				fv.adjustOrPutValue(fdict.addString("ARChPOS1b_WH=" + rcPos + "_" + wh, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("ALChPOS1b_QL=" + lcPos + "_" + qlabel, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("ARChPOS1b_QL=" + rcPos + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("ALChPOS1b_QV=" + lcPos + "_" + qvoice, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("ARChPOS1b_QV=" + rcPos + "_" + qvoice, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("ALChPOS1b_QV=" + lcPos + "_" + qkey, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("ARChPOS1b_QV=" + rcPos + "_" + qkey, acceptNew), 1, 1);
 			}
 			if (useLexicalFeatures) {
 				fv.adjustOrPutValue(fdict.addString("ALChTOKkb=" + lcTok, acceptNew), 1, 1);
@@ -307,8 +310,8 @@ public class AnswerIdFeatureExtractor {
 				fv.adjustOrPutValue(fdict.addString("ARChTOKkb_WH=" + rcTok + "_" + wh, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("ALChTOKkb_QL=" + lcTok + "_" + qlabel, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("ARChTOKkb_QL=" + rcTok + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("ALChTOKkb_QV=" + lcTok + "_" + qvoice, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("ARChTOKkb_QV=" + rcTok + "_" + qvoice, acceptNew), 1, 1);	
+				fv.adjustOrPutValue(fdict.addString("ALChTOKkb_QV=" + lcTok + "_" + qkey, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("ARChTOKkb_QV=" + rcTok + "_" + qkey, acceptNew), 1, 1);	
 				if (i == 0) {
 					fv.adjustOrPutValue(fdict.addString("ALChTOK1b=" + lcTok, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("ARChTOK1b=" + rcTok, acceptNew), 1, 1);
@@ -316,8 +319,8 @@ public class AnswerIdFeatureExtractor {
 					fv.adjustOrPutValue(fdict.addString("ARChTOK1b_WH=" + rcTok + "_" + wh, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("ALChTOK1b_QL=" + lcTok + "_" + qlabel, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("ARChTOK1b_QL=" + rcTok + "_" + qlabel, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("ALChTOK1b_QV=" + lcTok + "_" + qvoice, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("ARChTOK1b_QV=" + rcTok + "_" + qvoice, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("ALChTOK1b_QV=" + lcTok + "_" + qkey, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("ARChTOK1b_QV=" + rcTok + "_" + qkey, acceptNew), 1, 1);
 				}
 			}
 		}
@@ -330,7 +333,7 @@ public class AnswerIdFeatureExtractor {
 		fv.adjustOrPutValue(fdict.addString("RelPos=" + relPos, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("RelPos_WH=" + relPos + "_" + wh, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("RelPos_QL=" + relPos + "_" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("RelPos_QV=" + relPos + "_" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("RelPos_QV=" + relPos + "_" + qkey, acceptNew), 1, 1);
 		
 		// Syntactic path between proposition and argument
 		for (int i = 0; i < kBest; i++) {
@@ -341,12 +344,12 @@ public class AnswerIdFeatureExtractor {
 			fv.adjustOrPutValue(fdict.addString("RelPathkb=" + rels, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("RelPathkb_WH=" + rels + "_" + wh, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("RelPathkb_QL=" + rels + "_" + qlabel, acceptNew), 1, 1);
-			fv.adjustOrPutValue(fdict.addString("RelPathkb_QV=" + rels + "_" + qvoice, acceptNew), 1, 1);
+			fv.adjustOrPutValue(fdict.addString("RelPathkb_QV=" + rels + "_" + qkey, acceptNew), 1, 1);
 			if (i == 0) {
 				fv.adjustOrPutValue(fdict.addString("RelPath1b=" + rels, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("RelPath1b_WH=" + rels + "_" + wh, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("RelPath1b_QL=" + rels + "_" + qlabel, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("RelPath1b_QV=" + rels + "_" + qvoice, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("RelPath1b_QV=" + rels + "_" + qkey, acceptNew), 1, 1);
 			}
 		}
 		
@@ -354,7 +357,7 @@ public class AnswerIdFeatureExtractor {
 		// Question word and label
 		fv.adjustOrPutValue(fdict.addString("WH=" + wh, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("QL=" + qlabel, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("QV=" + qvoice, acceptNew), 1, 1);
+		fv.adjustOrPutValue(fdict.addString("QV=" + qkey, acceptNew), 1, 1);
 		
 		// *************** Bias feature ... ***************
 		fv.adjustOrPutValue(fdict.addString("BIAS=.", acceptNew), 1, 1);
