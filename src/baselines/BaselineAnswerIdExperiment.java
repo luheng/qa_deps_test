@@ -175,12 +175,8 @@ public class BaselineAnswerIdExperiment {
 			AnswerIdDataset ds,
 			Model model,
 			String debugFilePath) {
-		return predictAndEvaluate(
-				ds.samples,
-				ds.features,
-				ds,
-				model,
-				debugFilePath);
+		return predictAndEvaluate(ds.samples, ds.features, ds, model,
+					debugFilePath);
 	}
 
 	private double[] predictAndEvaluate(
@@ -189,15 +185,12 @@ public class BaselineAnswerIdExperiment {
 			AnswerIdDataset ds,
 			Model model,
 			String debugFilePath) {
-		int[][] answerFlags = ds.getAnswerFlags();
-		int[][] answerHeads = ds.getAnswerHeads();
-		ArrayList<QAPair> questions = ds.questions;
-		
-		int numQuestions = answerFlags.length;
+	
+		int numQuestions = ds.answerFlags.length;
 		HashSet<Integer> evalQIds = new HashSet<Integer>();
 		double[][] predScores = new double[numQuestions][];
 		for (int i = 0; i < numQuestions; i++) {
-			predScores[i] = new double[answerFlags[i].length];
+			predScores[i] = new double[ds.answerFlags[i].length];
 			Arrays.fill(predScores[i], -2.0);
 		}
 		for (int i = 0; i < samples.size(); i++) {
@@ -209,8 +202,10 @@ public class BaselineAnswerIdExperiment {
 			evalQIds.add(qid);
 		}
 		
-		int numMatched = 0, numContained = 0;
+		int numMatched = 0;
+		int numContained = 0;
 		double avgMatchedWords = .0;
+		@SuppressWarnings("unused")
 		double allNegBaseline = .0;
 		BufferedWriter writer = null;
 		if (!debugFilePath.isEmpty()) {
@@ -225,20 +220,21 @@ public class BaselineAnswerIdExperiment {
 			if (!evalQIds.contains(qid)) {
 				continue;
 			}
-			QAPair qa = questions.get(qid);
+			QAPair qa = ds.questions.get(qid);
 			int length = predScores[qid].length;
 			int bestIdx = -1;
 			if (config.useSpanBasedSamples) {
 				double matched = AnswerIdEvaluator.evaluateAccuracy(
 						predScores[qid],
-						answerFlags[qid],
+						ds.answerFlags[qid],
 						0.5 /* threshold */);
 				avgMatchedWords += matched;
 				int numGold = 0;
-				for (int flag : answerFlags[qid]) {
+				for (int flag : ds.answerFlags[qid]) {
 					numGold += (flag > 0 ? 1 : 0);
 				}
-				allNegBaseline += (1.0 - 1.0 * numGold / answerFlags[qid].length);
+				allNegBaseline +=
+						(1.0 - 1.0 * numGold / ds.answerFlags[qid].length);
 			} else {
 				for (int i = 0; i < length; i++) {
 					if (predScores[qid][i] < 1e-6) {
@@ -249,10 +245,10 @@ public class BaselineAnswerIdExperiment {
 						bestIdx = i;
 					}
 				}
-				if (bestIdx > -1 && answerFlags[qid][bestIdx] > 0) {
+				if (bestIdx > -1 && ds.answerFlags[qid][bestIdx] > 0) {
 					numContained ++;
 				}
-				if (bestIdx > -1 && answerHeads[qid][bestIdx] > 0) {
+				if (bestIdx > -1 && ds.answerHeads[qid][bestIdx] > 0) {
 					numMatched ++;
 				}
 			}
@@ -277,8 +273,8 @@ public class BaselineAnswerIdExperiment {
 			}
 		}
 		if (config.useSpanBasedSamples) {
-			System.out.println("All negative baseline:\t" +
-					allNegBaseline / evalQIds.size());
+			allNegBaseline /= evalQIds.size();
+			System.out.println("All negative baseline:\t" + evalQIds.size());
 		}
 		if (writer != null) {
 			try {
@@ -322,7 +318,7 @@ public class BaselineAnswerIdExperiment {
 			System.out.println(prms.get(i).toString());
 			System.out.println(String.format(
 					"Training accuracy on %s:\t%.4f\t%.4f",
-						exp.trainSet.datasetName, acc[0][0], acc[1][1]));
+						exp.trainSet.datasetName, acc[0][0], acc[0][1]));
 			for (int j = 0; j < exp.testSets.size(); j++) {
 				AnswerIdDataset ds = exp.testSets.get(j);
 				System.out.println(String.format(

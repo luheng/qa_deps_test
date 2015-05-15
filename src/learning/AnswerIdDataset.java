@@ -10,18 +10,10 @@ import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
 
 public class AnswerIdDataset extends QADataset {
-	int[][] answerFlags, answerHeads;
+	public int[][] answerFlags, answerHeads;
 	
 	public AnswerIdDataset(Corpus corpus, String name) {
 		super(corpus, name);
-	}
-	
-	public int[][] getAnswerFlags() {
-		return answerFlags;
-	}
-	
-	public int[][] getAnswerHeads() {
-		return answerHeads;
 	}
 	
 	public void generateSamples(KBestParseRetriever syntaxHelper,
@@ -84,7 +76,6 @@ public class AnswerIdDataset extends QADataset {
 			int label = (sample.isPositiveSample ? 1 : -1);
 			labels[i] = label;
 			answerHeads[sample.questionId][sample.answerWordPosition] = label;
-			
 			if (i % 10000 == 9999) {
 				System.out.println(String.format(
 						"Extracted features for %d samples, %d still left.",
