@@ -23,9 +23,7 @@ import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.Problem;
-import de.bwaldvogel.liblinear.SolverType;
 import evaluation.AnswerIdEvaluator;
-import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 import util.StringUtils;
 
@@ -129,23 +127,20 @@ public class BaselineAnswerIdExperiment {
 		}
 	}
 	
-	public Model trainAndPredict(LiblinearHyperParameters prm) {
+	public double[][] trainAndPredict(LiblinearHyperParameters prm) {
 		int numFeatures = featureExtractor.numFeatures();
 		Model model = train(
 				trainSet.getFeatures(),
 				trainSet.getLabels(),
 				numFeatures, prm);
-		double[] accuracy = predictAndEvaluate(trainSet, model, "");
-		System.out.println(String.format("Training accuracy on %s:\t%.4f\t%.4f",
-				trainSet.datasetName, accuracy[0], accuracy[1]));
-		for (AnswerIdDataset ds : testSets) {
-			accuracy = predictAndEvaluate(ds, model,
+		double[][] results = new double[testSets.size() + 1][];
+		results[0] = predictAndEvaluate(trainSet, model, "");
+		for (int i = 0; i < testSets.size(); i++) {
+			AnswerIdDataset ds = testSets.get(i);
+			results[i + 1] = predictAndEvaluate(ds, model,
 					String.format(ds.datasetName + ".debug.txt"));
-			System.out.println(String.format(
-					"Testing accuracy on %s:\t%.4f\t%.4f",
-						ds.datasetName, accuracy[0], accuracy[1]));
 		}
-		return model;
+		return results;
 	}
 	
 	public void outputFeatures(Model model) {
@@ -185,28 +180,7 @@ public class BaselineAnswerIdExperiment {
 				model,
 				debugFilePath);
 	}
-	
-	@SuppressWarnings("unused")
-	@Deprecated
-	private F1Metric predictAndEvaluateOld(Feature[][] features,
-			double[] labels, Model model) {
-		int numMatched = 0, numPred = 0, numGold = 0;
-		for (int i = 0; i < features.length; i++) {
-			int pred = (int) Linear.predict(model, features[i]);
-			int gold = (int) labels[i];
-			if (gold > 0 && pred > 0) {
-				numMatched ++;
-			}
-			if (gold > 0) {
-				numGold ++;
-			}
-			if (pred > 0) {
-				numPred ++;
-			}
-		}
-		return new F1Metric(numMatched, numGold, numPred);
-	}
-	
+
 	private double[] predictAndEvaluate(
 			ArrayList<QASample> samples,
 			Feature[][] features,
@@ -332,14 +306,27 @@ public class BaselineAnswerIdExperiment {
 		}
 		ArrayList<LiblinearHyperParameters> prms =
 				new ArrayList<LiblinearHyperParameters>();
-		
 		for (String prmStr : exp.config.liblinParameters) {
 			prms.add(new LiblinearHyperParameters(prmStr));
 		}
-	
-		for (LiblinearHyperParameters prm : prms) {
+		double[][][] results = new double[prms.size()][][];
+		for (int i = 0; i < prms.size(); i++) {
+			LiblinearHyperParameters prm = prms.get(i);
 			System.out.println(prm.toString());
-			exp.trainAndPredict(prm);
+			results[i] = exp.trainAndPredict(prm);
+		}
+		for (int i = 0; i < prms.size(); i++) {
+			double[][] acc = results[i];
+			System.out.println(prms.get(i).toString());
+			System.out.println(String.format(
+					"Training accuracy on %s:\t%.4f\t%.4f",
+						exp.trainSet.datasetName, acc[0][0], acc[1][1]));
+			for (int j = 0; j < exp.testSets.size(); j++) {
+				AnswerIdDataset ds = exp.testSets.get(j);
+				System.out.println(String.format(
+						"Testing accuracy on %s:\t%.4f\t%.4f",
+							ds.datasetName, acc[j+1][0], acc[j+1][1]));
+			}
 		}
 		//LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
 		//exp.trainAndPredict(bestPar);
@@ -443,6 +430,28 @@ private double crossValidate(AnswerIdDataset ds, int cvFolds,
 			System.out.println(valAcc);
 		}
 		return avgAcc / cvFolds;
+	}
+	
+		
+	@SuppressWarnings("unused")
+	@Deprecated
+	private F1Metric predictAndEvaluateOld(Feature[][] features,
+			double[] labels, Model model) {
+		int numMatched = 0, numPred = 0, numGold = 0;
+		for (int i = 0; i < features.length; i++) {
+			int pred = (int) Linear.predict(model, features[i]);
+			int gold = (int) labels[i];
+			if (gold > 0 && pred > 0) {
+				numMatched ++;
+			}
+			if (gold > 0) {
+				numGold ++;
+			}
+			if (pred > 0) {
+				numPred ++;
+			}
+		}
+		return new F1Metric(numMatched, numGold, numPred);
 	}
 	
 */
