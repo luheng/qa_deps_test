@@ -36,6 +36,7 @@ public class QADataset {
 		this.sentences = new ArrayList<AnnotatedSentence>();
 		this.questions = new ArrayList<QAPair>();
 		this.samples = new ArrayList<QASample>();
+		this.sentenceMap = new HashMap<Integer, Sentence>();
 	}
 	
 	public Sentence getSentence(int sentId) {
