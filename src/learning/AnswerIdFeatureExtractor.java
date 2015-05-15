@@ -114,19 +114,13 @@ public class AnswerIdFeatureExtractor {
 		HashSet<String> feats = new HashSet<String>();
 		String qkey = qlabel.split("=")[0];    
 		String qval = qlabel.split("=")[1];    // i.e. someone, something
-		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
-		if (!qpp.isEmpty()) {
-			feats.add("QPP=" + qpp);
-		}
-		if (!qval.equals(".")) {
-			feats.add("QVal=" + qval);
-		}
 		String wh = qkey.split("_")[0];
 		if (wh.startsWith("A")) {
 			wh = qval.equals("someone") ? "WHO" : "WHAT";
 		}
 		feats.add("WH=" + wh);
-		feats.add("QLab=" + qlabel);
+		feats.add("QLab=" + qkey);
+		feats.add("QLab*=" + qlabel);
 		return feats;
 	}
 	
@@ -249,7 +243,6 @@ public class AnswerIdFeatureExtractor {
 			String lcPos = leftMostChild < length ? postags[leftMostChild] : "LEAF";
 			String rcTok = rightMostChild > -1 ? tokens[rightMostChild] : "LEAF";
 			String rcPos = rightMostChild > - 1 ? postags[rightMostChild] : "LEAF";
-			
 			for (String qfeat : qfeats) {
 				fv.adjustOrPutValue(fdict.addString("ALChPOSkb=" + lcPos + "_" + qfeat, acceptNew), 1, 1);
 				fv.adjustOrPutValue(fdict.addString("ARChPOSkb=" + rcPos + "_" + qfeat, acceptNew), 1, 1);

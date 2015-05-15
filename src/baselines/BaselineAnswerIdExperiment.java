@@ -326,8 +326,6 @@ public class BaselineAnswerIdExperiment {
 							ds.datasetName, acc[j+1][0], acc[j+1][1]));
 			}
 		}
-		//LiblinearHyperParameters bestPar = exp.runCrossValidation(cvPrms);
-		//exp.trainAndPredict(bestPar);
 	}
 }
 
