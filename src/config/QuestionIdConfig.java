@@ -6,6 +6,7 @@ import java.util.Properties;
 
 public class QuestionIdConfig {
 	static Properties properties;
+	public String[] trainSets, testSets;
 	public String featureOutputPath;
 	public int randomSeed;
 	public int cvFolds;
@@ -15,7 +16,6 @@ public class QuestionIdConfig {
 	public int featureKBest;
 				
 	public boolean regenerateSamples;
-	public boolean trainWithWiki;
 	public boolean useSpanBasedSamples;
 	public boolean useLexicalFeatures;
 	public boolean useDependencyFeatures;
@@ -47,10 +47,12 @@ public class QuestionIdConfig {
 		evalThreshold = Double.parseDouble(properties.getProperty("evalThreshold"));
 		
 		regenerateSamples = Boolean.parseBoolean(properties.getProperty("regenerateSamples"));
-		trainWithWiki = Boolean.parseBoolean(properties.getProperty("trainWithWiki"));
 		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
 		useLexicalFeatures = Boolean.parseBoolean(properties.getProperty("useLexicalFeatures"));
 		useDependencyFeatures = Boolean.parseBoolean(properties.getProperty("useDependencyFeatures"));
+		
+		trainSets = properties.getProperty("trainSets").split(",");
+		testSets = properties.getProperty("testSets").split(",");
 	}
 	
 	public String toString() {

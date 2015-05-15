@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class AnswerIdConfig {
-	static Properties properties;
+	Properties properties;
+	public String[] trainSets, testSets;
 	public String featureOutputPath;
 	public int randomSeed;
 	public int cvFolds;
@@ -14,11 +15,12 @@ public class AnswerIdConfig {
 	public int featureKBest;
 				
 	public boolean regenerateSamples;
-	public boolean trainWithWiki;
 	public boolean useSpanBasedSamples;
 	public boolean useLexicalFeatures;
 	public boolean useDependencyFeatures;
 	
+	public String[] liblinParameters;
+			
 	public AnswerIdConfig() {
 		this("answerIdConfig.properties");
 	}
@@ -43,10 +45,13 @@ public class AnswerIdConfig {
 		featureKBest = Integer.parseInt(properties.getProperty("featureKBest"));
 		
 		regenerateSamples = Boolean.parseBoolean(properties.getProperty("regenerateSamples"));
-		trainWithWiki = Boolean.parseBoolean(properties.getProperty("trainWithWiki"));
 		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
 		useLexicalFeatures = Boolean.parseBoolean(properties.getProperty("useLexicalFeatures"));
 		useDependencyFeatures = Boolean.parseBoolean(properties.getProperty("useDependencyFeatures"));
+		
+		trainSets = properties.getProperty("trainSets").split(",");
+		testSets = properties.getProperty("testSets").split(",");
+		liblinParameters = properties.getProperty("liblinParameters").split(";");
 	}
 	
 	public String toString() {

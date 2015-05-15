@@ -41,7 +41,7 @@ public class BaselineQuestionIdExperiment {
 	CountDictionary slotDict, tempDict;
 	
 	private QuestionIdDataset trainSet;
-	private HashMap<String, QuestionIdDataset> testSets;
+	private ArrayList<QuestionIdDataset> testSets;
 	
 	private String getSampleFileName(QuestionIdDataset ds) {
 		return ds.datasetName + ".qgen.k" + config.kBest + ".smp";
@@ -50,23 +50,19 @@ public class BaselineQuestionIdExperiment {
 	public BaselineQuestionIdExperiment() throws IOException {
 		config = new QuestionIdConfig();
 		baseCorpus = new Corpus("qa-exp-corpus");
-		testSets = new HashMap<String, QuestionIdDataset>();
+		testSets = new ArrayList<QuestionIdDataset>();
 		
-		// ********** Load QA Data ********************
-		if (config.trainWithWiki) {
-			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");			
-			for (String ds : new String[] {"wiki1-dev", "prop-train", "prop-dev"}) {
-				testSets.put(ds, new QuestionIdDataset(baseCorpus, ds));
-			}
-		} else {
-			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
-			for (String ds : new String[] {"prop-dev", "wiki1-train", "wiki1-dev"}) {
-				testSets.put(ds, new QuestionIdDataset(baseCorpus, ds));
-			}
+
+		// ********** Config and load QA Data ********************
+		trainSet = new QuestionIdDataset(baseCorpus,
+				StringUtils.join("_", config.trainSets));
+		for (String dsName : config.trainSets) {
+			trainSet.loadData(DataConfig.getDataset(dsName));
 		}
-		trainSet.loadData(DataConfig.getDataset(trainSet.datasetName));
-		for (String ds : testSets.keySet()) {
-			testSets.get(ds).loadData(DataConfig.getDataset(ds));
+		for (String dsName : config.testSets) {
+			QuestionIdDataset ds = new QuestionIdDataset(baseCorpus, dsName);
+			ds.loadData(DataConfig.getDataset(dsName));
+			testSets.add(ds);
 		}
 		
 		// ************ Extract slot labels and templates **************
@@ -90,7 +86,7 @@ public class BaselineQuestionIdExperiment {
 		if (config.regenerateSamples) {
 			KBestParseRetriever syntaxHelper = new KBestParseRetriever(config.kBest);
 			trainSet.generateSamples(syntaxHelper, slotDict);
-			for (QuestionIdDataset ds : testSets.values()) {
+			for (QuestionIdDataset ds : testSets) {
 				ds.generateSamples(syntaxHelper, slotDict);
 			}
 			// Cache qaSamples to file because parsing is slow.
@@ -101,7 +97,7 @@ public class BaselineQuestionIdExperiment {
 				ostream.writeObject(trainSet.samples);
 				ostream.flush();
 				ostream.close();
-				for (QuestionIdDataset ds : testSets.values()) {
+				for (QuestionIdDataset ds : testSets) {
 					ostream = new ObjectOutputStream(
 							new FileOutputStream(getSampleFileName(ds)));
 					ostream.writeObject(ds.samples);
@@ -114,7 +110,7 @@ public class BaselineQuestionIdExperiment {
 		} else {
 			try {
      			trainSet.loadSamples(getSampleFileName(trainSet));
-     			for (QuestionIdDataset ds : testSets.values()) {
+     			for (QuestionIdDataset ds : testSets) {
 					ds.loadSamples(getSampleFileName(ds));
 				}
 			} catch (ClassNotFoundException | IOException e) {
@@ -145,7 +141,7 @@ public class BaselineQuestionIdExperiment {
 		featureExtractor.extractFeatures(trainSet.samples);
 		//featureExtractor.featureDict.prettyPrint();
 		trainSet.extractFeaturesAndLabels(featureExtractor);
-		for (QuestionIdDataset ds : testSets.values()) {
+		for (QuestionIdDataset ds : testSets) {
 			ds.extractFeaturesAndLabels(featureExtractor);
 		}
 	}
@@ -186,7 +182,7 @@ public class BaselineQuestionIdExperiment {
 		if (generateQuestions) {
 			System.out.println("Preparing to generate questions.");
 			qgen = new QuestionGenerator(baseCorpus, slotDict, tempDict);		
-			for (QuestionIdDataset ds : testSets.values()) {
+			for (QuestionIdDataset ds : testSets) {
 				if (ds.datasetName.contains("dev")) {
 					generateQuestions(ds.samples, ds.features, ds, model);
 				}
@@ -199,7 +195,7 @@ public class BaselineQuestionIdExperiment {
 				StringUtils.doubleArrayToString("\t", accuracy)));
 		
 
-		for (QuestionIdDataset ds : testSets.values()) {
+		for (QuestionIdDataset ds : testSets) {
 			accuracy = predictAndEvaluate(ds, model, "");
 			System.out.println(String.format("Testing accuracy on %s:\t%s",
 					ds.datasetName,

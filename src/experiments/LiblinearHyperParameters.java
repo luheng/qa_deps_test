@@ -12,6 +12,14 @@ public class LiblinearHyperParameters {
 		this.eps = eps;
 	}
 	
+	// Example: L1R_LR,10.0,1e-2
+	public LiblinearHyperParameters(String prmStr) {
+		String[] prmInfo = prmStr.trim().split(",");
+		this.solverType = SolverType.valueOf(prmInfo[0]);
+		this.C = Double.parseDouble(prmInfo[1]);
+		this.eps = Double.parseDouble(prmInfo[2]);
+	}
+
 	public String toString() {
 		return "solver=" + solverType + "_C=" + C + "_eps=" + eps;
 	}
