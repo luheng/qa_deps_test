@@ -54,7 +54,7 @@ public class XSSFDataRetriever {
 			AnnotatedSentence currSent = null;
 			ArrayList<QAPair> qaList = new ArrayList<QAPair>();
 			
-			int numSentsPerFile = 0;
+			int numSentsPerFile = 0, numQAsPerFile = 0;
 			for (int sn = 0; sn < workbook.getNumberOfSheets(); sn++) {
 				XSSFSheet sheet = workbook.getSheetAt(sn);
 				for (int r = 0; r <= sheet.getLastRowNum(); r++) {
@@ -116,7 +116,8 @@ public class XSSFDataRetriever {
 		        	//   If ph3 in {someone, something}, and ph2=null, pp=null,
 		        	//   ph3 is moved to ph2
 		        	QuestionEncoder.normalize(question);
-		        	QAPair qa = new QAPair(sent, propHead, question,
+		        	QAPair qa = new QAPair(
+		        			sent, propHead, question,
 		        			"" /* answer */,
 		        			null /* cf source */);
 		        	qa.annotator = inputFile;
@@ -135,13 +136,15 @@ public class XSSFDataRetriever {
 		        	if (!question[0].isEmpty() && !question[3].isEmpty() &&
 		        			!qa.getAnswerString().isEmpty()) {
 		        		qaList.add(qa);
+		        		numQAsPerFile ++;
 		        	}
 		        }
 //				System.out.println(sheet.getSheetName() + " ... " + annotations.size());
 			 }			
 			workbook.close();
-			System.out.println(String.format("Read %d sentences from %s.",
-					numSentsPerFile, inputFile));
+			System.out.println(String.format(
+					"Read %d sentences and %d QAs from %s.",
+						numSentsPerFile, numQAsPerFile, inputFile));
 		}
 	}
 	

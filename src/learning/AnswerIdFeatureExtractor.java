@@ -292,8 +292,9 @@ public class AnswerIdFeatureExtractor {
 				featureDict.addString(tempFeatureDict.getString(fid), cnt);
 			}
 		}
-		System.out.println(String.format("%d features before filtering. %d features after filtering.",
-				tempFeatureDict.size(), featureDict.size()));
+		System.out.println(String.format(
+				"%d features before filtering. %d features after filtering.",
+					tempFeatureDict.size(), featureDict.size()));
 	}
 	
 	public TIntDoubleHashMap getFeatures(QASample sample) {

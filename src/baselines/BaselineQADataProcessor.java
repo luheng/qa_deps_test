@@ -56,6 +56,7 @@ public class BaselineQADataProcessor {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r013_john.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r014_john.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r017 donna.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r018 donna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r019_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r020_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r021_ellen.xlsx",
@@ -73,7 +74,7 @@ public class BaselineQADataProcessor {
 	};
 
 	private static String kOutputPathPrefix = "data/propbank";
-	private static String kWikiOutputPathPrefix = "data/wiki1";
+	private static String kWikiOutputPathPrefix = "data/wiki1_new";
 		
 	private static final int randomSeed = 12345;
 	
