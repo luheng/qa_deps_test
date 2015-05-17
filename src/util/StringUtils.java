@@ -31,9 +31,10 @@ public class StringUtils {
 		return joined;
 	}
 	
-	public static String join(String delimiter, ArrayList<String> stringArr) {
+	public static String join(String delimiter, ArrayList<Object> objects) {
 		String joined = "";
-		for (String str : stringArr) {
+		for (Object obj : objects) {
+			String str = obj.toString();
 			if (!str.trim().isEmpty()) {
 				if (!joined.isEmpty()) {
 					joined += delimiter;
@@ -106,4 +107,5 @@ public class StringUtils {
 	public static HashSet<String> asSet(String... vals) {
 		return new HashSet<String>(Arrays.asList(vals));
 	}
+
 }

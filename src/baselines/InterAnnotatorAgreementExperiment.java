@@ -4,8 +4,10 @@ import io.XSSFDataRetriever;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
 
 import annotation.QuestionEncoder;
@@ -15,6 +17,7 @@ import data.Corpus;
 import data.QAPair;
 import data.SRLCorpus;
 import data.WikipediaCorpus;
+import util.StringUtils;
 
 public class InterAnnotatorAgreementExperiment {
 
@@ -36,6 +39,10 @@ public class InterAnnotatorAgreementExperiment {
 		"odesk_wiki1_r014_s30_katie.xlsx",
 		"odesk_wiki1_r014_s30_tracy.xlsx"
 	};
+	
+	private static int numAnnotators = 5;
+	
+	private static boolean coreArgsOnly = true;
 	
 	
 	private static void readData(
@@ -72,6 +79,128 @@ public class InterAnnotatorAgreementExperiment {
 		}
 	}
 	
+	/*
+	private static String[] getAnnotators(
+			HashMap<Integer, AnnotatedSentence> annotations) {
+		HashSet<String> annotators = new HashSet<String>();
+		for (AnnotatedSentence annot : annotations.values()) {
+			for (int propHead : annot.qaLists.keySet()) {
+				for (QAPair qa : annot.qaLists.get(propHead)) {
+					annotators.add(getShortAnnotatorName(qa.annotator));
+				}
+			}
+		}
+		return annotators.toArray(new String[annotators.size()]);
+	}
+	*/
+	
+	private static String getShortAnnotatorName(String annotator) {
+		String[] tmp = annotator.split("_");
+		return tmp[tmp.length - 1].split("\\.")[0];
+	}
+	
+	private static boolean equals(QAPair qa1, QAPair qa2) {
+		String l1 = qa1.questionLabel.split("=")[0],
+			   l2 = qa2.questionLabel.split("=")[0];
+		int answerOverlap = 0;
+		for (int i = 0; i < qa1.answerFlags.length; i++) {
+			if (qa1.answerFlags[i] > 0 && qa2.answerFlags[i] > 0) {
+				answerOverlap ++;
+			}
+		}
+		boolean qwEq = l1.split("_")[0].equals(l2.split("_")[0]);
+		return qwEq && answerOverlap > 0;
+	}
+	
+	private static void computeAgreement(
+			HashMap<Integer, AnnotatedSentence> annotations) {
+		double[] microCount = new double[numAnnotators]; // 5 annotators ...
+		double[] macroCount = new double[numAnnotators];
+		Arrays.fill(microCount, 0.0);
+		Arrays.fill(macroCount, 0.0);
+		int totalQAs = 0, totalProps = 0;
+		
+		for (AnnotatedSentence annotSent : annotations.values()) {
+			System.out.println(annotSent.sentence.getTokensString());
+			
+			for (int propHead : annotSent.qaLists.keySet()) {
+				System.out.println(annotSent.sentence.getTokenString(propHead));
+	
+				ArrayList<QAPair> agreedQAs = new ArrayList<QAPair>();
+				for (QAPair qa : annotSent.qaLists.get(propHead)) {
+					String annotator = getShortAnnotatorName((String) qa.annotators.get(0));
+					boolean agreed = false;
+					for (QAPair qa2 : agreedQAs) {
+						if (equals(qa, qa2)) {
+							qa2.annotators.add(annotator);
+							for (int i = 0; i < qa2.answerFlags.length; i++) {
+								qa2.answerFlags[i] =
+										Math.min(qa.answerFlags[i], qa2.answerFlags[i]);
+								/*
+								if (qa.answerFlags[i] > 0) {
+									qa2.answerFlags[i] ++;
+								}
+								*/
+							}
+							agreed = true; break;
+						}
+					}
+					if (!agreed) {
+						QAPair qa2 = new QAPair(
+								qa.sentence, propHead, qa.questionWords,
+			        			"" /* answer */,
+								annotator);
+						for (int i = 0; i < qa2.answerFlags.length; i++) {
+							qa2.answerFlags[i] = Math.min(1, qa.answerFlags[i]);
+						}
+						agreedQAs.add(qa2);
+					}
+				}
+				int numAgreedQAs = 0;
+				double[] cnt = new double[numAnnotators];
+				Arrays.fill(cnt, 0);
+				for (QAPair qa : agreedQAs) {
+					if (coreArgsOnly && !qa.questionLabel.startsWith("A")) {
+						continue;
+					}
+					System.out.println(
+							qa.annotators.size() + "\t" +
+							qa.questionLabel + "\t" + 
+							qa.getQuestionString() + "\t" +
+							qa.getAnswerString() + "\t" +
+							StringUtils.join(",", qa.annotators));
+					
+					for (int i = 0; i < numAnnotators; i++) {
+						if (qa.annotators.size() > i) {
+							++ cnt[i];
+						}
+					}
+					numAgreedQAs ++;
+				}
+				for (int i = 0; i < cnt.length; i++) {
+					microCount[i] += cnt[i];
+					cnt[i] /= numAgreedQAs;
+					macroCount[i] += cnt[i];
+				}
+				System.out.println(
+						StringUtils.doubleArrayToString("\t", cnt));
+				System.out.println();
+				
+				totalQAs += numAgreedQAs;
+				if (numAgreedQAs > 0) {
+					++ totalProps;
+				}
+			}
+		}
+		for (int i = 0; i < microCount.length; i++) {
+			microCount[i] /= totalQAs;
+			macroCount[i] /= totalProps;
+		}
+		System.out.println("Micro:\t" +
+				StringUtils.doubleArrayToString("\t", microCount));
+		System.out.println("Macro:\t" +
+				StringUtils.doubleArrayToString("\t", macroCount));
+	}
 	
 	public static void main(String[] args) {
 		//SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus("PROPBANK");		
@@ -79,26 +208,14 @@ public class InterAnnotatorAgreementExperiment {
 		
 		HashMap<Integer, AnnotatedSentence> annotations =
 				new HashMap<Integer, AnnotatedSentence>();
-		String[] files = new String[inputFiles1.length];
-		for (int i = 0; i < files.length; i++) {
+		String[] files = new String[numAnnotators];
+		for (int i = 0; i < numAnnotators; i++) {
 			files[i] = dataPath + "/" + inputFiles1[i];
 		}
+		
 		WikipediaCorpus corpus = new WikipediaCorpus("corpus");
 		readData(files, "", corpus, annotations);
 		
-		for (AnnotatedSentence annotSent : annotations.values()) {
-			System.out.println(annotSent.sentence.getTokensString());
-			for (int propHead : annotSent.qaLists.keySet()) {
-				System.out.println(annotSent.sentence.getTokenString(propHead));
-				// TODO: For each annotator, convert question to qlabel
-				for (QAPair qa : annotSent.qaLists.get(propHead)) {
-					String qlabel = QuestionEncoder.getQuestionLabel(qa.questionWords);
-					String[] tmp = qa.annotator.split("_");
-					String annotName = tmp[tmp.length - 1].split("\\.")[0];
-					System.out.println(annotName + "\t" + qlabel + "\t" + qa.getQuestionString() + "\t" + qa.getAnswerString());
-				}
-			}
-		}
+		computeAgreement(annotations);
 	}
-	
 }

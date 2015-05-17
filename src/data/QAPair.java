@@ -22,8 +22,7 @@ public class QAPair implements java.io.Serializable {
 	public String questionLabel, questionString;
 	public int[] answerFlags;
 	public ArrayList<String> answers;
-	public ArrayList<CrowdFlowerResult> cfAnnotationSources;
-	public String annotator;
+	public ArrayList<Object> annotators;
 	public String comment = "";
 	
 	public QAPair(Sentence sent, int prop, String[] question, String answer,
@@ -41,9 +40,9 @@ public class QAPair implements java.io.Serializable {
 		Arrays.fill(answerFlags, 0);
 		addAnswer(answer);
 		
-		cfAnnotationSources = new ArrayList<CrowdFlowerResult>();
+		annotators = new ArrayList<Object>();
 		if (cf != null) {
-			cfAnnotationSources.add(cf);
+			annotators.add(cf);
 		}
 	}
 	
@@ -64,17 +63,37 @@ public class QAPair implements java.io.Serializable {
 		Arrays.fill(answerFlags, 0);
 		addAnswer(answer);
 		
-		cfAnnotationSources = new ArrayList<CrowdFlowerResult>();
+		annotators = new ArrayList<Object>();
 		if (cf != null) {
-			cfAnnotationSources.add(cf);
+			annotators.add(cf);
 		}
+	}
+
+	public QAPair(Sentence sent, int prop, String[] question, String answer,
+			String annotator) { 
+		sentence = sent;
+		propHead = prop;
+		questionWords = new String[question.length];
+		for (int i = 0; i < question.length; i++) {
+			questionWords[i] = question[i].toLowerCase();
+		}
+		questionLabel = QuestionEncoder.getQuestionLabel(question);
+		questionString = StringUtils.join(" ", questionWords);
+		answerFlags = new int[sent.length];
+		answers = new ArrayList<String>();
+		Arrays.fill(answerFlags, 0);
+		addAnswer(answer);
+		
+		annotators = new ArrayList<Object>();
+		annotators.add(annotator);
 	}
 	
 	public QAPair(Sentence sent, int propHead, int questionId,
 			String[] question) {
-		this(sent, propHead, question, "", null);
+		this(sent, propHead, question, "", "");
 		this.questionId = questionId;
 	}
+
 
 	/** return false if answer is not aligned */
 	public boolean addAnswer(String answer) {
@@ -101,7 +120,7 @@ public class QAPair implements java.io.Serializable {
 	}
 	
 	public void addAnnotationSource(CrowdFlowerResult cfSource) {
-		this.cfAnnotationSources.add(cfSource);
+		this.annotators.add(cfSource);
 	}
 	
 	public String getQuestionLabel() {

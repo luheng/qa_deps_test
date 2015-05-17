@@ -36,7 +36,9 @@ public class AnnotatedSentence {
 			}
 		}*/
 		qaList.add(qa);
-		annotators.add(qa.annotator);
+		for (Object annotator : qa.annotators) {
+			annotators.add(annotator.toString());
+		}
 		return true;
 	}
 }

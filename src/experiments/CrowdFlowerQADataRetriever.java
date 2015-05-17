@@ -262,7 +262,7 @@ public class CrowdFlowerQADataRetriever {
 				}
 			}
 			for (QAPair qa : qaMap.get(sentTrgKey)) {
-				int workerId = qa.cfAnnotationSources.get(0).cfWorkerId;
+				int workerId = ((CrowdFlowerQAResult) qa.annotators.get(0)).cfWorkerId;
 				int maxCount = 0;
 				int[] flags = qaCount.get(qa.questionLabel);
 				for (int i = 0; i < qa.answerFlags.length; i++) {
@@ -386,7 +386,7 @@ public class CrowdFlowerQADataRetriever {
 							(covered[propId + 1][argId + 1] > 0 ? " " : "NC"));
 				}
 				for (QAPair qa : annotSent.qaLists.get(propId)) {
-					int workerId = qa.cfAnnotationSources.get(0).cfWorkerId;
+					int workerId = ((CrowdFlowerQAResult) qa.annotators.get(0)).cfWorkerId;
 					String qlabel = qa.getQuestionLabel();
 					boolean agreed = false,
 							matched = false;

@@ -109,7 +109,7 @@ public class XSSFDataRetriever {
 		        			question[c-1] = "";
 		        			continue;
 		        		} else {
-		        			question[c-1] = row.getCell(c).getStringCellValue();        		
+		        			question[c-1] = row.getCell(c).getStringCellValue().trim();     		
 		        		}
 		        	}
 		        	// Normalizing question:
@@ -119,8 +119,7 @@ public class XSSFDataRetriever {
 		        	QAPair qa = new QAPair(
 		        			sent, propHead, question,
 		        			"" /* answer */,
-		        			null /* cf source */);
-		        	qa.annotator = inputFile;
+		        			inputFile /* annotator source */);
 		        	for (int c = 9; c <= 13; c++) {
 		        		if (row.getCell(c) == null) {
 		        			continue;
