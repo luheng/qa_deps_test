@@ -5,12 +5,8 @@ import io.XSSFDataRetriever;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
 
-import annotation.QuestionEncoder;
 import annotation.SRLAnnotationValidator;
 import data.AnnotatedSentence;
 import data.Corpus;
@@ -55,12 +51,6 @@ public class InterAnnotatorAgreementExperiment {
 					inputFiles,
 					baseCorpus,
 					annotations);
-			/*
-			XSSFDataRetriever.outputAnnotations(
-					outputPathPrefix + ".qa",
-					baseCorpus,
-					annotations);
-			*/
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -210,7 +200,7 @@ public class InterAnnotatorAgreementExperiment {
 				new HashMap<Integer, AnnotatedSentence>();
 		String[] files = new String[numAnnotators];
 		for (int i = 0; i < numAnnotators; i++) {
-			files[i] = dataPath + "/" + inputFiles1[i];
+			files[i] = dataPath + "/" + inputFiles2[i];
 		}
 		
 		WikipediaCorpus corpus = new WikipediaCorpus("corpus");

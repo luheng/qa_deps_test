@@ -4,9 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Random;
 
 import config.DataConfig;
 import config.QuestionIdConfig;
@@ -26,7 +24,6 @@ import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.Problem;
-import de.bwaldvogel.liblinear.SolverType;
 import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 import gnu.trove.map.hash.TIntDoubleHashMap;
@@ -47,12 +44,13 @@ public class BaselineQuestionIdExperiment {
 		return ds.datasetName + ".qgen.k" + config.kBest + ".smp";
 	}
 	
-	public BaselineQuestionIdExperiment() throws IOException {
-		config = new QuestionIdConfig();
+	public BaselineQuestionIdExperiment(String questionIdConfigPath)
+			throws IOException {
+		config = questionIdConfigPath.isEmpty() ? new QuestionIdConfig():
+					new QuestionIdConfig(questionIdConfigPath);
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new ArrayList<QuestionIdDataset>();
 		
-
 		// ********** Config and load QA Data ********************
 		trainSet = new QuestionIdDataset(baseCorpus,
 				StringUtils.join("_", config.trainSets));
@@ -84,7 +82,8 @@ public class BaselineQuestionIdExperiment {
 		
 		// *********** Generate training/test samples **********
 		if (config.regenerateSamples) {
-			KBestParseRetriever syntaxHelper = new KBestParseRetriever(config.kBest);
+			KBestParseRetriever syntaxHelper =
+					new KBestParseRetriever(config.kBest);
 			trainSet.generateSamples(syntaxHelper, slotDict);
 			for (QuestionIdDataset ds : testSets) {
 				ds.generateSamples(syntaxHelper, slotDict);
@@ -139,37 +138,13 @@ public class BaselineQuestionIdExperiment {
 				config.useLexicalFeatures,
 				config.useDependencyFeatures);
 		featureExtractor.extractFeatures(trainSet.samples);
-		//featureExtractor.featureDict.prettyPrint();
 		trainSet.extractFeaturesAndLabels(featureExtractor);
 		for (QuestionIdDataset ds : testSets) {
 			ds.extractFeaturesAndLabels(featureExtractor);
 		}
 	}
 	
-	public LiblinearHyperParameters umziehen(
-			ArrayList<LiblinearHyperParameters> cvPrms) {
-		ArrayList<Double> devResults = new ArrayList<Double>();
-		double bestAcc = .0;
-		LiblinearHyperParameters bestPrm = null;
-		
-		for (LiblinearHyperParameters prm : cvPrms) {
-			System.out.println(prm.toString());
-			double res = crossValidate(trainSet, config.cvFolds, prm);
-			devResults.add(res);
-		}
-		for (int i = 0; i < devResults.size(); i++) {
-			double acc = devResults.get(i);
-			System.out.println(String.format("%s\t%.5f\n",
-					cvPrms.get(i).toString(), acc));
-			if (acc > bestAcc) {
-				bestAcc = acc;
-				bestPrm = cvPrms.get(i);
-			}
-		}
-		return bestPrm;
-	}
-	
-	public void trainAndPredict(LiblinearHyperParameters prm,
+	public double[][] trainAndPredict(LiblinearHyperParameters prm,
 			boolean generateQuestions) {
 		System.out.println(String.format("Training with %d samples.",
 				trainSet.features.length));
@@ -189,18 +164,20 @@ public class BaselineQuestionIdExperiment {
 			}
 		}
 		
-		double[] accuracy = predictAndEvaluate(trainSet, model, "");
+		double[][] results = new double[testSets.size() + 1][];
+		results[0] = predictAndEvaluate(trainSet, model, "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
-				StringUtils.doubleArrayToString("\t", accuracy)));
+				StringUtils.doubleArrayToString("\t", results[0])));
 		
-
-		for (QuestionIdDataset ds : testSets) {
-			accuracy = predictAndEvaluate(ds, model, "");
+		for (int i = 0; i < testSets.size(); i++) {
+			QuestionIdDataset ds = testSets.get(i);
+			results[i+1] = predictAndEvaluate(ds, model, "");
 			System.out.println(String.format("Testing accuracy on %s:\t%s",
 					ds.datasetName,
-					StringUtils.doubleArrayToString("\t", accuracy)));
+					StringUtils.doubleArrayToString("\t", results[i+1])));
 		}
+		return results;
 	}
 	
 	private Model train(Feature[][] features, double[] labels,
@@ -251,17 +228,7 @@ public class BaselineQuestionIdExperiment {
 		}
 		return new double[] {
 				1.0 * numCorrect / samples.size(),
-				f1.precision(), f1.recall(), f1.f1()}; 
-		/*
-		BufferedWriter writer = null;
-		if (!debugFilePath.isEmpty()) {
-			try {
-				writer = new BufferedWriter(
-						new FileWriter(new File(debugFilePath)));
-			} catch (IOException e) {
-			}
-		}
-		*/
+				f1.precision(), f1.recall(), f1.f1()}; 	
 	}
 	
 	private void generateQuestions(
@@ -308,7 +275,8 @@ public class BaselineQuestionIdExperiment {
 				System.out.println(sent.getTokenString(propHead));
 				System.out.println("=========== annotated ==============");
 				for (QAPair qa : annotSent.qaLists.get(propHead)) {
-					System.out.println(qa.getQuestionString() + "\t" + qa.getAnswerString());
+					System.out.println(qa.getQuestionString() + "\t" +
+							qa.getAnswerString());
 				}
 				System.out.println("=========== generated ==============");
 				for (String[] question : questions) {
@@ -319,6 +287,43 @@ public class BaselineQuestionIdExperiment {
 		}
 	}
 	
+	public static void main(String[] args) {
+		BaselineQuestionIdExperiment exp = null;
+		String questionIdConfigPath = args.length > 0 ? args[0] : "";
+		try {
+			exp = new BaselineQuestionIdExperiment(questionIdConfigPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+		ArrayList<LiblinearHyperParameters> prms =
+				new ArrayList<LiblinearHyperParameters>();
+		for (String prmStr : exp.config.liblinParameters) {
+			prms.add(new LiblinearHyperParameters(prmStr));
+		}
+		double[][][] results = new double[prms.size()][][];
+		for (int i = 0; i < prms.size(); i++) {
+			LiblinearHyperParameters prm = prms.get(i);
+			System.out.println(prm.toString());
+			results[i] = exp.trainAndPredict(prm, false /* generate question */);
+		}
+		for (int i = 0; i < prms.size(); i++) {
+			double[][] acc = results[i];
+			System.out.println(prms.get(i).toString());
+			System.out.println(String.format(
+					"Training accuracy on %s:\t%.4f\t%.4f",
+						exp.trainSet.datasetName, acc[0][0], acc[0][1]));
+			for (int j = 0; j < exp.testSets.size(); j++) {
+				QuestionIdDataset ds = exp.testSets.get(j);
+				System.out.println(String.format(
+						"Testing accuracy on %s:\t%.4f\t%.4f",
+							ds.datasetName, acc[j+1][0], acc[j+1][1]));
+			}
+		}
+	}
+}
+
+/*
 	@Deprecated
 	private double crossValidate(QuestionIdDataset ds, int cvFolds,
 			LiblinearHyperParameters prm) {
@@ -375,29 +380,4 @@ public class BaselineQuestionIdExperiment {
 		}
 		return avgAcc / cvFolds;
 	}
-	
-	public static void main(String[] args) {
-		BaselineQuestionIdExperiment exp = null;
-		try {
-			exp = new BaselineQuestionIdExperiment();
-		} catch (IOException e) {
-			e.printStackTrace();
-			return;
-		}
-		ArrayList<LiblinearHyperParameters> cvPrms =
-				new ArrayList<LiblinearHyperParameters>();
-		
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 1.0, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 10.0, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L2R_LR, 0.1, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 1.0, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 10.0, 1e-2));
-		cvPrms.add(new LiblinearHyperParameters(SolverType.L1R_LR, 0.1, 1e-2));
-		
-		//LiblinearHyperParameters bestPar = exp.umziehen(cvPrms);
-		for (LiblinearHyperParameters prm : cvPrms) {
-			System.out.println(prm.toString());
-			exp.trainAndPredict(prm, false);
-		}
-	}
-}
+	*/

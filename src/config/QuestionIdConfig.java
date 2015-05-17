@@ -21,6 +21,8 @@ public class QuestionIdConfig {
 	public boolean useDependencyFeatures;
 	public double evalThreshold;
 	
+	public String[] liblinParameters;
+	
 	public QuestionIdConfig() {
 		this("questionIdConfig.properties");
 	}
@@ -53,6 +55,7 @@ public class QuestionIdConfig {
 		
 		trainSets = properties.getProperty("trainSets").split(",");
 		testSets = properties.getProperty("testSets").split(",");
+		liblinParameters = properties.getProperty("liblinParameters").split(";");
 	}
 	
 	public String toString() {
