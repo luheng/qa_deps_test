@@ -117,19 +117,6 @@ public class BaselineQuestionIdExperiment {
 			}
 		}		
 		
-		/*
-		HashSet<String> rec = new HashSet<String>();
-		for (QASample sample : trainSet.samples) {
-			String key = sample.sentenceId + "_" + sample.propHead;
-			if (rec.contains(key)) {
-				continue;
-			}
-			rec.add(key);
-			QuestionGenerator.qgenTest(trainSet.getSentence(sample.sentenceId),
-					sample.propHead, sample);
-		}
-		*/
-	
 		// ********** Extract features ***************
 		featureExtractor = new QuestionIdFeatureExtractor(
 				baseCorpus,
@@ -307,17 +294,20 @@ public class BaselineQuestionIdExperiment {
 			System.out.println(prm.toString());
 			results[i] = exp.trainAndPredict(prm, false /* generate question */);
 		}
+		System.out.println("====== training finished =======");
 		for (int i = 0; i < prms.size(); i++) {
 			double[][] acc = results[i];
 			System.out.println(prms.get(i).toString());
 			System.out.println(String.format(
-					"Training accuracy on %s:\t%.4f\t%.4f",
-						exp.trainSet.datasetName, acc[0][0], acc[0][1]));
+					"Training accuracy on %s:\t%s",
+						exp.trainSet.datasetName,
+						StringUtils.doubleArrayToString("\t", acc[0])));
 			for (int j = 0; j < exp.testSets.size(); j++) {
 				QuestionIdDataset ds = exp.testSets.get(j);
 				System.out.println(String.format(
-						"Testing accuracy on %s:\t%.4f\t%.4f",
-							ds.datasetName, acc[j+1][0], acc[j+1][1]));
+						"Testing accuracy on %s:\t%s",
+							ds.datasetName,
+							StringUtils.doubleArrayToString("\t", acc[j+1])));
 			}
 		}
 	}
