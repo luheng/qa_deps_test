@@ -12,24 +12,25 @@ import data.DepSentence;
 import data.SRLCorpus;
 import data.SRLSentence;
 import data.QAPair;
-import util.StringUtils;
 import evaluation.F1Metric;
 
 public class SRLAnnotationValidator {
 	public boolean ignoreNominalArcs = true;
 	public boolean ignoreAmModArcs = true;
 	public boolean ignoreAmDisArcs = true;
-	public boolean ignoreAmAdvArcs = false;
+	public boolean ignoreAmAdvArcs = true;
 	public boolean ignoreAmNegArcs = true;
 	public boolean ignoreRAxArcs = true;
-	
-	public boolean goldPropositionOnly = true; 
+
+	public boolean goldPropositionOnly = false; 
 	public boolean coreArgsOnly = false;
 	public boolean ignoreLabels = false;
+
+	public boolean matchOnlyOnce = false;
 	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.
-	private static boolean allowTwoHopValidation = true;
+	private static boolean allowTwoHopValidation = false;
 	
 	/*
 	private static boolean containedInAnswer(int idx, int[][] spans) {
@@ -164,6 +165,8 @@ public class SRLAnnotationValidator {
 		F1Metric avgF1 = new F1Metric();
 		CountDictionary qlabelDict = getQLabels(annotations);
 		int[][] labelMap = new int[corpus.argModDict.size()][qlabelDict.size()];
+		int[] goldCnt = new int[corpus.argModDict.size()];
+		Arrays.fill(goldCnt, 0);
 		for (int i = 0; i < labelMap.length; i++) {
 			Arrays.fill(labelMap[i], 0);
 		}
@@ -181,9 +184,16 @@ public class SRLAnnotationValidator {
 			for (int i = 1; i < length; i++) {
 				for (int j = 1; j < length; j++) {
 					if (!goldArcs[i][j].isEmpty()) {
-						numGoldArcs ++;
-						numUncoveredGoldArcs ++;
-						covered[i][j] = false;
+						int id = corpus.argModDict.lookupString(goldArcs[i][j]);
+						goldCnt[id]++;
+						
+						if (goldArcs[i][j].startsWith("C-A")) {
+							covered[i][j] = true;
+						} else {
+							numGoldArcs ++;
+							numUncoveredGoldArcs ++;
+							covered[i][j] = false;
+						}
 					}
 				}
 			}
@@ -229,6 +239,9 @@ public class SRLAnnotationValidator {
 							int goldLabelId = corpus.argModDict.lookupString(goldLabel);
 							int qlabelId = qlabelDict.lookupString(qlabel);
 							labelMap[goldLabelId][qlabelId] ++;
+							if (matchOnlyOnce) {
+								break;
+							}
 						}
 					}
 					if (!matchedGold) {
@@ -279,6 +292,7 @@ public class SRLAnnotationValidator {
 		}
 		// Output label map.
 		MatrixPrinter.prettyPrint(labelMap, corpus.argModDict, qlabelDict);
+		MatrixPrinter.prettyPrint(goldCnt, corpus.argModDict);
 		
 		System.out.println(avgF1.toString());
 	}
