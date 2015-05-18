@@ -83,10 +83,8 @@ public class SRLAnnotationValidator {
 		for (int i = 0; i < length; i++) {
 			for (int j = 1; j < length; j++) {
 				if (ignoreNominalArcs) {
-					if ((i == 0 && !sentence.getPostagString(j - 1)
-					   		.equals("VERB")) ||
-					   	(i > 0 && !sentence.getPostagString(i - 1)
-						   		.equals("VERB"))) {
+					if ((i == 0 && !sentence.getPostagString(j - 1).equals("VERB")) ||
+					   	(i > 0 && !sentence.getPostagString(i - 1).equals("VERB"))) {
 						goldArcs[i][j] = "";
 					}
 				}
@@ -129,23 +127,29 @@ public class SRLAnnotationValidator {
 	
 	public boolean labelEquals(String goldLabel, String questionLabel) {
 		for (int i = 0; i < 6; i++) {
-			if (goldLabel.contains("A" + i) && questionLabel.contains("_" + i)) {
+			if (goldLabel.contains("A" + i) && questionLabel.contains("ARG" + i)) {
 				return true;
 			}
 		}
-		if (goldLabel.contains("A2") && questionLabel.contains("do")) {
+		if (goldLabel.contains("EXT") && questionLabel.contains("HOW MUCH")) {
 			return true;
 		}
-		if (goldLabel.contains("A2") && questionLabel.contains("how much")) {
+		if (goldLabel.contains("DIR") && questionLabel.contains("WHERE")) {
 			return true;
 		}
-		if (goldLabel.contains("LOC") && questionLabel.contains("where")) {
+		if (goldLabel.contains("LOC") && questionLabel.contains("WHERE")) {
 			return true;
 		}
-		if (goldLabel.contains("TMP") && questionLabel.contains("when")) {
+		if (goldLabel.contains("TMP") && questionLabel.contains("WHEN")) {
 			return true;
 		} 
-		if (goldLabel.contains("MNR") && questionLabel.contains("how")) {
+		if (goldLabel.contains("MNR") && questionLabel.contains("HOW")) {
+			return true;
+		}
+		if (goldLabel.contains("ADV") && questionLabel.contains("HOW")) {
+			return true;
+		}
+		if (goldLabel.contains("PNC") && questionLabel.contains("WHY")) {
 			return true;
 		}
 		return false;
