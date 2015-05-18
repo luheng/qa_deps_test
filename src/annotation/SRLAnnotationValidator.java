@@ -1,10 +1,13 @@
 package annotation;
 
+import io.MatrixPrinter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
 import data.AnnotatedSentence;
+import data.CountDictionary;
 import data.DepSentence;
 import data.SRLCorpus;
 import data.SRLSentence;
@@ -13,8 +16,6 @@ import util.StringUtils;
 import evaluation.F1Metric;
 
 public class SRLAnnotationValidator {
-	
-	public boolean ignoreRootPropArcs = true;
 	public boolean ignoreNominalArcs = true;
 	public boolean ignoreAmModArcs = true;
 	public boolean ignoreAmDisArcs = true;
@@ -24,7 +25,6 @@ public class SRLAnnotationValidator {
 	
 	public boolean goldPropositionOnly = true; 
 	public boolean coreArgsOnly = false;
-	
 	public boolean ignoreLabels = false;
 	
 	// So if the gold argument head has a child that is contained in the answer
@@ -54,7 +54,6 @@ public class SRLAnnotationValidator {
 	}
 	*/
 	
-	
 	private static boolean hasChildInAnswer(int idx, int[] flags,
 			DepSentence sentence) {
 		for (int i = 0; i < sentence.length; i++) {
@@ -65,21 +64,16 @@ public class SRLAnnotationValidator {
 		return false;
 	}
 	
+	/*
 	private static boolean isWhoWhatQuestion(QAPair qa) {
 		String qstr = qa.getQuestionLabel().toLowerCase();
 		return qstr.startsWith("who") || qstr.startsWith("what");
 	}
+	*/
 	
 	public String[][] getGoldSRL(SRLSentence sentence) {
 		int length = sentence.length + 1;
 		String[][] goldArcs = sentence.getSemanticArcs();
-		
-		for (int i = 0; i < length; i++) {
-			if (!goldArcs[0][i].isEmpty() &&
-				sentence.getPostagString(i - 1).equals("VERB")) {
-			}
-		}
-		
 		for (int i = 0; i < length; i++) {
 			for (int j = 1; j < length; j++) {
 				if (ignoreNominalArcs) {
@@ -115,14 +109,10 @@ public class SRLAnnotationValidator {
 	public boolean matchedGold(int goldArgHead, QAPair qa,
 			SRLSentence srlSentence) {
 		boolean headInAnswer = (qa.answerFlags[goldArgHead] > 0);
-		boolean childInAnswer = hasChildInAnswer(goldArgHead, qa.answerFlags,
-				srlSentence);
-		String argHeadPos = srlSentence
-				.getPostagString(goldArgHead);
-		boolean headIsPP = argHeadPos.equals("ADP") ||
-				argHeadPos.equals("PRT");
-		return (headInAnswer || (allowTwoHopValidation &&
-				childInAnswer && headIsPP));
+		boolean childInAnswer = hasChildInAnswer(goldArgHead, qa.answerFlags, srlSentence);
+		String argHeadPos = srlSentence.getPostagString(goldArgHead);
+		boolean headIsPP = argHeadPos.equals("ADP") || argHeadPos.equals("PRT");
+		return (headInAnswer || (allowTwoHopValidation && childInAnswer && headIsPP));
 	}
 	
 	public boolean labelEquals(String goldLabel, String questionLabel) {
@@ -155,59 +145,41 @@ public class SRLAnnotationValidator {
 		return false;
 	}
 	
-	public void computeSRLAccuracy(
-			Collection<AnnotatedSentence> annotatedSentences,
+	private CountDictionary getQLabels(
+			Collection<AnnotatedSentence> annotatedSentences) {
+		CountDictionary labelDict = new CountDictionary();
+		for (AnnotatedSentence annotSent : annotatedSentences) {
+			for (int propHead : annotSent.qaLists.keySet()) {
+				for (QAPair qa : annotSent.qaLists.get(propHead)) {
+					String ql = qa.questionLabel.split("=")[0].split("_")[0];
+					labelDict.addString(ql);
+				}
+			}
+		}
+		return labelDict;
+	}
+	
+	public void computeSRLAccuracy(Collection<AnnotatedSentence> annotations,
 			SRLCorpus corpus) {
-		
 		F1Metric avgF1 = new F1Metric();
+		CountDictionary qlabelDict = getQLabels(annotations);
+		int[][] labelMap = new int[corpus.argModDict.size()][qlabelDict.size()];
+		for (int i = 0; i < labelMap.length; i++) {
+			Arrays.fill(labelMap[i], 0);
+		}
 		
-		for (AnnotatedSentence sent : annotatedSentences) {	
+		for (AnnotatedSentence sent : annotations) {	
 			SRLSentence srlSentence = (SRLSentence) sent.sentence;
 			int length = srlSentence.length + 1;
-			String[][] goldArcs = srlSentence.getSemanticArcs();
-			
-			int[] goldProps = new int[srlSentence.length];
+			String[][] goldArcs = getGoldSRL(srlSentence); //srlSentence.getSemanticArcs();
 			
 			boolean[][] covered = new boolean[length][length];
 			int numUncoveredGoldArcs = 0, // Recall loss.
 				numUnmatchedPredSpans = 0, // Precision loss.
 				numGoldArcs = 0;
-	
-			Arrays.fill(goldProps, 0);
-			for (int i = 0; i < length; i++) {
-				if (!goldArcs[0][i].isEmpty() &&
-					srlSentence.getPostagString(i - 1).equals("VERB")) {
-					goldProps[i - 1] = 1;
-				}
-			}
-			for (int i = 0; i < length; i++) {
+			
+			for (int i = 1; i < length; i++) {
 				for (int j = 1; j < length; j++) {
-					if (ignoreRootPropArcs && i == 0) {
-						goldArcs[i][j] = "";
-					} 
-					if (ignoreNominalArcs) {
-						if ((i == 0 && !srlSentence.getPostagString(j - 1)
-						   		.equals("VERB")) ||
-						   	(i > 0 && !srlSentence.getPostagString(i - 1)
-							   		.equals("VERB"))) {
-							goldArcs[i][j] = "";
-						}
-					}
-					if (coreArgsOnly && goldArcs[i][j].startsWith("AM")) {
-						goldArcs[i][j] = "";
-					}
-					if (ignoreAmModArcs && goldArcs[i][j].equals("AM-MOD")) {
-						goldArcs[i][j] = "";
-					}
-					if (ignoreAmAdvArcs && goldArcs[i][j].equals("AM-ADV")) {
-						goldArcs[i][j] = "";
-					}
-					if (ignoreAmNegArcs && goldArcs[i][j].equals("AM-NEG")) {
-						goldArcs[i][j] = "";
-					}
-					if (ignoreRAxArcs && goldArcs[i][j].startsWith("R-A")) {
-						goldArcs[i][j] = "";
-					}
 					if (!goldArcs[i][j].isEmpty()) {
 						numGoldArcs ++;
 						numUncoveredGoldArcs ++;
@@ -215,11 +187,8 @@ public class SRLAnnotationValidator {
 					}
 				}
 			}
-		
 			/*
-			System.out.println(srlSentence.sentenceID + "\t" +
-							   srlSentence.getTokensString());
-			
+			System.out.println(srlSentence.sentenceID + "\t" +  srlSentence.getTokensString());
 			for (int i = 1; i < length; i++) {
 				for (int j = 1; j < length; j++) {
 					if (!goldArcs[i][j].isEmpty()) {
@@ -232,45 +201,34 @@ public class SRLAnnotationValidator {
 			}
 			System.out.println();
 			*/
-			
 			// Go over all propositions
 			for (int propId : sent.qaLists.keySet()) {
 				int propHead = propId + 1;
-
-				if (!ignoreRootPropArcs) {
-					if (!goldArcs[0][propHead].isEmpty() &&
-						!covered[0][propHead]) {
-						numUncoveredGoldArcs --;
-						covered[0][propHead] = true;
-					}
-				}
-				if (goldPropositionOnly && goldProps[propHead - 1] == 0) {
+				if (goldPropositionOnly && goldArcs[0][propHead].isEmpty()) {
 					continue;
-				}
-				
-		//		System.out.println("#:\t" + srlSentence.getTokenString(propId));
-				
+				}	
 				ArrayList<QAPair> qaList = sent.qaLists.get(propId);
 				for (QAPair qa : qaList) {
-					String qlabel = qa.questionLabel;
-					
-					if (coreArgsOnly && !isWhoWhatQuestion(qa)) {
+					String qlabel = qa.questionLabel.split("=")[0].split("_")[0];
+					if (coreArgsOnly && !qlabel.startsWith("ARG")) {
 						continue;
 					}
 					boolean matchedGold = false;
 					for (int argHead = 1; argHead < length; argHead++) {
-						if (goldArcs[propHead][argHead].isEmpty()) {
+						String goldLabel = goldArcs[propHead][argHead];
+						if (goldLabel.isEmpty()) {
 							continue;
 						}
-						boolean matchedLabel = (ignoreLabels ||
-							labelEquals(goldArcs[propHead][argHead], qlabel));
-						if (matchedGold(argHead - 1, qa, srlSentence) &&
-							matchedLabel) {
+						boolean matchedLabel = (ignoreLabels || labelEquals(goldLabel, qlabel));
+						if (matchedGold(argHead - 1, qa, srlSentence) && matchedLabel) {
 							if (!covered[propHead][argHead]) {
 								numUncoveredGoldArcs --;
 								covered[propHead][argHead] = true;
 							}
 							matchedGold = true;
+							int goldLabelId = corpus.argModDict.lookupString(goldLabel);
+							int qlabelId = qlabelDict.lookupString(qlabel);
+							labelMap[goldLabelId][qlabelId] ++;
 						}
 					}
 					if (!matchedGold) {
@@ -285,8 +243,6 @@ public class SRLAnnotationValidator {
 						}
 						*/
 					}
-					
-
 					// Output QA-pairs, side-by-side from different annotators
 					/*
 					System.out.println(String.format("%08d\t%s\t%-40s- %s",
@@ -297,7 +253,6 @@ public class SRLAnnotationValidator {
 					*/
 				}				
 			}
-			
 			// Output recall loss
 			int numMatchedArcs = numGoldArcs - numUncoveredGoldArcs;
 			F1Metric f1 = new F1Metric(numMatchedArcs,
@@ -322,6 +277,8 @@ public class SRLAnnotationValidator {
 			//System.out.println("[Accuracy]:\t" + f1.toString() + "\n");			
 			avgF1.add(f1);
 		}
+		// Output label map.
+		MatrixPrinter.prettyPrint(labelMap, corpus.argModDict, qlabelDict);
 		
 		System.out.println(avgF1.toString());
 	}
