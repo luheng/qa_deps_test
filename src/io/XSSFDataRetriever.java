@@ -44,11 +44,11 @@ public class XSSFDataRetriever {
 		// Map sentence ids to a set of AnnotatedSentence
 		assert (annotations != null);
 		HashMap<Integer, Integer> sentIdMap = new HashMap<Integer, Integer>();
+		int numTotalProps = 0, numNonEmptyProps = 0;
 		
 		for (String inputFile : inputFiles) {
 			XSSFWorkbook workbook = new XSSFWorkbook(
 					new FileInputStream(new File(inputFile)));
-		         
 			int unitId = -1, sentId = -1, propHead = -1;
 			Sentence sent = null;
 			AnnotatedSentence currSent = null;
@@ -65,13 +65,15 @@ public class XSSFDataRetriever {
 		        	}
 		        	String header = row.getCell(0).getStringCellValue();
 		        	if (header.startsWith("UNIT")) {
-		        		if (unitId > -1 && !qaList.isEmpty()) {
+		        		++ numTotalProps;
+		        		if (unitId > -1  && !qaList.isEmpty()) {
 		        			// Process previous unit.
 		        			currSent.addProposition(propHead);
 		        			for (QAPair qa : qaList) {
 		        				currSent.addQAPair(propHead, qa);
 		        			}
 		        			qaList.clear();
+		        			++ numNonEmptyProps;
 		        		}
 		        		unitId = getHeaderId(header);
 		        	} else if (header.startsWith("SENT")) {
@@ -97,10 +99,11 @@ public class XSSFDataRetriever {
 			        		currSent = annotations.get(sentId);
 		        		}
 		        	} else if (header.startsWith("TRG")) {
-		        		propHead = getHeaderId(header);
+		        		propHead = getHeaderId(header);		        		
 		        	} 
-		        	if (!header.startsWith("QA") || row.getCell(1) == null ||
-		        			row.getCell(1).toString().isEmpty()) {
+		        	if (!header.startsWith("QA") ||
+		        		row.getCell(1) == null ||
+		        		row.getCell(1).toString().isEmpty()) {
 		        		continue;
 		        	}
 		        	String[] question = new String[7];
@@ -109,7 +112,8 @@ public class XSSFDataRetriever {
 		        			question[c-1] = "";
 		        			continue;
 		        		} else {
-		        			question[c-1] = row.getCell(c).getStringCellValue().trim();     		
+		        			question[c-1] =
+		        				row.getCell(c).getStringCellValue().trim();     		
 		        		}
 		        	}
 		        	// Normalizing question:
@@ -117,7 +121,9 @@ public class XSSFDataRetriever {
 		        	//   ph3 is moved to ph2
 		        	QuestionEncoder.normalize(question);
 		        	QAPair qa = new QAPair(
-		        			sent, propHead, question,
+		        			sent,
+		        			propHead,
+		        			question,
 		        			"" /* answer */,
 		        			inputFile /* annotator source */);
 		        	for (int c = 9; c <= 13; c++) {
@@ -133,7 +139,7 @@ public class XSSFDataRetriever {
 		        		qa.comment = row.getCell(14).getStringCellValue().trim();
 		        	}
 		        	if (!question[0].isEmpty() && !question[3].isEmpty() &&
-		        			!qa.getAnswerString().isEmpty()) {
+		        		!qa.getAnswerString().isEmpty()) {
 		        		qaList.add(qa);
 		        		numQAsPerFile ++;
 		        	}
@@ -145,6 +151,9 @@ public class XSSFDataRetriever {
 					"Read %d sentences and %d QAs from %s.",
 						numSentsPerFile, numQAsPerFile, inputFile));
 		}
+		System.out.println(String.format(
+				"Total propositons: %d. Skipped %d empty propositions.",
+					numTotalProps, numTotalProps - numNonEmptyProps));
 	}
 	
 	

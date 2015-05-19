@@ -55,8 +55,10 @@ public class BaselineQADataProcessor {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r012_maria.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r013_john.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r014_john.xlsx",
-		"odesk_wiki/raw_annotation/odesk_wiki1_r017 donna.xlsx",
-		"odesk_wiki/raw_annotation/odesk_wiki1_r018 donna.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r015_francine.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r016_francine.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r017_donna.xlsx",
+		"odesk_wiki/raw_annotation/odesk_wiki1_r018_donna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r019_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r020_breanna.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r021_ellen.xlsx",
@@ -67,7 +69,7 @@ public class BaselineQADataProcessor {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r026_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r027_john.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r028_sarah.xlsx",
-		// 29, 30 - francine
+		// 29, 30 - breanna
 		"odesk_wiki/raw_annotation/odesk_wiki1_r031_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r032_ellen.xlsx",
 		"odesk_wiki/raw_annotation/odesk_wiki1_r033_katie.xlsx",
@@ -75,7 +77,7 @@ public class BaselineQADataProcessor {
 	};
 
 	private static String kOutputPathPrefix = "data/propbank_new";
-	private static String kWikiOutputPathPrefix = "data/wiki1_new";
+	private static String kWikiOutputPathPrefix = "data/wiki1";
 		
 	private static final int randomSeed = 12345;
 	
