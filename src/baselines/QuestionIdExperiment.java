@@ -148,7 +148,7 @@ public class QuestionIdExperiment {
 			qgen = new QuestionGenerator(baseCorpus, slotDict, tempDict);		
 			for (QuestionIdDataset ds : testSets) {
 				if (ds.datasetName.contains("dev")) {
-					generateQuestions(ds.samples, ds.features, ds, model);
+					generateQuestions(ds, model, config.evalThreshold);
 				}
 			}
 		}
@@ -209,19 +209,16 @@ public class QuestionIdExperiment {
 				f1.precision(), f1.recall(), f1.f1()}; 	
 	}
 	
-	private void generateQuestions(
-			ArrayList<QASample> samples,
-			Feature[][] features,
-			QuestionIdDataset ds,
-			Model model) {
+	private void generateQuestions(QuestionIdDataset ds, Model model,
+			double threshold) {
 		HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>> results =
 			new HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>>();
 		
-		for (int i = 0; i < samples.size(); i++) {
-			QASample sample = samples.get(i);
+		for (int i = 0; i < ds.samples.size(); i++) {
+			QASample sample = ds.samples.get(i);
 			double[] prob = new double[2];
-			Linear.predictProbability(model, features[i], prob);
-			if (prob[0] < config.evalThreshold) {
+			Linear.predictProbability(model, ds.features[i], prob);
+			if (prob[0] < threshold) {
 				continue;
 			}
 			int sentId = sample.sentenceId;
@@ -234,18 +231,16 @@ public class QuestionIdExperiment {
 			}
 			results.get(sentId).get(propHead).put(sample.questionLabelId,
 					prob[0]);
-			
 		}
 		for (AnnotatedSentence annotSent : ds.sentences) {
 			int sentId = annotSent.sentence.sentenceID;
 			if (!results.containsKey(sentId)) {
 				continue;
 			}
-			
 			for (int propHead : results.get(sentId).keySet()) {
 				Sentence sent = ds.getSentence(sentId);
-				ArrayList<String[]> questions = qgen.generateQuestions2(
-						sent, propHead, results);
+				ArrayList<String[]> questions = qgen.generateQuestions(
+						sent, propHead, results.get(sentId).get(propHead));
 				if (questions == null) {
 					continue;
 				}

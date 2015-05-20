@@ -61,17 +61,15 @@ public class QuestionGenerator {
 	 * @param results
 	 * @return
 	 */
-	public ArrayList<String[]> generateQuestions2(
-			Sentence sentence,
-			int propHead,
-			HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>> results) {
+	public ArrayList<String[]> generateQuestions(
+			Sentence sentence, int propHead, TIntDoubleHashMap predLabels) {
 		assert (tempDict != null);
 		HashMap<String, String> slotValue = new HashMap<String, String>();
 		HashMap<String, Double> slotScore = new HashMap<String, Double>();
-		TIntDoubleHashMap slots = results.get(sentence.sentenceID).get(propHead);
-		for (int id : slots.keys()) {
-			double score = slots.get(id);
+		for (int id : predLabels.keys()) {
+			double score = predLabels.get(id);
 			if (id >= slotDict.size()) {
+				System.out.println("Unidentified label ID:\t" + id);
 				continue;
 			}
 			String qlabel = slotDict.getString(id);
@@ -81,7 +79,6 @@ public class QuestionGenerator {
 				slotValue.put(qkey, qval);
 				slotScore.put(qkey, score);
 			}
-	
 		}
 		
 		// Now truly, generate the questions.
@@ -101,8 +98,10 @@ public class QuestionGenerator {
 		for (String qkey : slotValue.keySet()) {
 			// Try to find matching template
 			String[] bestTemp = null;
-			int numCoresCovered = 0, tempFreq = 0;
+			double bestTempScore = -1.0;
+			int numCoresCovered = 0;
 			for (String tempStr : tempDict.getStrings()) {
+				// Compute template score.
 				String[] temp = tempStr.split("\t");
 				if (!temp[0].split("_")[0].equals(qkey.split("_")[0])) {
 					continue;
@@ -174,7 +173,7 @@ public class QuestionGenerator {
 	}
 	
 	@Deprecated
-	public ArrayList<String[]> generateQuestions(
+	public ArrayList<String[]> generateQuestionsOld(
 			Sentence sentence,
 			int propHead,
 			HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>> results) {
