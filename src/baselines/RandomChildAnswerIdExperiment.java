@@ -112,6 +112,7 @@ public class RandomChildAnswerIdExperiment {
 				if (dep.gov().index() == sample.propHead + 1&&
 					dep.dep().index() == aid + 1) {
 					predScores[qid][aid] = random.nextDouble();
+					break;
 				}
 			}
 			evalQIds.add(qid);
