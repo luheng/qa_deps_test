@@ -22,7 +22,7 @@ public class WhoDidWhatQuestionIdExperiment {
 	private QuestionIdConfig config;
 	private Corpus baseCorpus; 
 	
-	CountDictionary slotDict, tempDict;
+	CountDictionary labelDict, templateDict;
 	
 	private QuestionIdDataset trainSet;
 	private ArrayList<QuestionIdDataset> testSets;
@@ -51,26 +51,26 @@ public class WhoDidWhatQuestionIdExperiment {
 		}
 		
 		// ************ Extract slot labels and templates **************
-		slotDict = new CountDictionary();
-		tempDict = new CountDictionary();
+		labelDict = new CountDictionary();
+		templateDict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
-					slotDict.addString(temp[0]);
-					tempDict.addString(StringUtils.join("\t", "_", temp));
+					labelDict.addString(temp[0]);
+					templateDict.addString(StringUtils.join("\t", "_", temp));
 				}
 			}
 		}
-		slotDict = new CountDictionary(slotDict, config.minQuestionLabelFreq);
-	
+		labelDict = new CountDictionary(labelDict, config.minQuestionLabelFreq);
+		labelDict.prettyPrint();
 		// *********** Generate training/test samples **********
 		if (config.regenerateSamples) {
 			KBestParseRetriever syntaxHelper =
 					new KBestParseRetriever(config.kBest);
-			trainSet.generateSamples(syntaxHelper, slotDict);
+			trainSet.generateSamples(syntaxHelper, labelDict);
 			for (QuestionIdDataset ds : testSets) {
-				ds.generateSamples(syntaxHelper, slotDict);
+				ds.generateSamples(syntaxHelper, labelDict);
 			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;
@@ -119,9 +119,9 @@ public class WhoDidWhatQuestionIdExperiment {
 	private double[] predictAndEvaluate(QuestionIdDataset ds) {
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
-		int l1 = slotDict.lookupString("A0=someone"),
-			l2 = slotDict.lookupString("A1=something");
-		System.out.println(l1 + ", " + l2);
+		int l1 = labelDict.lookupString("W0=someone"),
+			l2 = labelDict.lookupString("W1=something");
+		// System.out.println(l1 + ", " + l2);
 		for (int i = 0; i < ds.samples.size(); i++) {
 			QASample sample = ds.samples.get(i);
 			int labelId = sample.questionLabelId;
