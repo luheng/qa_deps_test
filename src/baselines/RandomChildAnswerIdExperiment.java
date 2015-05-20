@@ -100,7 +100,7 @@ public class RandomChildAnswerIdExperiment {
 		double[][] predScores = new double[numQuestions][];
 		for (int i = 0; i < numQuestions; i++) {
 			predScores[i] = new double[ds.answerFlags[i].length];
-			Arrays.fill(predScores, -1);
+			Arrays.fill(predScores[i], -1);
 		}
 		HashSet<Integer> evalQIds = new HashSet<Integer>();
 
