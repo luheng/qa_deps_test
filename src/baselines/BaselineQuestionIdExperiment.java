@@ -285,8 +285,8 @@ public class BaselineQuestionIdExperiment {
 			System.out.println(prm.toString());
 			results[i] = exp.trainAndPredict(prm,
 				exp.config.evalThreshold,
-				false /* generate question */,
-				true  /* get precision-reall curve */);
+				true,  /* get precision-reall curve */
+				false /* generate question */);
 		}
 		System.out.println("====== training finished =======");
 		for (int i = 0; i < prms.size(); i++) {
