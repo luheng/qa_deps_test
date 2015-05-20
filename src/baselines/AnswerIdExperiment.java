@@ -28,7 +28,7 @@ import evaluation.AnswerIdEvaluator;
 import experiments.LiblinearHyperParameters;
 import util.StringUtils;
 
-public class BaselineAnswerIdExperiment {
+public class AnswerIdExperiment {
 	private AnswerIdConfig config;
 	private Corpus baseCorpus; 
 	private AnswerIdFeatureExtractor featureExtractor;
@@ -44,7 +44,7 @@ public class BaselineAnswerIdExperiment {
 		}
 	}
 	
-	public BaselineAnswerIdExperiment(String answerIdConfigPath)
+	public AnswerIdExperiment(String answerIdConfigPath)
 			throws IOException, ClassNotFoundException {
 		config = answerIdConfigPath.isEmpty() ? new AnswerIdConfig() :
 						new AnswerIdConfig(answerIdConfigPath);
@@ -294,10 +294,10 @@ public class BaselineAnswerIdExperiment {
 	}
 	
 	public static void main(String[] args) {
-		BaselineAnswerIdExperiment exp = null;
+		AnswerIdExperiment exp = null;
 		String answerIdConfigPath = args.length > 0 ? args[0] : "";
 		try {
-			exp = new BaselineAnswerIdExperiment(answerIdConfigPath);
+			exp = new AnswerIdExperiment(answerIdConfigPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -328,126 +328,3 @@ public class BaselineAnswerIdExperiment {
 		}
 	}
 }
-
-
-/*
-public LiblinearHyperParameters runCrossValidation(
-		ArrayList<LiblinearHyperParameters> cvPrms) {
-	ArrayList<Double> cvResults = new ArrayList<Double>();
-	double bestAcc = .0;
-	LiblinearHyperParameters bestPrm = null;
-	for (LiblinearHyperParameters prm : cvPrms) {
-		System.out.println(prm.toString());
-		double res = crossValidate(trainSet, config.cvFolds, prm);
-		cvResults.add(res);
-	}
-	for (int i = 0; i < cvResults.size(); i++) {
-		double acc = cvResults.get(i);
-		System.out.println(String.format("%s\t%.5f\n",
-				cvPrms.get(i).toString(), acc));
-		if (acc > bestAcc) {
-			bestAcc = acc;
-			bestPrm = cvPrms.get(i);
-		}
-	}
-	return bestPrm;
-}
-
-private double crossValidate(AnswerIdDataset ds, int cvFolds,
-			LiblinearHyperParameters prm) {
-		ArrayList<Integer> shuffledIds = new ArrayList<Integer>();		
-		for (int i = 0; i < ds.getQuestions().size(); i++) {
-			shuffledIds.add(i);
-		}
-		Collections.shuffle(shuffledIds, new Random(config.randomSeed));
-		int sampleSize = shuffledIds.size();
-		int foldSize = sampleSize / cvFolds;
-	
-		double avgAcc = .0;
-		for (int c = 0; c < cvFolds; c++) {
-			System.out.println("cv: " + c);
-			
-			HashSet<Integer> trnQIds = new HashSet<Integer>();
-			HashSet<Integer> valQIds = new HashSet<Integer>();
-			ArrayList<QASample> trnSamples = new ArrayList<QASample>();
-			ArrayList<QASample> valSamples = new ArrayList<QASample>();
-			
-			for (int j = 0; j < sampleSize; j++) {
-				int qid = shuffledIds.get(j);
-				if (j < foldSize * c || j >= foldSize * (c + 1)) {
-					trnQIds.add(qid);
-				} else {
-					valQIds.add(qid);
-				}
-			}
-			System.out.println(String.format(
-					"%d questions in training, %d in validation",
-					trnQIds.size(), valQIds.size()));
-			
-
-			for (int j = 0; j < ds.getSamples().size(); j++) {
-				QASample sample = ds.getSamples().get(j);
-				if (trnQIds.contains(sample.questionId)) {
-					trnSamples.add(sample);
-				} else {
-					valSamples.add(sample);
-				}
-			}
-			Feature[][] trnFeats = new Feature[trnSamples.size()][];		
-			Feature[][] valFeats = new Feature[valSamples.size()][];
-			double[] trnLabels = new double[trnSamples.size()];
-			double[] valLabels = new double[valSamples.size()];
-			
-			int trnCnt = 0, valCnt = 0;
-			
-			for (int j = 0; j < ds.getSamples().size(); j++) {
-				QASample sample = ds.getSamples().get(j);
-				int qid = sample.questionId;
-				if (trnQIds.contains(qid)) {
-					trnFeats[trnCnt] = ds.getFeatures()[j];
-					trnLabels[trnCnt++] = ds.getLabels()[j];
-				} else {
-					valFeats[valCnt] = ds.getFeatures()[j];
-					valLabels[valCnt++] = ds.getLabels()[j];
-				}
-			}
-			System.out.println(String.format(
-					"%d samples in training, %d in validation",
-					trnCnt, valCnt));
-			
-			Model model = train(trnFeats, trnLabels,
-					featureExtractor.numFeatures(), prm);
-			double[] trnAcc = predictAndEvaluate(
-					trnSamples, trnFeats, ds, model, "");
-			double[] valAcc = predictAndEvaluate(
-					valSamples, valFeats, ds, model, "");
-			avgAcc += valAcc[0];
-			System.out.println(trnAcc);
-			System.out.println(valAcc);
-		}
-		return avgAcc / cvFolds;
-	}
-	
-		
-	@SuppressWarnings("unused")
-	@Deprecated
-	private F1Metric predictAndEvaluateOld(Feature[][] features,
-			double[] labels, Model model) {
-		int numMatched = 0, numPred = 0, numGold = 0;
-		for (int i = 0; i < features.length; i++) {
-			int pred = (int) Linear.predict(model, features[i]);
-			int gold = (int) labels[i];
-			if (gold > 0 && pred > 0) {
-				numMatched ++;
-			}
-			if (gold > 0) {
-				numGold ++;
-			}
-			if (pred > 0) {
-				numPred ++;
-			}
-		}
-		return new F1Metric(numMatched, numGold, numPred);
-	}
-	
-*/

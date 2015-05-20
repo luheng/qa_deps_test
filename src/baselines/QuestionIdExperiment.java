@@ -28,7 +28,7 @@ import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
-public class BaselineQuestionIdExperiment {
+public class QuestionIdExperiment {
 	private QuestionIdConfig config;
 	
 	private Corpus baseCorpus; 
@@ -44,7 +44,7 @@ public class BaselineQuestionIdExperiment {
 		return ds.datasetName + ".qgen.k" + config.kBest + ".smp";
 	}
 	
-	public BaselineQuestionIdExperiment(String questionIdConfigPath)
+	public QuestionIdExperiment(String questionIdConfigPath)
 			throws IOException {
 		config = questionIdConfigPath.isEmpty() ? new QuestionIdConfig():
 					new QuestionIdConfig(questionIdConfigPath);
@@ -266,10 +266,10 @@ public class BaselineQuestionIdExperiment {
 	}
 	
 	public static void main(String[] args) {
-		BaselineQuestionIdExperiment exp = null;
+		QuestionIdExperiment exp = null;
 		String questionIdConfigPath = args.length > 0 ? args[0] : "";
 		try {
-			exp = new BaselineQuestionIdExperiment(questionIdConfigPath);
+			exp = new QuestionIdExperiment(questionIdConfigPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;

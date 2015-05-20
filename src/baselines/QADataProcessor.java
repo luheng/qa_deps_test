@@ -15,7 +15,7 @@ import data.SRLCorpus;
 import data.WikipediaCorpus;
 import experiments.ExperimentUtils;
 
-public class BaselineQADataProcessor {
+public class QADataProcessor {
 
 	private static String[] kXssfInputFiles = {
 				"odesk/raw_annotation/odesk_r2_s90_donna_fixed.xlsx",

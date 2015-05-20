@@ -21,11 +21,9 @@ import evaluation.F1Metric;
 public class WhoDidWhatQuestionIdExperiment {
 	private QuestionIdConfig config;
 	private Corpus baseCorpus; 
-	
-	CountDictionary labelDict, templateDict;
-	
 	private QuestionIdDataset trainSet;
 	private ArrayList<QuestionIdDataset> testSets;
+	private CountDictionary labelDict, templateDict;
 	
 	private String getSampleFileName(QuestionIdDataset ds) {
 		return ds.datasetName + ".qgen.k" + config.kBest + ".smp";
