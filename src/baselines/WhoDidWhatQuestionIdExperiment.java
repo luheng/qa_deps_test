@@ -119,13 +119,14 @@ public class WhoDidWhatQuestionIdExperiment {
 	private double[] predictAndEvaluate(QuestionIdDataset ds) {
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
-		int l1 = slotDict.lookupString("A0:someone"),
-			l2 = slotDict.lookupString("A1:something");
+		int l1 = slotDict.lookupString("A0=someone"),
+			l2 = slotDict.lookupString("A1=something");
+		System.out.println(l1 + ", " + l2);
 		for (int i = 0; i < ds.samples.size(); i++) {
 			QASample sample = ds.samples.get(i);
+			int labelId = sample.questionLabelId;
 			int gold = sample.isPositiveSample ? 1 : -1;
-			int pred = (sample.questionLabelId == l1 ||
-						sample.questionLabelId == l2) ? 1 : -1;
+			int pred = (labelId == l1 || labelId == l2) ? 1 : -1;
 			f1.numGold += (gold > 0 ? 1 : 0);
 			f1.numProposed += (pred > 0 ? 1 : 0);
 			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);
