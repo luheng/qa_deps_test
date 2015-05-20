@@ -92,12 +92,10 @@ public class QuestionIdDataset extends QADataset {
 		for (AnnotatedSentence annotSent : sentences) {
 			Sentence sent = annotSent.sentence;
 			for (int propHead : annotSent.qaLists.keySet()) {
-				ArrayList<QAPair> qaList = annotSent.qaLists.get(propHead);
-				CountDictionary slotDict = new CountDictionary();
-				QuestionEncoder.encode(sent, propHead, qaList, slotDict, null);
 				HashSet<Integer> qlabelIds = new HashSet<Integer>();
-				for (String qlabel : slotDict.getStrings()) {
-					qlabelIds.add(qlabelDict.lookupString(qlabel));
+				for (QAPair qa : annotSent.qaLists.get(propHead)) {
+					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
+					qlabelIds.add(qlabelDict.lookupString(temp[0]));
 				}
 				qlabelIds.remove(-1);
 				ArrayList<QASample> newSamples =

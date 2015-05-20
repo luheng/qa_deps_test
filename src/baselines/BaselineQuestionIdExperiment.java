@@ -68,12 +68,11 @@ public class BaselineQuestionIdExperiment {
 		tempDict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
-				QuestionEncoder.encode(
-						sent.sentence, 
-						propHead,
-						sent.qaLists.get(propHead),
-						slotDict,
-						tempDict);
+				for (QAPair qa : sent.qaLists.get(propHead)) {
+					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
+					slotDict.addString(temp[0]);
+					tempDict.addString(StringUtils.join("\t", "_", temp));
+				}
 			}
 		}
 		slotDict = new CountDictionary(slotDict, config.minQuestionLabelFreq);
@@ -131,8 +130,10 @@ public class BaselineQuestionIdExperiment {
 		}
 	}
 	
-	public double[][] trainAndPredict(LiblinearHyperParameters prm,
-			boolean generateQuestions) {
+	public double[][][] trainAndPredict(LiblinearHyperParameters prm,
+										double threshold,
+										boolean getPrecRecallCurve,
+										boolean generateQuestions) {
 		System.out.println(String.format("Training with %d samples.",
 				trainSet.features.length));
 		int numFeatures = featureExtractor.numFeatures();
@@ -141,6 +142,7 @@ public class BaselineQuestionIdExperiment {
 				trainSet.labels,
 				numFeatures, prm);
 		
+		// TODO: FIXME
 		if (generateQuestions) {
 			System.out.println("Preparing to generate questions.");
 			qgen = new QuestionGenerator(baseCorpus, slotDict, tempDict);		
@@ -151,18 +153,25 @@ public class BaselineQuestionIdExperiment {
 			}
 		}
 		
-		double[][] results = new double[testSets.size() + 1][];
-		results[0] = predictAndEvaluate(trainSet, model, "");
+		double[][][] results = new double[testSets.size() + 1][][];
+		results[0] = new double[1][];
+		results[0][0] = predictAndEvaluate(trainSet, model, threshold, "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
-				StringUtils.doubleArrayToString("\t", results[0])));
+				StringUtils.doubleArrayToString("\t", results[0][0])));
 		
-		for (int i = 0; i < testSets.size(); i++) {
-			QuestionIdDataset ds = testSets.get(i);
-			results[i+1] = predictAndEvaluate(ds, model, "");
-			System.out.println(String.format("Testing accuracy on %s:\t%s",
-					ds.datasetName,
-					StringUtils.doubleArrayToString("\t", results[i+1])));
+		for (int d = 0; d < testSets.size(); d++) {
+			QuestionIdDataset ds = testSets.get(d);
+			if (getPrecRecallCurve) {
+				results[d+1] = new double[20][];
+				for (int t = 0; t < 20; t++) {
+					double thr = 1.0 * t / 20;
+					results[d+1][t] = predictAndEvaluate(ds, model, thr, "");
+				}
+			} else {
+				results[d+1] = new double[1][];
+				results[d+1][0] = predictAndEvaluate(ds, model, threshold, "");
+			}
 		}
 		return results;
 	}
@@ -178,43 +187,25 @@ public class BaselineQuestionIdExperiment {
 		return Linear.train(training, parameter);
 	}
 	
-	private double[] predictAndEvaluate(QuestionIdDataset ds, Model model,
-			String debugFilePath) {
-		return predictAndEvaluate(ds.samples, ds.features, ds, model,
-				debugFilePath);
-	}
-	
-	/**
-	 * 
-	 * @param samples
-	 * @param features
-	 * @param ds
-	 * @param model
-	 * @param debugFilePath
-	 * @return [accuracy, precision, recall, F1] 
-	 */
 	private double[] predictAndEvaluate(
-			ArrayList<QASample> samples,
-			Feature[][] features,
 			QuestionIdDataset ds,
 			Model model,
+			double threshold,
 			String debugFilePath) {
-		
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
-		for (int i = 0; i < samples.size(); i++) {
-			QASample sample = samples.get(i);
+		for (int i = 0; i < ds.samples.size(); i++) {
+			QASample sample = ds.samples.get(i);
 			double[] prob = new double[2];
-			Linear.predictProbability(model, features[i], prob);
+			Linear.predictProbability(model, ds.features[i], prob);
 			int gold = sample.isPositiveSample ? 1 : -1;
-			int pred = prob[0] > config.evalThreshold ? 1 : -1;
+			int pred = prob[0] > threshold ? 1 : -1;
 			f1.numGold += (gold > 0 ? 1 : 0);
 			f1.numProposed += (pred > 0 ? 1 : 0);
 			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);
 			numCorrect += (gold == pred ? 1 : 0);
 		}
-		return new double[] {
-				1.0 * numCorrect / samples.size(),
+		return new double[] {1.0 * numCorrect / ds.samples.size(),
 				f1.precision(), f1.recall(), f1.f1()}; 	
 	}
 	
@@ -288,26 +279,31 @@ public class BaselineQuestionIdExperiment {
 		for (String prmStr : exp.config.liblinParameters) {
 			prms.add(new LiblinearHyperParameters(prmStr));
 		}
-		double[][][] results = new double[prms.size()][][];
+		double[][][][] results = new double[prms.size()][][][];
 		for (int i = 0; i < prms.size(); i++) {
 			LiblinearHyperParameters prm = prms.get(i);
 			System.out.println(prm.toString());
-			results[i] = exp.trainAndPredict(prm, false /* generate question */);
+			results[i] = exp.trainAndPredict(prm,
+				exp.config.evalThreshold,
+				false /* generate question */,
+				true  /* get precision-reall curve */);
 		}
 		System.out.println("====== training finished =======");
 		for (int i = 0; i < prms.size(); i++) {
-			double[][] acc = results[i];
+			double[][][] res = results[i];
 			System.out.println(prms.get(i).toString());
 			System.out.println(String.format(
 					"Training accuracy on %s:\t%s",
 						exp.trainSet.datasetName,
-						StringUtils.doubleArrayToString("\t", acc[0])));
+						StringUtils.doubleArrayToString("\t", res[0][0])));
 			for (int j = 0; j < exp.testSets.size(); j++) {
 				QuestionIdDataset ds = exp.testSets.get(j);
 				System.out.println(String.format(
-						"Testing accuracy on %s:\t%s",
-							ds.datasetName,
-							StringUtils.doubleArrayToString("\t", acc[j+1])));
+						"Testing accuracy on %s", ds.datasetName));
+				for (int k = 0; k < res[j+1].length; k++) {
+					System.out.println(
+						StringUtils.doubleArrayToString("\t", res[j+1][k]));
+				}
 			}
 		}
 	}
