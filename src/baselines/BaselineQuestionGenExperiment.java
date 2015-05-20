@@ -11,13 +11,10 @@ import learning.KBestParseRetriever;
 import learning.QGenCRF;
 import learning.QGenDataset;
 import data.Corpus;
-import data.VerbInflectionDictionary;
 
 public class BaselineQuestionGenExperiment {
-
 	private QuestionGenConfig config;
 	private Corpus baseCorpus; 
-	private VerbInflectionDictionary inflDict;
 	private QGenCRF crf;
 	
 	private QGenDataset trainSet;
