@@ -50,19 +50,10 @@ public class AnswerIdDataset extends QADataset {
 				samples.size() - numPositiveSamples));
 	}
 	
-	public void extractFeaturesAndLabels(
+	public void extractFeatures(
 			AnswerIdFeatureExtractor featureExtractor) {
-		int numSamples = samples.size(),
-			numQuestions = questions.size();
+		int numSamples = samples.size();
 		features = new Feature[numSamples][];
-		labels = new double[numSamples];
-		answerFlags = new int[numQuestions][];
-		answerHeads = new int[numQuestions][];
-		for (int i = 0; i < numQuestions; i++) {
-			answerFlags[i] = questions.get(i).answerFlags;
-			answerHeads[i] = new int[answerFlags.length];
-			Arrays.fill(answerHeads[i], -1);
-		}			
 		for (int i = 0; i < numSamples; i++) {
 			QASample sample = samples.get(i);
 			TIntDoubleHashMap fv = featureExtractor.getFeatures(sample);
@@ -73,16 +64,32 @@ public class AnswerIdDataset extends QADataset {
 				// Liblinear feature id starts from 1.
 				features[i][j] = new FeatureNode(fids[j] + 1, fv.get(fids[j]));
 			}
-			int label = (sample.isPositiveSample ? 1 : -1);
-			labels[i] = label;
-			answerHeads[sample.questionId][sample.answerWordPosition] = label;
 			if (i % 10000 == 9999) {
 				System.out.println(String.format(
 						"Extracted features for %d samples, %d still left.",
 						i + 1, numSamples - i - 1));
 			}
 		}
-
+		
+	}
+	
+	public void assignLabels() {
+		int numSamples = samples.size(),
+			numQuestions = questions.size();
+		labels = new double[numSamples];
+		answerFlags = new int[numQuestions][];
+		answerHeads = new int[numQuestions][];
+		for (int i = 0; i < numQuestions; i++) {
+			answerFlags[i] = questions.get(i).answerFlags;
+			answerHeads[i] = new int[answerFlags.length];
+			Arrays.fill(answerHeads[i], -1);
+		}			
+		for (int i = 0; i < numSamples; i++) {
+			QASample sample = samples.get(i);
+			int label = (sample.isPositiveSample ? 1 : -1);
+			labels[i] = label;
+			answerHeads[sample.questionId][sample.answerWordPosition] = label;
+		}
 	}
 
 }

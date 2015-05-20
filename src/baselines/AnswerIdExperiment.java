@@ -98,9 +98,11 @@ public class AnswerIdExperiment {
 				config.useLexicalFeatures,
 				config.useDependencyFeatures);
 		featureExtractor.extractFeatures(trainSet.samples);
-		trainSet.extractFeaturesAndLabels(featureExtractor);
+		trainSet.extractFeatures(featureExtractor);
+		trainSet.assignLabels();
 		for (AnswerIdDataset ds : testSets) {
-			ds.extractFeaturesAndLabels(featureExtractor);
+			ds.extractFeatures(featureExtractor);
+			ds.assignLabels();
 		}
 	}
 	

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import annotation.QuestionEncoder;
 import config.DataConfig;
 import learning.QuestionIdDataset;
 import data.AnnotatedSentence;

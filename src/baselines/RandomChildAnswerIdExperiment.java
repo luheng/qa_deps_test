@@ -79,6 +79,10 @@ public class RandomChildAnswerIdExperiment {
 				ds.loadSamples(dataPath + getSampleFileName(ds));
 			}
 		}
+		trainSet.assignLabels();
+		for (AnswerIdDataset ds : testSets) {
+			ds.assignLabels();
+		}
 	}
 	
 	public double[][] predict() {
