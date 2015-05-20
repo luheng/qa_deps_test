@@ -103,9 +103,6 @@ public class WhoDidWhatQuestionIdExperiment {
 	}
 	
 	public double[][] predict(boolean generateQuestions) {
-		System.out.println(String.format("Training with %d samples.",
-				trainSet.features.length));
-		
 		if (generateQuestions) {
 			// TODO: baseline qgen?
 		}
