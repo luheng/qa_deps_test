@@ -66,7 +66,10 @@ public class QuestionGenerator {
 			if (temp[i].equals("_")) {
 				continue;
 			}
-			score += (nslots.containsKey(temp[i]) ? 1.0 : 0.0);
+			if (!nslots.containsKey(temp[i])) {
+				return -1;
+			}
+			score += nscores.get(temp[i]);
 		}
 		return score;
 	}
@@ -152,13 +155,16 @@ public class QuestionGenerator {
 			}
 			// PH2
 			if (!bestTemp[2].equals("_")) {
-				ph2Key = bestTemp[2].contains("PP") ? nslots.get(bestTemp[2]) : bestTemp[2];
+				ph2Key = bestTemp[2].contains("PP") ?
+						nslots.get(bestTemp[2]) : bestTemp[2];
 				question[QASlots.PH2SlotId] = slots.get(ph2Key);
 			}
 			// PH3
 			if (!bestTemp[3].equals("_")) {
-				ph3Key = bestTemp[3].contains("PP") ? nslots.get(bestTemp[3]) : bestTemp[3];
-				question[QASlots.PH3SlotId] = ph3Key.startsWith("WHERE") ? "somewhere" : slots.get(ph3Key);
+				ph3Key = bestTemp[3].contains("PP") ?
+						nslots.get(bestTemp[3]) : bestTemp[3];
+				question[QASlots.PH3SlotId] = ph3Key.startsWith("WHERE") ?
+						"somewhere" : slots.get(ph3Key);
 			}
 			// PP
 			if (pfx.contains("_")) {
