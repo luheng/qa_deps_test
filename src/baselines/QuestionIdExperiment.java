@@ -175,16 +175,6 @@ public class QuestionIdExperiment {
 				trainSet.labels,
 				numFeatures, prm);
 		
-		// TODO: FIXME
-		if (generateQuestions) {
-			System.out.println("Preparing to generate questions.");
-			qgen = new QuestionGenerator(baseCorpus, labelDict, tempDict);		
-			for (QuestionIdDataset ds : testSets) {
-				if (ds.datasetName.contains("dev")) {
-					generateQuestions(ds, model, topK);
-				}
-			}
-		}
 		double[][][] results = new double[testSets.size() + 1][][];
 		results[0] = new double[1][];
 		results[0][0] = predictAndEvaluate(trainSet, model, topK, "");
@@ -201,7 +191,8 @@ public class QuestionIdExperiment {
 				}
 			} else {
 				results[d+1] = new double[1][];
-				results[d+1][0] = predictAndEvaluate(ds, model, topK, "");
+				results[d+1][0] = predictAndEvaluate(ds, model, topK,
+						generateQuestions ? "qgenpath" : "");
 			}
 		}
 		return results;
@@ -264,6 +255,7 @@ public class QuestionIdExperiment {
 			int sid = sent.sentence.sentenceID;
 			for (int pid : sent.qaLists.keySet()) {
 				ArrayList<Double> scRank = new ArrayList<Double>();
+				HashMap<String, Double> labels = new HashMap<String, Double>();
 				for (double s : scores.get(sid).get(pid).values()) {
 					scRank.add(s);
 				}
@@ -277,10 +269,14 @@ public class QuestionIdExperiment {
 						sl.remove(k);
 					}
 				}
+				for (String k : sl.keySet()) {
+					String lb = config.aggregateLabels ? k + "=" + sl.get(k) : k;
+					labels.put(lb, sc.get(k));
+				}
 				// Generate questions
 				if (!qgenPath.isEmpty()) {
 					ArrayList<String[]> questions = qgen.generateQuestions(
-							sent, pid, sl, sc);
+							sent.sentence, pid, labels);
 					if (questions == null) {
 						continue;
 					}
@@ -300,7 +296,6 @@ public class QuestionIdExperiment {
 				}
 			}
 		}
-		
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
 		for (int i = 0; i < ds.samples.size(); i++) {
