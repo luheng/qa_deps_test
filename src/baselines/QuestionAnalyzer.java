@@ -2,9 +2,9 @@ package baselines;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import config.DataConfig;
+import annotation.QuestionEncoder;
 import learning.QuestionIdDataset;
 import data.AnnotatedSentence;
 import data.Corpus;
@@ -13,54 +13,57 @@ import data.QAPair;
 
 
 public class QuestionAnalyzer {
-
-	private boolean trainWithWiki = false;
-	
-	private Corpus baseCorpus; 
-	
+	private Corpus baseCorpus; 	
 	private QuestionIdDataset trainSet;
-	private HashMap<String, QuestionIdDataset> testSets;
 	
 	public QuestionAnalyzer() throws IOException {
 		baseCorpus = new Corpus("qa-exp-corpus");
-		testSets = new HashMap<String, QuestionIdDataset>();
+		trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
+		trainSet.loadData(DataConfig.getDataset(trainSet.datasetName));
 		
-		// ********** Load QA Data ********************
-		if (trainWithWiki) {
-			trainSet = new QuestionIdDataset(baseCorpus, "wiki1-train");
-			testSets.put("prop-train", new QuestionIdDataset(baseCorpus, "prop-train"));
-			
-			trainSet.loadData(DataConfig.get("wikiQATrainFilename"));
-			testSets.get("prop-train").loadData(DataConfig.get("propbankQATrainFilename"));
-		} else {
-			trainSet = new QuestionIdDataset(baseCorpus, "prop-train");
-			testSets.put("prop-dev", new QuestionIdDataset(baseCorpus, "prop-dev"));
-			
-			trainSet.loadData(DataConfig.get("propbankQATrainFilename"));
-			testSets.get("prop-dev").loadData(DataConfig.get("propbankQADevFilename"));
-		}
-
-		CountDictionary slots = new CountDictionary();
+		int numVerbs = 0;
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
 				ArrayList<QAPair> qaList = sent.qaLists.get(propHead);
-			//	CountDictionary sc = 
-				//		QuestionEncoder.encode(sent.sentence, propHead,
-					//			sent.qaLists.get(propHead));
-				/*
-				System.out.println(sent.sentence.getTokensString());
+				CountDictionary pfxDict = new CountDictionary();
 				for (QAPair qa : qaList) {
-					System.out.println(qa.getQuestionString() + "\t" + qa.getAnswerString());
+					String[] qw = qa.questionWords;
+					String[] temp = QuestionEncoder.getLabels(qw);
+					String pfx = temp[0].split("=")[0];
+					pfxDict.addString(pfx);
+					/*
+					if (!QuestionEncoder.isPassiveVoice(qw) &&
+						(qw[0].equals("who")) &&
+						(qw[1].equals("have") || qw[1].equals("had") || qw[1].equals("has")) &&
+						!qw[2].isEmpty()) {
+						System.out.println(sent.sentence.getTokensString());
+						System.out.println(sent.sentence.getTokenString(propHead));
+						System.out.println(temp[0] + "\t" +
+								qa.getQuestionString() + "\t" +
+								qa.getAnswerString());
+					}*/
 				}
-				sc.prettyPrint();
-				System.out.println("\n");
-				*/
-			//	for (int i = 0; i < sc.size(); i++) {
-			//		slots.addString(sc.getString(i));
-			//	}
+				boolean debug = false;
+				for (String pfx : pfxDict.getStrings()) {
+					if (pfxDict.getCount(pfx) > 1) {
+						debug = true;
+					}
+				}
+				if (!debug) {
+					continue;
+				}
+				numVerbs ++;
+				System.out.println(sent.sentence.getTokensString());
+				System.out.println(sent.sentence.getTokenString(propHead));
+				for (QAPair qa : qaList) {
+					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
+					System.out.println(temp[0] + "\t" +
+							qa.getQuestionString() + "\t" +
+							qa.getAnswerString());
+				}
 			}
 		}
-		slots.prettyPrint();
+		System.out.println(numVerbs);
 	}
 	
 	

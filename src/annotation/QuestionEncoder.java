@@ -347,6 +347,9 @@ public class QuestionEncoder {
 				nullPP = pp.isEmpty();
 		boolean verbalPh3 = (ph3.equals("do") || ph3.equals("doing") ||
 							 ph3.equals("be") || ph3.equals("being"));
+		boolean haveAux = (aux.startsWith("have") || aux.startsWith("had") ||
+	   					   aux.startsWith("has"));
+		boolean standAlonePP = (!nullPP && nullPh3);
 		boolean passiveVoice = isPassiveVoice(aux, trg),
 				activeVoice = !passiveVoice;
 		String whSlot = wh.equals("who") ? "someone" : "something",
@@ -357,20 +360,25 @@ public class QuestionEncoder {
 		Arrays.fill(template, "");
 
 		if (isWhoWhat(wh)) {
-			if (activeVoice && nullPh1) {
+			/*** Special case Who had something done ***/
+			if (activeVoice && wh.equals("who") && haveAux &&
+				ph1.equals("something")) {
+				template[0] = getLabel("W0", "", whSlot);
+				template[1] = getLabel("W1", "", ph1);
+			} else if (activeVoice && nullPh1) {
 				template[0] = getLabel("W0", "", whSlot);
 				template[2] = getLabel("W1", "", ph2);
-			} else if (activeVoice && !nullPh1 && nullPh2 && nullPP) {
+			} else if (activeVoice && !nullPh1 && nullPh2 && !standAlonePP) {
 				template[0] = getLabel("W1", "", whSlot);
 				template[1] = getLabel("W0", "", ph1);
 			} else if (activeVoice && !nullPh1) {
 				template[0] = getLabel("W2", pp, whSlot2);
 				template[1] = getLabel("W0", "", ph1);
 				template[2] = getLabel("W1", "", ph2);
-			} else if (passiveVoice && nullPh1) {
+			} else if (passiveVoice && nullPh1 && !standAlonePP) {
 				template[0] = getLabel("W1", "", whSlot);
 				template[2] = getLabel("W2", "", ph2);
-			} else if (passiveVoice && !nullPh1) {
+			} else if (passiveVoice) {
 				template[0] = getLabel("W2", pp, whSlot2);
 				template[1] = getLabel("W1", "", ph1);
 			}
