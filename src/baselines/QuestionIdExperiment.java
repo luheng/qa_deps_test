@@ -250,7 +250,7 @@ public class QuestionIdExperiment {
 			if (config.aggregateLabels) {
 				String pfx = lb.split("=")[0];
 				String val = lb.split("=")[1];
-				if (!sc.containsKey(val) || sc.get(val) < prob[0]) {
+				if (!sc.containsKey(pfx) || sc.get(pfx) < prob[0]) {
 					sl.put(pfx, val);
 					sc.put(pfx, prob[0]);
 				}
