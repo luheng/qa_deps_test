@@ -66,9 +66,9 @@ public class WhoDidWhatQuestionIdExperiment {
 		if (config.regenerateSamples) {
 			KBestParseRetriever syntaxHelper =
 					new KBestParseRetriever(config.kBest);
-			trainSet.generateSamples(syntaxHelper, labelDict);
+			trainSet.generateSamples(syntaxHelper, labelDict, config.aggregateLabels);
 			for (QuestionIdDataset ds : testSets) {
-				ds.generateSamples(syntaxHelper, labelDict);
+				ds.generateSamples(syntaxHelper, labelDict, config.aggregateLabels);
 			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;

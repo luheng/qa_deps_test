@@ -19,6 +19,7 @@ public class QuestionIdConfig {
 	public boolean useSpanBasedSamples;
 	public boolean useLexicalFeatures;
 	public boolean useDependencyFeatures;
+	public boolean aggregateLabels;
 	public double evalThreshold;
 	public int evalTopK;
 	
@@ -54,7 +55,7 @@ public class QuestionIdConfig {
 		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
 		useLexicalFeatures = Boolean.parseBoolean(properties.getProperty("useLexicalFeatures"));
 		useDependencyFeatures = Boolean.parseBoolean(properties.getProperty("useDependencyFeatures"));
-		
+		aggregateLabels = Boolean.parseBoolean(properties.getProperty("aggregateLabels"));
 		trainSets = properties.getProperty("trainSets").split(",");
 		testSets = properties.getProperty("testSets").split(",");
 		liblinParameters = properties.getProperty("liblinParameters").split(";");

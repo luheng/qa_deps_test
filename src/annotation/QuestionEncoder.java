@@ -365,7 +365,7 @@ public class QuestionEncoder {
 			} else if (activeVoice && !nullPh1 && nullPh2 && nullPP) {
 				template[0] = getLabel("W1", "", whSlot);
 				template[1] = getLabel("W0", "", ph1);
-			} else if (activeVoice && !nullPh1 && !nullPh2) {
+			} else if (activeVoice && !nullPh1) {
 				template[0] = getLabel("W2", pp, whSlot2);
 				template[1] = getLabel("W0", "", ph1);
 				template[2] = getLabel("W1", "", ph2);

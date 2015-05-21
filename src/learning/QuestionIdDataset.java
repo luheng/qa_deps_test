@@ -4,6 +4,7 @@ import gnu.trove.map.hash.TIntDoubleHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import annotation.QASlotPrepositions;
@@ -86,16 +87,36 @@ public class QuestionIdDataset extends QADataset {
 	}
 	
 	public void generateSamples(KBestParseRetriever syntaxHelper,
-			CountDictionary qlabelDict) {
+			CountDictionary qlabelDict, boolean aggregateLabels) {
 		// For each <sentence, target> pair, generate a set of samples
 		int numTargetWords = 0, numPositiveSamples = 0;
 		for (AnnotatedSentence annotSent : sentences) {
 			Sentence sent = annotSent.sentence;
 			for (int propHead : annotSent.qaLists.keySet()) {
+				HashMap<String, String> slots = new HashMap<String, String>();
 				HashSet<Integer> qlabelIds = new HashSet<Integer>();
 				for (QAPair qa : annotSent.qaLists.get(propHead)) {
-					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
-					qlabelIds.add(qlabelDict.lookupString(temp[0]));
+					for (String lb : QuestionEncoder.getLabels(qa.questionWords)) {
+						if (!lb.contains("=")) {
+							continue;
+						}
+						String pfx = lb.split("=")[0];
+						String val = lb.split("=")[1];
+						if (slots.containsKey(pfx) && !slots.get(pfx).equals(val)) {
+							slots.put(pfx, "something");
+						} else {
+							slots.put(pfx, val);
+						}
+					}
+				}
+				for (QAPair qa : annotSent.qaLists.get(propHead)) {
+					String lb = QuestionEncoder.getLabels(qa.questionWords)[0];
+					String pfx = lb.split("=")[0];
+					String val = lb.split("=")[1];
+					if (!aggregateLabels || slots.get(pfx).equals(val)) {
+						qlabelIds.add(qlabelDict.lookupString(lb));
+						continue;
+					}
 				}
 				qlabelIds.remove(-1);
 				ArrayList<QASample> newSamples =

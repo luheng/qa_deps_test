@@ -4,7 +4,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -36,7 +35,6 @@ public class QuestionIdExperiment {
 	private Corpus baseCorpus; 
 	private QuestionIdFeatureExtractor featureExtractor;
 	private QuestionGenerator qgen;
-	
 	CountDictionary labelDict, tempDict;
 	
 	private QuestionIdDataset trainSet;
@@ -71,41 +69,50 @@ public class QuestionIdExperiment {
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
 				HashMap<String, String> slots = new HashMap<String, String>();
-				HashMap<String, String> qas = new HashMap<String, String>();
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
-					for (int i = 0; i < temp.length - 1; i++) {
-						if (!temp[i].isEmpty()) {
-							labelDict.addString(temp[i]);
-							String pfx = temp[i].split("=")[0];
-							String val = temp[i].split("=")[1];
-							/*
-							if (slots.containsKey(pfx) && !slots.get(pfx).equals(val)) {
-								System.out.println("label collision on:\t" + pfx);
-								System.out.println(qa.getQuestionString());
-								System.out.println(qas.get(pfx));
-							}
-							*/
+					if (temp[0].isEmpty()) {
+						System.out.println(StringUtils.join("\t", "_", temp));
+					}
+					for (String lb : temp) {
+						if (!lb.contains("=")) {
+							continue;
+						}
+						String pfx = lb.split("=")[0];
+						String val = lb.split("=")[1];
+						if (slots.containsKey(pfx) &&
+							!slots.get(pfx).equals(val)) {
+							slots.put(pfx, "something");
+						} else {
 							slots.put(pfx, val);
-							qas.put(pfx, qa.getQuestionString());
+						}
+						if (!config.aggregateLabels) {
+							labelDict.addString(lb);
 						}
 					}
 					tempDict.addString(getTemplateString(temp));
 				}
+				if (config.aggregateLabels) {
+					for (String pfx : slots.keySet()) {
+						labelDict.addString(pfx + "=" + slots.get(pfx));
+					}
+				}
 			}
 		}
+		assert (config.minQuestionLabelFreq == 1);
 		labelDict = new CountDictionary(labelDict, config.minQuestionLabelFreq);
-		//labelDict.prettyPrint();
+		labelDict.prettyPrint();
 		//tempDict.prettyPrint();
-		//prefixDict.prettyPrint();
 		
 		// *********** Generate training/test samples **********
 		if (config.regenerateSamples) {
 			KBestParseRetriever syntaxHelper =
 					new KBestParseRetriever(config.kBest);
-			trainSet.generateSamples(syntaxHelper, labelDict);
+			trainSet.generateSamples(syntaxHelper, labelDict,
+									 config.aggregateLabels);
 			for (QuestionIdDataset ds : testSets) {
-				ds.generateSamples(syntaxHelper, labelDict);
+				ds.generateSamples(syntaxHelper, labelDict,
+								   config.aggregateLabels);
 			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;
