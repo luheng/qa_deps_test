@@ -190,9 +190,9 @@ public class QuestionIdExperiment {
 			QuestionIdDataset ds = testSets.get(d);
 			if (getPrecRecallCurve) {
 				if (threshold > 0) {
-					results[d+1] = new double[100][];
-					for (int k = 0; k < 100; k++) {
-						double thr = 1.0 * k / 100;
+					results[d+1] = new double[config.numPRCurvePoints][];
+					for (int k = 0; k < config.numPRCurvePoints; k++) {
+						double thr = 1.0 * k / config.numPRCurvePoints;
 						results[d+1][k] = predictAndEvaluate(
 								ds, model, thr, -1, "");
 					}

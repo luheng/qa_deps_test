@@ -50,18 +50,37 @@ public class WhoDidWhatQuestionIdExperiment {
 			testSets.add(ds);
 		}
 		
-		// ************ Extract slot labels and templates **************
 		labelDict = new CountDictionary();
-		templateDict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
+				HashMap<String, String> slots = new HashMap<String, String>();
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
-					labelDict.addString(temp[0]);
-					templateDict.addString(StringUtils.join("\t", "_", temp));
+					for (String lb : temp) {
+						if (!lb.contains("=")) {
+							continue;
+						}
+						String pfx = lb.split("=")[0];
+						String val = lb.split("=")[1];
+						if (slots.containsKey(pfx) &&
+							!slots.get(pfx).equals(val)) {
+							slots.put(pfx, "something");
+						} else {
+							slots.put(pfx, val);
+						}
+						if (!config.aggregateLabels) {
+							labelDict.addString(lb);
+						}
+					}
+				}
+				if (config.aggregateLabels) {
+					for (String pfx : slots.keySet()) {
+						labelDict.addString(pfx + "=" + slots.get(pfx));
+					}
 				}
 			}
 		}
+		assert (config.minQuestionLabelFreq == 1);
 		labelDict = new CountDictionary(labelDict, config.minQuestionLabelFreq);
 		labelDict.prettyPrint();
 		// *********** Generate training/test samples **********
@@ -153,6 +172,7 @@ public class WhoDidWhatQuestionIdExperiment {
 				predLabels.get(sid).get(pid).add(labelId);
 			}
 		}
+		/*
 		for (AnnotatedSentence annotSent : ds.sentences) {
 			int sid = annotSent.sentence.sentenceID;
 			for (int pid : annotSent.qaLists.keySet()) {
@@ -169,6 +189,7 @@ public class WhoDidWhatQuestionIdExperiment {
 
 			}
 		}
+		*/
 		// Return: micro-macro
 		return new double[] {
 				1.0 * numCorrect / ds.samples.size(),
