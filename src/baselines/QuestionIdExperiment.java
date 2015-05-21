@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 
 import config.DataConfig;
@@ -28,7 +29,6 @@ import de.bwaldvogel.liblinear.Problem;
 import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 import gnu.trove.map.hash.TIntDoubleHashMap;
-import gnu.trove.map.hash.TObjectDoubleHashMap;
 
 public class QuestionIdExperiment {
 	private QuestionIdConfig config;
@@ -147,7 +147,7 @@ public class QuestionIdExperiment {
 	}
 	
 	public double[][][] trainAndPredict(LiblinearHyperParameters prm,
-										double threshold,
+										int topK,
 										boolean getPrecRecallCurve,
 										boolean generateQuestions) {
 		System.out.println(String.format("Training with %d samples.",
@@ -168,10 +168,9 @@ public class QuestionIdExperiment {
 				}
 			}
 		}
-		
 		double[][][] results = new double[testSets.size() + 1][][];
 		results[0] = new double[1][];
-		results[0][0] = predictAndEvaluate(trainSet, model, threshold, "");
+		results[0][0] = predictAndEvaluate(trainSet, model, topK, "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
 				StringUtils.doubleArrayToString("\t", results[0][0])));
@@ -179,14 +178,13 @@ public class QuestionIdExperiment {
 		for (int d = 0; d < testSets.size(); d++) {
 			QuestionIdDataset ds = testSets.get(d);
 			if (getPrecRecallCurve) {
-				results[d+1] = new double[20][];
-				for (int t = 0; t < 20; t++) {
-					double thr = 1.0 * t / 20;
-					results[d+1][t] = predictAndEvaluate(ds, model, thr, "");
+				results[d+1] = new double[labelDict.size()][];
+				for (int k = 1; k <= labelDict.size(); k++) {
+					results[d+1][k-1] = predictAndEvaluate(ds, model, k, "");
 				}
 			} else {
 				results[d+1] = new double[1][];
-				results[d+1][0] = predictAndEvaluate(ds, model, threshold, "");
+				results[d+1][0] = predictAndEvaluate(ds, model, topK, "");
 			}
 		}
 		return results;
@@ -206,7 +204,7 @@ public class QuestionIdExperiment {
 	private double[] predictAndEvaluate(
 			QuestionIdDataset ds,
 			Model model,
-			double threshold,
+			int topK,
 			String debugFilePath) {
 		// Aggregate results
 		HashMap<Integer, HashMap<Integer, HashMap<String, String>>> slots =
@@ -222,6 +220,7 @@ public class QuestionIdExperiment {
 				scores.get(i).put(pid, new  HashMap<String, Double>());
 			}
 		}
+		
 		for (int i = 0; i < ds.samples.size(); i++) {
 			QASample sample = ds.samples.get(i);
 			int sid = sample.sentenceId;
@@ -230,16 +229,33 @@ public class QuestionIdExperiment {
 			String val = sample.questionLabel.split("=")[1];
 			double[] prob = new double[2];
 			Linear.predictProbability(model, ds.features[i], prob);
-			if (prob[0] < threshold) {
-				continue;
-			}
 			HashMap<String, Double> sc = scores.get(sid).get(pid);
 			if (!sc.containsKey(val) || sc.get(val) < prob[0]) {
 				slots.get(sid).get(pid).put(pfx, val);
 				sc.put(pfx, prob[0]);
 			}
 		}
-		
+		// Get top K
+		for (int i = 0; i < ds.sentences.size(); i++) {
+			for (int pid : ds.sentences.get(i).qaLists.keySet()) {
+				ArrayList<Double> scRank = new ArrayList<Double>();
+				for (double s : scores.get(i).get(pid).values()) {
+					scRank.add(s);
+				}
+				Collections.sort(scRank, Collections.reverseOrder());
+				double threshold = scRank.get(topK);
+				System.out.println(topK + ", " + threshold);
+				
+				HashMap<String, String> sl = slots.get(i).get(pid);
+				HashMap<String, Double> sc = scores.get(i).get(pid);
+				for (String pfx : sc.keySet()) {
+					double s = sc.get(pfx);
+					if (s < threshold) {
+						sl.remove(pfx);
+					}
+				}
+			}
+		}
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
 		for (int i = 0; i < ds.samples.size(); i++) {
@@ -331,7 +347,7 @@ public class QuestionIdExperiment {
 			LiblinearHyperParameters prm = prms.get(i);
 			System.out.println(prm.toString());
 			results[i] = exp.trainAndPredict(prm,
-				exp.config.evalThreshold,
+				exp.config.evalTopK,
 				true,  /* get precision-reall curve */
 				false /* generate question */);
 		}
@@ -348,7 +364,7 @@ public class QuestionIdExperiment {
 				System.out.println(String.format(
 						"Testing accuracy on %s", ds.datasetName));
 				for (int k = 0; k < res[j+1].length; k++) {
-					System.out.println(
+					System.out.println(k + "\t" +
 						StringUtils.doubleArrayToString("\t", res[j+1][k]));
 				}
 			}

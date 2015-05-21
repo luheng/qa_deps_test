@@ -20,6 +20,7 @@ public class QuestionIdConfig {
 	public boolean useLexicalFeatures;
 	public boolean useDependencyFeatures;
 	public double evalThreshold;
+	public int evalTopK;
 	
 	public String[] liblinParameters;
 	
@@ -47,7 +48,8 @@ public class QuestionIdConfig {
 		kBest = Integer.parseInt(properties.getProperty("kBest"));
 		featureKBest = Integer.parseInt(properties.getProperty("featureKBest"));
 		evalThreshold = Double.parseDouble(properties.getProperty("evalThreshold"));
-		
+		evalTopK = Integer.parseInt(properties.getProperty("evalTopK"));
+
 		regenerateSamples = Boolean.parseBoolean(properties.getProperty("regenerateSamples"));
 		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
 		useLexicalFeatures = Boolean.parseBoolean(properties.getProperty("useLexicalFeatures"));
