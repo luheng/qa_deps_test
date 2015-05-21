@@ -122,7 +122,6 @@ public class InterAnnotatorAgreementExperiment {
 					boolean agreed = false;
 					for (QAPair qa2 : agreedQAs) {
 						if (equals(qa, qa2)) {
-							qa2.annotators.add(annotator);
 							for (int i = 0; i < qa2.answerFlags.length; i++) {
 								qa2.answerFlags[i] =
 										Math.min(qa.answerFlags[i], qa2.answerFlags[i]);
@@ -132,10 +131,11 @@ public class InterAnnotatorAgreementExperiment {
 								}
 								*/
 							}
+							qa2.annotators.add(annotator);
 							agreed = true; break;
 						}
 					}
-					if (!agreed) {
+					if (!agreed) {						
 						QAPair qa2 = new QAPair(
 								qa.sentence, propHead, qa.questionWords,
 			        			"" /* answer */,
@@ -150,7 +150,7 @@ public class InterAnnotatorAgreementExperiment {
 				double[] cnt = new double[numAnnotators];
 				Arrays.fill(cnt, 0);
 				for (QAPair qa : agreedQAs) {
-					if (coreArgsOnly && !qa.questionLabel.startsWith("A")) {
+					if (coreArgsOnly && qa.questionLabel.endsWith("=.")) {
 						continue;
 					}
 					System.out.println(
@@ -175,7 +175,6 @@ public class InterAnnotatorAgreementExperiment {
 				System.out.println(
 						StringUtils.doubleArrayToString("\t", cnt));
 				System.out.println();
-				
 				totalQAs += numAgreedQAs;
 				if (numAgreedQAs > 0) {
 					++ totalProps;

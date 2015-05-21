@@ -33,7 +33,7 @@ public class QAPair implements java.io.Serializable {
 		for (int i = 0; i < question.length; i++) {
 			questionWords[i] = question[i].toLowerCase();
 		}
-		questionLabel = QuestionEncoder.encode(questionWords, sentence);
+		questionLabel = QuestionEncoder.getLabels(question)[0];
 		questionString = StringUtils.join(" ", questionWords);
 		answerFlags = new int[sent.length];
 		answers = new ArrayList<String>();

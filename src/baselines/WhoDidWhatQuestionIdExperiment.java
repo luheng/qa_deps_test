@@ -18,14 +18,13 @@ import data.Corpus;
 import data.CountDictionary;
 import data.QAPair;
 import evaluation.F1Metric;
-import gnu.trove.map.hash.TIntIntHashMap;
 
 public class WhoDidWhatQuestionIdExperiment {
 	private QuestionIdConfig config;
 	private Corpus baseCorpus; 
 	private QuestionIdDataset trainSet;
 	private ArrayList<QuestionIdDataset> testSets;
-	private CountDictionary labelDict, templateDict;
+	private CountDictionary labelDict;
 	
 	private String getSampleFileName(QuestionIdDataset ds) {
 		return ds.datasetName + ".qgen.k" + config.kBest + ".smp";
@@ -140,7 +139,6 @@ public class WhoDidWhatQuestionIdExperiment {
 		int numCorrect = 0;
 		int l1 = labelDict.lookupString("W0=someone"),
 			l2 = labelDict.lookupString("W1=something");
-		System.out.println(l1 + ", " + l2);
 		HashMap<Integer, HashMap<Integer, ArrayList<Integer>>>
 			predLabels = new HashMap<Integer, HashMap<Integer, ArrayList<Integer>>>(),
 			goldLabels = new HashMap<Integer, HashMap<Integer, ArrayList<Integer>>>();
