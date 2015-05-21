@@ -367,10 +367,12 @@ public class QuestionIdExperiment {
 			}
 		}
 		// TODO Pick best PRM
+		/*
 		double[][][] res = exp.trainAndPredict(prms.get(0),
 				exp.config.evalTopK,
-				false,  /* get precision-reall curve */
-				true /* generate question */);
+				false,  // get precision-reall curve
+				true // generate question
+				);
 		for (int j = 0; j < exp.testSets.size(); j++) {
 			QuestionIdDataset ds = exp.testSets.get(j);
 			System.out.println(String.format(
@@ -380,5 +382,6 @@ public class QuestionIdExperiment {
 						StringUtils.doubleArrayToString("\t", res[j+1][k]));
 			}
 		}
+		*/
 	}
 }
