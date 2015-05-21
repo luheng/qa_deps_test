@@ -106,19 +106,17 @@ public class QuestionGenerator {
 			}
 		}
 		for (String lb : labels.keySet()) {
-			String pfx = lb.split("=")[0];
+			String whKey = lb.split("=")[0];
+			String whVal = lb.split("=")[1];
 			String npfx = getLabelPrefix(lb);
 			String[] bestTemp = null;
-			double bestTempScore = -1.0;
-			int bestTempFreq = 0;
+			double bestTempScore = 0.0;
 			for (String tempStr : tempDict.getStrings()) {
 				String[] temp = tempStr.split("\t");
-				int freq = tempDict.getCount(tempStr);
+				//int freq = tempDict.getCount(tempStr);
 				double score = getTemplateScore(temp, npfx, nslots, nscores);
-				if (score > bestTempScore ||
-					(score == bestTempScore && freq > bestTempFreq)) {
+				if (score > bestTempScore) {
 					bestTempScore = score;
-					bestTempFreq = freq;
 					bestTemp = tempStr.split("\t");
 				}
 			}
@@ -129,15 +127,14 @@ public class QuestionGenerator {
 			String[] question = new String[QASlots.numSlots];
 			Arrays.fill(question, "");
 			// WH
-			String whSlot = lb.split("=")[1];
-			if (!whSlot.equals(".")) {
-				question[0] = whSlot.equals("someone") ? "who" : "what";
+			if (!whVal.equals(".")) {
+				question[0] = whVal.equals("someone") ? "who" : "what";
 			} else {
-				question[0] = pfx.toLowerCase();
+				question[0] = whKey.toLowerCase().split("_")[0];
 			}
 			// AUX+TRG
 			if (bestTemp[4].equals("active")) {
-				if (pfx.startsWith("W0")) {
+				if (whKey.startsWith("W0")) {
 					question[1] = verb.endsWith("ing") ? "is" : "";
 					question[3] = verb;
 				} else {
@@ -148,10 +145,12 @@ public class QuestionGenerator {
 				question[1] = "is";
 				question[3] = verb.endsWith("ing") ? "being " + infl[4] : infl[4];
 			}
-			String ph3Key = "", ph2Key = "";
+			String ph1Key = "", ph2Key = "", ph3Key = "";
 			// PH1
 			if (!bestTemp[1].equals("_")) {
-				question[QASlots.PH1SlotId] = slots.get(bestTemp[1]);
+				ph1Key = bestTemp[2].contains("PP") ?
+						nslots.get(bestTemp[1]) : bestTemp[1];
+				question[QASlots.PH1SlotId] = slots.get(ph1Key);
 			}
 			// PH2
 			if (!bestTemp[2].equals("_")) {
@@ -166,9 +165,10 @@ public class QuestionGenerator {
 				question[QASlots.PH3SlotId] = ph3Key.startsWith("WHERE") ?
 						"somewhere" : slots.get(ph3Key);
 			}
+			System.out.println(whKey + ", " + ph1Key + ", " + ph2Key + ", " + ph3Key);
 			// PP
-			if (pfx.contains("_")) {
-				question[5] = pfx.split("_")[1];
+			if (whKey.contains("_")) {
+				question[5] = whKey.split("_")[1];
 			} else if (ph2Key.contains("_")) {
 				question[5] = ph2Key.split("_")[1];
 			} else if (ph3Key.contains("_")) {
