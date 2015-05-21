@@ -55,22 +55,18 @@ public class QuestionGenerator {
 		}
 	}
 	
-	private static double getTemplateScore(String[] temp, String label,
-			HashSet<String> labels) {
+	private static double getTemplateScore(String[] temp, String pfx,
+			HashMap<String, String> nslots, HashMap<String, Double> nscores) {
 		// Must match WH slot
-		if (!temp[0].equals(label)) {
+		if (!temp[0].equals(pfx)) {
 			return -1.0;
 		}
 		double score = 0.0;
-		// Match SBJ, OBJ1, and OBJ2
-		for (int i = 1; i <= 3; i++) {
+		for (int i = 0; i <= 3; i++) {
 			if (temp[i].equals("_")) {
 				continue;
 			}
-			if (!labels.contains(temp[i])) {
-				return -1.0;
-			}
-			score += 1.0;
+			score += (nslots.containsKey(temp[i]) ? 1.0 : 0.0);
 		}
 		return score;
 	}
@@ -83,32 +79,39 @@ public class QuestionGenerator {
 			HashMap<String, Double> labels) {
 		assert (tempDict != null);
 		// Now truly, generate the questions.
-
-		// 1. Subj questions
 		String verb = sentence.getTokenString(propHead);
 		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
 		ArrayList<String[]> questions = new ArrayList<String[]>();
 		
 		HashMap<String, String> slots = new HashMap<String, String>();
 		HashMap<String, Double> scores = new HashMap<String, Double>();
+		HashMap<String, String> nslots = new HashMap<String, String>();
+		HashMap<String, Double> nscores = new HashMap<String, Double>();
 		
 		for (String lb : labels.keySet()) {
-			String k = lb.split("=")[0], v = lb.split("=")[1];
+			String pfx = lb.split("=")[0],
+				   val = lb.split("=")[1],
+				   npfx = getLabelPrefix(lb);
 			double sc = labels.get(lb);
-			if (!slots.containsKey(k) || scores.get(k) < labels.get(lb)) {
-				slots.put(k, v);
-				scores.put(k, sc);
+			if (!slots.containsKey(pfx) || scores.get(pfx) < sc) {
+				slots.put(pfx, val);
+				scores.put(pfx, sc);
+			}
+			if (!nslots.containsKey(npfx) || nscores.get(npfx) < sc) {
+				nslots.put(npfx, lb);
+				nscores.put(npfx, sc);
 			}
 		}
 		for (String lb : labels.keySet()) {
-			String pfx = getLabelPrefix(lb);
+			String pfx = lb.split("=")[0];
+			String npfx = getLabelPrefix(lb);
 			String[] bestTemp = null;
 			double bestTempScore = -1.0;
 			int bestTempFreq = 0;
 			for (String tempStr : tempDict.getStrings()) {
 				String[] temp = tempStr.split("\t");
 				int freq = tempDict.getCount(tempStr);
-				double score = getTemplateScore(temp, pfx, slots, scores);
+				double score = getTemplateScore(temp, npfx, nslots, nscores);
 				if (score > bestTempScore ||
 					(score == bestTempScore && freq > bestTempFreq)) {
 					bestTempScore = score;
@@ -121,17 +124,10 @@ public class QuestionGenerator {
 				continue;
 			}
 			String[] question = new String[QASlots.numSlots];
-
-			String whSlot = lb.split("=")[1];
-			String ph3Key = "", ph3Slot = "";
-			if (!bestTemp[3].equals("_")) {
-				ph3Key = bestTemp[3].contains("PP") ? slotKeys.get(bestTemp[3]) : bestTemp[3];
-				ph3Slot = ph3Key.startsWith("WHERE") ? "somewhere" : slotValue.get(ph3Key.split("_")[0]);
-			}
-			
 			Arrays.fill(question, "");
 			// WH
-			if (pfx.startsWith("W0") || pfx.startsWith("W1") || pfx.startsWith("W2")) {
+			String whSlot = lb.split("=")[1];
+			if (!whSlot.equals(".")) {
 				question[0] = whSlot.equals("someone") ? "who" : "what";
 			} else {
 				question[0] = pfx.toLowerCase();
@@ -149,18 +145,29 @@ public class QuestionGenerator {
 				question[1] = "is";
 				question[3] = verb.endsWith("ing") ? "being " + infl[4] : infl[4];
 			}
+			String ph3Key = "", ph2Key = "";
 			// PH1
-			question[2] = bestTemp[1].equals("_") ? "" : slots.get(bestTemp[1]);
+			if (!bestTemp[1].equals("_")) {
+				question[QASlots.PH1SlotId] = slots.get(bestTemp[1]);
+			}
 			// PH2
-			question[4] = bestTemp[2].equals("_") ? "" : slots.get(bestTemp[2]);
+			if (!bestTemp[2].equals("_")) {
+				ph2Key = bestTemp[2].contains("PP") ? nslots.get(bestTemp[2]) : bestTemp[2];
+				question[QASlots.PH2SlotId] = slots.get(ph2Key);
+			}
+			// PH3
+			if (!bestTemp[3].equals("_")) {
+				ph3Key = bestTemp[3].contains("PP") ? nslots.get(bestTemp[3]) : bestTemp[3];
+				question[QASlots.PH3SlotId] = ph3Key.startsWith("WHERE") ? "somewhere" : slots.get(ph3Key);
+			}
 			// PP
 			if (pfx.contains("_")) {
 				question[5] = pfx.split("_")[1];
+			} else if (ph2Key.contains("_")) {
+				question[5] = ph2Key.split("_")[1];
 			} else if (ph3Key.contains("_")) {
 				question[5] = ph3Key.split("_")[1];
 			}
-			// PH3
-			question[6] = ph3Slot;	
 			questions.add(question);
 		}
 		return questions;
