@@ -18,8 +18,8 @@ import gnu.trove.map.hash.TIntDoubleHashMap;
 public class QGenFeatureExtractor {
 	@SuppressWarnings("unused")
 	private Corpus corpus = null;
-	private VerbInflectionDictionary inflDict = null;
-	private UniversalPostagMap univDict = null;
+	// private VerbInflectionDictionary inflDict = null;
+	// private UniversalPostagMap univDict = null;
 	public CountDictionary featureDict = null;
 	//public final int numBestParses
 	public final int minFeatureFreq;
@@ -30,9 +30,8 @@ public class QGenFeatureExtractor {
 	public QGenFeatureExtractor(Corpus corpus, int minFeatureFreq) {
 		this.corpus = corpus;
 		this.minFeatureFreq = minFeatureFreq;
-		inflDict = ExperimentUtils.loadInflectionDictionary(corpus);
-		univDict = ExperimentUtils.loadPostagMap();
-		
+		// inflDict = ExperimentUtils.loadInflectionDictionary(corpus);
+		// univDict = ExperimentUtils.loadPostagMap();
 		featureDict = new CountDictionary();
 	}
 	
