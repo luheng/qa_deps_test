@@ -260,8 +260,8 @@ public class QuestionIdExperiment {
 					scRank.add(s);
 				}
 				Collections.sort(scRank, Collections.reverseOrder());
-				double threshold = scRank.get(Math.min(scRank.size()-1, topK));
-				// System.out.println(topK + ", " + threshold);
+				double threshold = scRank.get(Math.min(scRank.size(), topK) - 1);
+				
 				HashMap<String, String> sl = slots.get(sid).get(pid);
 				HashMap<String, Double> sc = scores.get(sid).get(pid);
 				for (String k : sc.keySet()) {
@@ -273,6 +273,9 @@ public class QuestionIdExperiment {
 					String lb = config.aggregateLabels ? k + "=" + sl.get(k) : k;
 					labels.put(lb, sc.get(k));
 				}
+				
+				System.out.println(topK + ", " + threshold + ", " + labels.size());
+				
 				// Generate questions
 				if (!qgenPath.isEmpty()) {
 					ArrayList<String[]> questions = qgen.generateQuestions(
