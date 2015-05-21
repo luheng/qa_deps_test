@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import config.DataConfig;
 import config.QuestionIdConfig;
@@ -17,6 +18,7 @@ import data.Corpus;
 import data.CountDictionary;
 import data.QAPair;
 import evaluation.F1Metric;
+import gnu.trove.map.hash.TIntIntHashMap;
 
 public class WhoDidWhatQuestionIdExperiment {
 	private QuestionIdConfig config;
@@ -119,7 +121,20 @@ public class WhoDidWhatQuestionIdExperiment {
 		int numCorrect = 0;
 		int l1 = labelDict.lookupString("W0=someone"),
 			l2 = labelDict.lookupString("W1=something");
-		// System.out.println(l1 + ", " + l2);
+		System.out.println(l1 + ", " + l2);
+		HashMap<Integer, HashMap<Integer, ArrayList<Integer>>>
+			predLabels = new HashMap<Integer, HashMap<Integer, ArrayList<Integer>>>(),
+			goldLabels = new HashMap<Integer, HashMap<Integer, ArrayList<Integer>>>();
+		
+		for (AnnotatedSentence annotSent : ds.sentences) {
+			int sid = annotSent.sentence.sentenceID;
+			predLabels.put(sid, new HashMap<Integer, ArrayList<Integer>>());
+			goldLabels.put(sid, new HashMap<Integer, ArrayList<Integer>>());
+			for (int pid : annotSent.qaLists.keySet()) {
+				predLabels.get(sid).put(pid, new ArrayList<Integer>());
+				goldLabels.get(sid).put(pid, new ArrayList<Integer>());
+			}
+		}
 		for (int i = 0; i < ds.samples.size(); i++) {
 			QASample sample = ds.samples.get(i);
 			int labelId = sample.questionLabelId;
@@ -128,9 +143,35 @@ public class WhoDidWhatQuestionIdExperiment {
 			f1.numGold += (gold > 0 ? 1 : 0);
 			f1.numProposed += (pred > 0 ? 1 : 0);
 			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);
-			numCorrect += (gold == pred ? 1 : 0);
+			numCorrect += (gold == pred ? 1 : 0);			
+			int sid = sample.sentenceId;
+			int pid = sample.propHead;
+			if (gold > 0) {
+				goldLabels.get(sid).get(pid).add(labelId);
+			}
+			if (pred > 0) {
+				predLabels.get(sid).get(pid).add(labelId);
+			}
 		}
-		return new double[] {1.0 * numCorrect / ds.samples.size(),
+		for (AnnotatedSentence annotSent : ds.sentences) {
+			int sid = annotSent.sentence.sentenceID;
+			for (int pid : annotSent.qaLists.keySet()) {
+				ArrayList<Integer> gold = goldLabels.get(sid).get(pid),
+								   pred = predLabels.get(sid).get(pid);
+				System.out.print("\nGold:\t");
+				for (int id : gold) {
+					System.out.print(labelDict.getString(id) + "\t");
+				}
+				System.out.print("\nPred:\t");
+				for (int id : pred) {
+					System.out.print(labelDict.getString(id) + "\t");
+				}
+
+			}
+		}
+		// Return: micro-macro
+		return new double[] {
+				1.0 * numCorrect / ds.samples.size(),
 				f1.precision(), f1.recall(), f1.f1()}; 	
 	}
 	
@@ -143,7 +184,6 @@ public class WhoDidWhatQuestionIdExperiment {
 			e.printStackTrace();
 			return;
 		}
-		
 		double[][] results = exp.predict(false /* generate question */);
 		System.out.println(String.format(
 				"Training accuracy on %s:\t%s",

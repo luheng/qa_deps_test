@@ -49,6 +49,8 @@ public class QuestionIdExperiment {
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new ArrayList<QuestionIdDataset>();
 		
+		System.out.println(config.toString());
+		
 		// ********** Config and load QA Data ********************
 		trainSet = new QuestionIdDataset(baseCorpus,
 				StringUtils.join("_", config.trainSets));
@@ -289,7 +291,7 @@ public class QuestionIdExperiment {
 					String lb = config.aggregateLabels ? k + "=" + sl.get(k) : k;
 					labels.put(lb, sc.get(k));
 				}
-				// System.out.println(topK + ", " + threshold + ", " + labels.size());
+				// 	System.out.println(topK + ", " + threshold + ", " + labels.size());
 				// Generate questions
 				if (!qgenPath.isEmpty()) {
 					ArrayList<String[]> questions = qgen.generateQuestions(
