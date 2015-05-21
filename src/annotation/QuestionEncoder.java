@@ -1,12 +1,10 @@
 package annotation;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
-import data.CountDictionary;
 import data.QAPair;
 import data.Sentence;
-import util.StringUtils;
+
 
 /* Encode the question into information we want.
  *  

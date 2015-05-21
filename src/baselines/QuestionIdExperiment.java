@@ -181,7 +181,7 @@ public class QuestionIdExperiment {
 			qgen = new QuestionGenerator(baseCorpus, labelDict, tempDict);		
 			for (QuestionIdDataset ds : testSets) {
 				if (ds.datasetName.contains("dev")) {
-					generateQuestions(ds, model, config.evalThreshold);
+					generateQuestions(ds, model, topK);
 				}
 			}
 		}
@@ -222,7 +222,7 @@ public class QuestionIdExperiment {
 			QuestionIdDataset ds,
 			Model model,
 			int topK,
-			String debugFilePath) {
+			String qgenPath) {
 		// Aggregate results
 		HashMap<Integer, HashMap<Integer, HashMap<String, String>>> slots =
 			new HashMap<Integer, HashMap<Integer, HashMap<String, String>>>();
@@ -277,8 +277,30 @@ public class QuestionIdExperiment {
 						sl.remove(k);
 					}
 				}
+				// Generate questions
+				if (!qgenPath.isEmpty()) {
+					ArrayList<String[]> questions = qgen.generateQuestions(
+							sent, pid, sl, sc);
+					if (questions == null) {
+						continue;
+					}
+					// TODO: Print to file
+					System.out.println(sent.sentence.getTokensString());
+					System.out.println(sent.sentence.getTokenString(pid));
+					System.out.println("=========== annotated ==============");
+					for (QAPair qa : sent.qaLists.get(pid)) {
+						System.out.println(qa.getQuestionString() + "\t" +
+								qa.getAnswerString());
+					}
+					System.out.println("=========== generated ==============");
+					for (String[] question : questions) {
+						System.out.println(StringUtils.join("\t", question));
+					}
+					System.out.println();
+				}
 			}
 		}
+		
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
 		for (int i = 0; i < ds.samples.size(); i++) {
@@ -303,57 +325,6 @@ public class QuestionIdExperiment {
 		}
 		return new double[] {1.0 * numCorrect / ds.samples.size(),
 				f1.precision(), f1.recall(), f1.f1()}; 	
-	}
-	
-	private void generateQuestions(QuestionIdDataset ds, Model model,
-			double threshold) {
-		HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>> results =
-			new HashMap<Integer, HashMap<Integer, TIntDoubleHashMap>>();
-		
-		for (int i = 0; i < ds.samples.size(); i++) {
-			QASample sample = ds.samples.get(i);
-			double[] prob = new double[2];
-			Linear.predictProbability(model, ds.features[i], prob);
-			if (prob[0] < threshold) {
-				continue;
-			}
-			int sentId = sample.sentenceId;
-			int propHead = sample.propHead;
-			if (!results.containsKey(sentId)) {
-				results.put(sentId, new HashMap<Integer, TIntDoubleHashMap>());
-			}
-			if (!results.get(sentId).containsKey(propHead)) {
-				results.get(sentId).put(propHead, new TIntDoubleHashMap());
-			}
-			results.get(sentId).get(propHead).put(sample.questionLabelId,
-					prob[0]);
-		}
-		for (AnnotatedSentence annotSent : ds.sentences) {
-			int sentId = annotSent.sentence.sentenceID;
-			if (!results.containsKey(sentId)) {
-				continue;
-			}
-			for (int propHead : results.get(sentId).keySet()) {
-				Sentence sent = ds.getSentence(sentId);
-				ArrayList<String[]> questions = qgen.generateQuestions(
-						sent, propHead, results.get(sentId).get(propHead));
-				if (questions == null) {
-					continue;
-				}
-				System.out.println(sent.getTokensString());
-				System.out.println(sent.getTokenString(propHead));
-				System.out.println("=========== annotated ==============");
-				for (QAPair qa : annotSent.qaLists.get(propHead)) {
-					System.out.println(qa.getQuestionString() + "\t" +
-							qa.getAnswerString());
-				}
-				System.out.println("=========== generated ==============");
-				for (String[] question : questions) {
-					System.out.println(StringUtils.join("\t", question));
-				}
-				System.out.println();
-			}
-		}
 	}
 	
 	public static void main(String[] args) {
