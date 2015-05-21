@@ -113,6 +113,7 @@ public class QuestionIdFeatureExtractor {
 	}
 	
 	private static HashSet<String> getQLabelFeatures(String qlabel) {
+		System.out.println(qlabel);
 		HashSet<String> feats = new HashSet<String>();
 		String qkey = qlabel.split("=")[0];    
 		String qval = qlabel.split("=")[1];    // i.e. someone, something

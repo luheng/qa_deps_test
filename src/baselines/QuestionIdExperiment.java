@@ -68,15 +68,13 @@ public class QuestionIdExperiment {
 		// ************ Extract slot labels and templates **************
 		labelDict = new CountDictionary();
 		tempDict = new CountDictionary();
-		//prefixDict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
 					for (int i = 0; i < temp.length - 1; i++) {
-						if (!temp[i].equals("_")) {
+						if (!temp[i].isEmpty()) {
 							labelDict.addString(temp[i]);
-							//prefixDict.addString(temp[i].split("=")[0]);
 						}
 					}
 					tempDict.addString(getTemplateString(temp));
