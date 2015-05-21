@@ -71,9 +71,6 @@ public class QuestionIdExperiment {
 				HashMap<String, String> slots = new HashMap<String, String>();
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
-					if (temp[0].isEmpty()) {
-						System.out.println(StringUtils.join("\t", "_", temp));
-					}
 					for (String lb : temp) {
 						if (!lb.contains("=")) {
 							continue;
@@ -247,15 +244,20 @@ public class QuestionIdExperiment {
 			int pid = sample.propHead;
 			double[] prob = new double[2];
 			Linear.predictProbability(model, ds.features[i], prob);
-			/*
-			String pfx = sample.questionLabel.split("=")[0];
-			String val = sample.questionLabel.split("=")[1];
-			if (!sc.containsKey(val) || sc.get(val) < prob[0]) {
-				slots.get(sid).get(pid).put(pfx, val);
-			}
-			*/
+			HashMap<String, String> sl = slots.get(sid).get(pid);
 			HashMap<String, Double> sc = scores.get(sid).get(pid);
-			sc.put(sample.questionLabel, prob[0]);
+			String lb = sample.questionLabel;
+			if (config.aggregateLabels) {
+				String pfx = lb.split("=")[0];
+				String val = lb.split("=")[1];
+				if (!sc.containsKey(val) || sc.get(val) < prob[0]) {
+					sl.put(pfx, val);
+					sc.put(pfx, prob[0]);
+				}
+			} else {
+				sl.put(lb, "");
+				sc.put(lb, prob[0]);
+			}
 		}
 		// Get top K
 		for (AnnotatedSentence sent : ds.sentences) {
@@ -266,13 +268,13 @@ public class QuestionIdExperiment {
 					scRank.add(s);
 				}
 				Collections.sort(scRank, Collections.reverseOrder());
-				double threshold = scRank.get(Math.min(scRank.size() - 1, topK));
+				double threshold = scRank.get(Math.min(scRank.size()-1, topK));
 				// System.out.println(topK + ", " + threshold);
 				HashMap<String, String> sl = slots.get(sid).get(pid);
 				HashMap<String, Double> sc = scores.get(sid).get(pid);
-				for (String lb : sc.keySet()) {
-					if (sc.get(lb) >= threshold) {
-						sl.put(lb, "");
+				for (String k : sc.keySet()) {
+					if (sc.get(k) < threshold) {
+						sl.remove(k);
 					}
 				}
 			}
@@ -283,12 +285,17 @@ public class QuestionIdExperiment {
 			QASample sample = ds.samples.get(i);
 			int sid = sample.sentenceId;
 			int pid = sample.propHead;
-			// String pfx = sample.questionLabel.split("=")[0];
-			// String val = sample.questionLabel.split("=")[1];
-			//int pred = (sl.containsKey(pfx) && sl.get(pfx).equals(val)) ? 1 : -1;
+			String lb = sample.questionLabel;
 			HashMap<String, String> sl = slots.get(sid).get(pid);
 			int gold = sample.isPositiveSample ? 1 : -1;
-			int pred = sl.containsKey(sample.questionLabel) ? 1 : -1;
+			int pred = 0;
+			if (config.aggregateLabels) {
+				String pfx = lb.split("=")[0];
+				String val = lb.split("=")[1];
+				pred = (sl.containsKey(pfx) && sl.get(pfx).equals(val)) ? 1 : -1;
+			} else {
+				pred = sl.containsKey(lb) ? 1 : -1;
+			}
 			f1.numGold += (gold > 0 ? 1 : 0);
 			f1.numProposed += (pred > 0 ? 1 : 0);
 			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);
@@ -370,7 +377,7 @@ public class QuestionIdExperiment {
 			results[i] = exp.trainAndPredict(prm,
 				exp.config.evalTopK,
 				true,  /* get precision-reall curve */
-				false /* generate question */);
+				false  /* generate question */);
 		}
 		System.out.println("====== training finished =======");
 		for (int i = 0; i < prms.size(); i++) {
@@ -390,5 +397,10 @@ public class QuestionIdExperiment {
 				}
 			}
 		}
+		// TODO Pick best PRM
+		exp.trainAndPredict(prms.get(0),
+				exp.config.evalTopK,
+				false,  /* get precision-reall curve */
+				true /* generate question */);
 	}
 }
