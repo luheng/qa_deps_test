@@ -226,10 +226,10 @@ public class QuestionIdExperiment {
 				new HashMap<Integer, HashMap<Integer, HashMap<String, Double>>>();
 		for (AnnotatedSentence sent : ds.sentences) {
 			int sid = sent.sentence.sentenceID;
+			slots.put(sid, new HashMap<Integer, HashMap<String, String>>());
+			scores.put(sid, new HashMap<Integer, HashMap<String, Double>>());
 			for (int pid : sent.qaLists.keySet()) {
-				slots.put(sid, new HashMap<Integer, HashMap<String, String>>());
 				slots.get(sid).put(pid, new  HashMap<String, String>());
-				scores.put(sid, new HashMap<Integer, HashMap<String, Double>>());
 				scores.get(sid).put(pid, new  HashMap<String, Double>());
 			}
 		}
@@ -251,17 +251,18 @@ public class QuestionIdExperiment {
 			sc.put(sample.questionLabel, prob[0]);
 		}
 		// Get top K
-		for (int i = 0; i < ds.sentences.size(); i++) {
-			for (int pid : ds.sentences.get(i).qaLists.keySet()) {
+		for (AnnotatedSentence sent : ds.sentences) {
+			int sid = sent.sentence.sentenceID;
+			for (int pid : sent.qaLists.keySet()) {
 				ArrayList<Double> scRank = new ArrayList<Double>();
-				for (double s : scores.get(i).get(pid).values()) {
+				for (double s : scores.get(sid).get(pid).values()) {
 					scRank.add(s);
 				}
 				Collections.sort(scRank, Collections.reverseOrder());
-				double threshold = scRank.get(topK);
-				System.out.println(topK + ", " + threshold);
-				HashMap<String, String> sl = slots.get(i).get(pid);
-				HashMap<String, Double> sc = scores.get(i).get(pid);
+				double threshold = scRank.get(Math.min(scRank.size() - 1, topK));
+				// System.out.println(topK + ", " + threshold);
+				HashMap<String, String> sl = slots.get(sid).get(pid);
+				HashMap<String, Double> sc = scores.get(sid).get(pid);
 				for (String lb : sc.keySet()) {
 					if (sc.get(lb) >= threshold) {
 						sl.put(lb, "");
