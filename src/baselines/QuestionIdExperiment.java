@@ -273,9 +273,7 @@ public class QuestionIdExperiment {
 					String lb = config.aggregateLabels ? k + "=" + sl.get(k) : k;
 					labels.put(lb, sc.get(k));
 				}
-				
-				System.out.println(topK + ", " + threshold + ", " + labels.size());
-				
+				// System.out.println(topK + ", " + threshold + ", " + labels.size());
 				// Generate questions
 				if (!qgenPath.isEmpty()) {
 					ArrayList<String[]> questions = qgen.generateQuestions(
