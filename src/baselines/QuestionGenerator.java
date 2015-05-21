@@ -3,7 +3,6 @@ package baselines;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import learning.QASample;
 import annotation.AuxiliaryVerbIdentifier;
@@ -18,11 +17,12 @@ import gnu.trove.map.hash.TIntDoubleHashMap;
 public class QuestionGenerator {
 
 	VerbInflectionDictionary inflDict = null;
-	CountDictionary slotDict = null, tempDict = null;
+	CountDictionary labelDict = null, tempDict = null;
 	
-	public QuestionGenerator(Corpus corpus, CountDictionary qdict, CountDictionary tempDict) {
+	public QuestionGenerator(Corpus corpus, CountDictionary slotDict,
+			CountDictionary tempDict) {
 		inflDict = ExperimentUtils.loadInflectionDictionary(corpus);		
-		this.slotDict = qdict;
+		this.labelDict = slotDict;
 		this.tempDict = tempDict;
 	}
 	
@@ -187,11 +187,11 @@ public class QuestionGenerator {
 		HashMap<String, Double> slotScore = new HashMap<String, Double>();
 		for (int id : predLabels.keys()) {
 			double score = predLabels.get(id);
-			if (id >= slotDict.size()) {
+			if (id >= labelDict.size()) {
 				System.out.println("Unidentified label ID:\t" + id);
 				continue;
 			}
-			String qlabel = slotDict.getString(id);
+			String qlabel = labelDict.getString(id);
 			String[] qinfo = qlabel.split("=");
 			String qkey = qinfo[0], qval = qinfo[1];
 			if (!slotScore.containsKey(qkey) || slotScore.get(qkey) < score) {
@@ -300,10 +300,10 @@ public class QuestionGenerator {
 		TIntDoubleHashMap slots = results.get(sentence.sentenceID).get(propHead);
 		for (int id : slots.keys()) {
 			double score = slots.get(id);
-			if (id >= slotDict.size()) {
+			if (id >= labelDict.size()) {
 				continue;
 			}
-			String qlabel = slotDict.getString(id);
+			String qlabel = labelDict.getString(id);
 			String[] qinfo = qlabel.split("_");
 			String qkey, qval;
 			if (qinfo[0].equals("M")) {

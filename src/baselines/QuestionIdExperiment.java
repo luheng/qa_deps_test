@@ -19,7 +19,6 @@ import data.AnnotatedSentence;
 import data.Corpus;
 import data.CountDictionary;
 import data.QAPair;
-import data.Sentence;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
@@ -27,7 +26,6 @@ import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.Problem;
 import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
-import gnu.trove.map.hash.TIntDoubleHashMap;
 
 public class QuestionIdExperiment {
 	private QuestionIdConfig config;
@@ -99,7 +97,7 @@ public class QuestionIdExperiment {
 		assert (config.minQuestionLabelFreq == 1);
 		labelDict = new CountDictionary(labelDict, config.minQuestionLabelFreq);
 		labelDict.prettyPrint();
-		//tempDict.prettyPrint();
+		tempDict.prettyPrint();
 		
 		// *********** Generate training/test samples **********
 		if (config.regenerateSamples) {
@@ -138,7 +136,9 @@ public class QuestionIdExperiment {
 			} catch (ClassNotFoundException | IOException e) {
 				e.printStackTrace();
 			}
-		}		
+		}
+		
+		qgen = new QuestionGenerator(baseCorpus, labelDict, tempDict);
 		
 		// ********** Extract features ***************
 		featureExtractor = new QuestionIdFeatureExtractor(
