@@ -55,21 +55,28 @@ public class QuestionGenerator {
 		}
 	}
 	
-
-	
-	private double getTemplateScore(String[] temp, String label,
+	private static double getTemplateScore(String[] temp, String label,
 			HashSet<String> labels) {
-		String role = label.split("=")[0];
 		// Must match WH slot
-		if (!temp[0].split("_")[0].equals(role.split("_")[0])) {
+		if (!temp[0].equals(label)) {
 			return -1.0;
 		}
 		double score = 0.0;
 		// Match SBJ, OBJ1, and OBJ2
 		for (int i = 1; i <= 3; i++) {
-			
+			if (temp[i].equals("_")) {
+				continue;
+			}
+			if (!labels.contains(temp[i])) {
+				return -1.0;
+			}
+			score += 1.0;
 		}
 		return score;
+	}
+	
+	private static String getLabelPrefix(String lb) {
+		return lb.split("=")[0].split("_")[0] + (lb.contains("_") ? "_PP" : "");
 	}
 	
 	public ArrayList<String[]> generateQuestions(
@@ -83,32 +90,39 @@ public class QuestionGenerator {
 		ArrayList<String[]> questions = new ArrayList<String[]>();
 		
 		HashSet<String> labels = new HashSet<String>();
+		HashSet<String> labelPfx = new HashSet<String>();
 		for (int labelId : predLabels.keys()) {
 			if (labelId >= slotDict.size()) {
 				System.out.println("Unidentified label ID:\t" + labelId);
 				continue;
 			}
-			labels.add(slotDict.getString(labelId));
+			String lb = slotDict.getString(labelId);
+			labels.add(lb);
+			labelPfx.add(getLabelPrefix(lb));
 		}
-		for (String label : labels) {
-			// Try to find matching template
+		for (String lb : labels) {
+			String pfx = getLabelPrefix(lb);
 			String[] bestTemp = null;
 			double bestTempScore = -1.0;
+			int bestTempFreq = 0;
 			for (String tempStr : tempDict.getStrings()) {
 				String[] temp = tempStr.split("\t");
-				
-				double score = getTemplateScore(temp, label, labels);
-				if (score > bestTempScore) {
+				int freq = tempDict.getCount(tempStr);
+				double score = getTemplateScore(temp, pfx, labels);
+				if (score > bestTempScore ||
+					(score == bestTempScore && freq > bestTempFreq)) {
 					bestTempScore = score;
+					bestTempFreq = freq;
 					bestTemp = tempStr.split("\t");
 				}
 			}
 			if (bestTemp == null) {
+				System.out.println("Unable to find matching template.");
 				continue;
 			}
 			String[] question = new String[QASlots.numSlots];
 			/*
-			String whSlot = label.split("=")[1];
+			String whSlot = lb.split("=")[1];
 			String ph3Key = "", ph3Slot = "";
 			if (!bestTemp[3].equals("_")) {
 				ph3Key = bestTemp[3].contains("PP") ? slotKeys.get(bestTemp[3]) : bestTemp[3];
@@ -198,7 +212,6 @@ public class QuestionGenerator {
 		for (String qkey : slotValue.keySet()) {
 			// Try to find matching template
 			String[] bestTemp = null;
-			double bestTempScore = -1.0;
 			int numCoresCovered = 0;
 			for (String tempStr : tempDict.getStrings()) {
 				// Compute template score.

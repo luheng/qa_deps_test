@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import config.DataConfig;
@@ -27,6 +28,7 @@ import de.bwaldvogel.liblinear.Problem;
 import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 import gnu.trove.map.hash.TIntDoubleHashMap;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 
 public class QuestionIdExperiment {
 	private QuestionIdConfig config;
@@ -35,7 +37,7 @@ public class QuestionIdExperiment {
 	private QuestionIdFeatureExtractor featureExtractor;
 	private QuestionGenerator qgen;
 	
-	CountDictionary slotDict, tempDict;
+	CountDictionary labelDict, tempDict;
 	
 	private QuestionIdDataset trainSet;
 	private ArrayList<QuestionIdDataset> testSets;
@@ -64,28 +66,35 @@ public class QuestionIdExperiment {
 		}
 		
 		// ************ Extract slot labels and templates **************
-		slotDict = new CountDictionary();
+		labelDict = new CountDictionary();
 		tempDict = new CountDictionary();
+		//prefixDict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
-					slotDict.addString(temp[0]);
-					tempDict.addString(StringUtils.join("\t", "_", temp));
+					for (int i = 0; i < temp.length - 1; i++) {
+						if (!temp[i].equals("_")) {
+							labelDict.addString(temp[i]);
+							//prefixDict.addString(temp[i].split("=")[0]);
+						}
+					}
+					tempDict.addString(getTemplateString(temp));
 				}
 			}
 		}
-		slotDict = new CountDictionary(slotDict, config.minQuestionLabelFreq);
-		slotDict.prettyPrint();
+		labelDict = new CountDictionary(labelDict, config.minQuestionLabelFreq);
+		labelDict.prettyPrint();
 		tempDict.prettyPrint();
+		//prefixDict.prettyPrint();
 		
 		// *********** Generate training/test samples **********
 		if (config.regenerateSamples) {
 			KBestParseRetriever syntaxHelper =
 					new KBestParseRetriever(config.kBest);
-			trainSet.generateSamples(syntaxHelper, slotDict);
+			trainSet.generateSamples(syntaxHelper, labelDict);
 			for (QuestionIdDataset ds : testSets) {
-				ds.generateSamples(syntaxHelper, slotDict);
+				ds.generateSamples(syntaxHelper, labelDict);
 			}
 			// Cache qaSamples to file because parsing is slow.
 			ObjectOutputStream ostream = null;
@@ -130,6 +139,15 @@ public class QuestionIdExperiment {
 		}
 	}
 	
+	private String getTemplateString(String[] temp) {
+		String[] shortTemp = new String[temp.length];
+		for (int i = 0; i < temp.length; i++) {
+			String s = temp[i].split("=")[0];
+			shortTemp[i] = s.contains("_") ? s.split("_")[0] + "_PP" : s;
+		}
+		return StringUtils.join("\t", "_", shortTemp);
+	}
+	
 	public double[][][] trainAndPredict(LiblinearHyperParameters prm,
 										double threshold,
 										boolean getPrecRecallCurve,
@@ -145,7 +163,7 @@ public class QuestionIdExperiment {
 		// TODO: FIXME
 		if (generateQuestions) {
 			System.out.println("Preparing to generate questions.");
-			qgen = new QuestionGenerator(baseCorpus, slotDict, tempDict);		
+			qgen = new QuestionGenerator(baseCorpus, labelDict, tempDict);		
 			for (QuestionIdDataset ds : testSets) {
 				if (ds.datasetName.contains("dev")) {
 					generateQuestions(ds, model, config.evalThreshold);
@@ -192,14 +210,50 @@ public class QuestionIdExperiment {
 			Model model,
 			double threshold,
 			String debugFilePath) {
+		// Aggregate results
+		HashMap<Integer, HashMap<Integer, HashMap<String, String>>> slots =
+			new HashMap<Integer, HashMap<Integer, HashMap<String, String>>>();
+		HashMap<Integer, HashMap<Integer, HashMap<String, Double>>> scores =
+				new HashMap<Integer, HashMap<Integer, HashMap<String, Double>>>();
+		
+		for (int i = 0; i < ds.sentences.size(); i++) {
+			for (int pid : ds.sentences.get(i).qaLists.keySet()) {
+				slots.put(i, new HashMap<Integer, HashMap<String, String>>());
+				slots.get(i).put(pid, new  HashMap<String, String>());
+				scores.put(i, new HashMap<Integer, HashMap<String, Double>>());
+				scores.get(i).put(pid, new  HashMap<String, Double>());
+			}
+		}
+		for (int i = 0; i < ds.samples.size(); i++) {
+			QASample sample = ds.samples.get(i);
+			int sid = sample.sentenceId;
+			int pid = sample.propHead;
+			String pfx = sample.questionLabel.split("=")[0];
+			String val = sample.questionLabel.split("=")[1];
+			double[] prob = new double[2];
+			Linear.predictProbability(model, ds.features[i], prob);
+			if (prob[0] < threshold) {
+				continue;
+			}
+			HashMap<String, Double> sc = scores.get(sid).get(pid);
+			if (!sc.containsKey(val) || sc.get(val) < prob[0]) {
+				slots.get(sid).get(pid).put(pfx, val);
+				sc.put(pfx, prob[0]);
+			}
+		}
+		
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
 		for (int i = 0; i < ds.samples.size(); i++) {
 			QASample sample = ds.samples.get(i);
-			double[] prob = new double[2];
-			Linear.predictProbability(model, ds.features[i], prob);
+			int sid = sample.sentenceId;
+			int pid = sample.propHead;
+			String pfx = sample.questionLabel.split("=")[0];
+			String val = sample.questionLabel.split("=")[1];
+			
+			HashMap<String, String> sl = slots.get(sid).get(pid);
 			int gold = sample.isPositiveSample ? 1 : -1;
-			int pred = prob[0] > threshold ? 1 : -1;
+			int pred = (sl.containsKey(pfx) && sl.get(pfx).equals(val)) ? 1 : -1;
 			f1.numGold += (gold > 0 ? 1 : 0);
 			f1.numProposed += (pred > 0 ? 1 : 0);
 			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);

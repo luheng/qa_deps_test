@@ -116,7 +116,7 @@ public class QuestionIdFeatureExtractor {
 		HashSet<String> feats = new HashSet<String>();
 		String qkey = qlabel.split("=")[0];    
 		String qval = qlabel.split("=")[1];    // i.e. someone, something
-		String qtype = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. ARG0, 
+		String qtype = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. W0, 
 		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
 		feats.add("QKey=" + qkey);
 		feats.add("QType=" + qtype);
@@ -127,7 +127,6 @@ public class QuestionIdFeatureExtractor {
 			feats.add("QVal=" + qval);
 		}
 		feats.add("QLab=" + qlabel);
-		feats.add(qkey.startsWith("ARG") ? "isCore" : "isMod");
 		return feats;
 	}
 	
