@@ -135,7 +135,6 @@ public class QuestionIdFeatureExtractor {
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
 		
 		// *************** Information used to extract features **********
-		
 		int length = sample.tokens.length;
 		String[] tokens = new String[length];
 		for (int i = 0; i < length; i++) {
@@ -163,15 +162,6 @@ public class QuestionIdFeatureExtractor {
 				Math.min(numBestParses, sample.kBestParses.size()) : 0;
 		
 		// ***************** Proposition features ********************		
-		
-		
-		// TODO: possible features
-		// 1. predicate, lemma, voice
-		// 2. predicate children
-		// 3. all nouns in the sentence
-		// 4. predicate voice
-		// 5. pp in qlabel
-		// 6. negation in sentence
 		fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("PV=" + pvoice, acceptNew), 1, 1);
@@ -237,7 +227,7 @@ public class QuestionIdFeatureExtractor {
 			if (Math.abs(propId - i) < 20) {
 				ArrayList<TypedDependency> depPath =
 						lookupDepPath(sample.kBestParses.get(0), i, propId);
-				if (depPath.size() < 3) {
+				if (depPath != null && depPath.size() < 3) {
 					rels = getRelPathString(depPath, i);
 				}
 			}
