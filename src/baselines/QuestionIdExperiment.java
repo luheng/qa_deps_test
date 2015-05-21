@@ -187,7 +187,7 @@ public class QuestionIdExperiment {
 		for (int d = 0; d < testSets.size(); d++) {
 			QuestionIdDataset ds = testSets.get(d);
 			if (getPrecRecallCurve) {
-				if (threshold < 0) {
+				if (threshold > 0) {
 					results[d+1] = new double[100][];
 					for (int k = 0; k < 100; k++) {
 						double thr = 1.0 * k / 100;
@@ -264,13 +264,13 @@ public class QuestionIdExperiment {
 				sc.put(lb, prob[0]);
 			}
 		}
-		// Get top K
 		for (AnnotatedSentence sent : ds.sentences) {
 			int sid = sent.sentence.sentenceID;
 			for (int pid : sent.qaLists.keySet()) {
 				HashMap<String, Double> labels = new HashMap<String, Double>();
 				double thr = threshold;
 				if (thr < 0) {
+					// Get top K
 					ArrayList<Double> scRank = new ArrayList<Double>();
 					for (double s : scores.get(sid).get(pid).values()) {
 						scRank.add(s);
