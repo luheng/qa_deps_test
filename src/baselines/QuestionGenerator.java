@@ -101,7 +101,7 @@ public class QuestionGenerator {
 				scores.put(pfx, sc);
 			}
 			if (!nslots.containsKey(npfx) || nscores.get(npfx) < sc) {
-				nslots.put(npfx, lb);
+				nslots.put(npfx, pfx);
 				nscores.put(npfx, sc);
 			}
 		}
@@ -128,22 +128,25 @@ public class QuestionGenerator {
 			Arrays.fill(question, "");
 			// WH
 			if (!whVal.equals(".")) {
-				question[0] = whVal.equals("someone") ? "who" : "what";
+				question[QASlots.WHSlotId] =
+						whVal.equals("someone") ? "who" : "what";
 			} else {
-				question[0] = whKey.toLowerCase().split("_")[0];
+				question[QASlots.WHSlotId] = whKey.toLowerCase().split("_")[0];
 			}
 			// AUX+TRG
 			if (bestTemp[4].equals("active")) {
 				if (whKey.startsWith("W0")) {
-					question[1] = verb.endsWith("ing") ? "is" : "";
-					question[3] = verb;
+					question[QASlots.AUXSlotId] =
+							verb.endsWith("ing") ? "is" : "";
+					question[QASlots.TRGSlotId] = verb;
 				} else {
-					question[1] = "did";
-					question[3] = infl[0];
+					question[QASlots.AUXSlotId] = "did";
+					question[QASlots.TRGSlotId] = infl[0];
 				}
 			} else {
-				question[1] = "is";
-				question[3] = verb.endsWith("ing") ? "being " + infl[4] : infl[4];
+				question[QASlots.AUXSlotId] = "is";
+				question[QASlots.TRGSlotId] =
+						verb.endsWith("ing") ? "being " + infl[4] : infl[4];
 			}
 			String ph1Key = "", ph2Key = "", ph3Key = "";
 			// PH1
@@ -168,11 +171,9 @@ public class QuestionGenerator {
 			System.out.println(whKey + ", " + ph1Key + ", " + ph2Key + ", " + ph3Key);
 			// PP
 			if (whKey.contains("_")) {
-				question[5] = whKey.split("_")[1];
-			} else if (ph2Key.contains("_")) {
-				question[5] = ph2Key.split("_")[1];
+				question[QASlots.PPSlotId] = whKey.split("_")[1];
 			} else if (ph3Key.contains("_")) {
-				question[5] = ph3Key.split("_")[1];
+				question[QASlots.PPSlotId] = ph3Key.split("_")[1];
 			}
 			questions.add(question);
 		}
