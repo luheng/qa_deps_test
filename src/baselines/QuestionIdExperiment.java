@@ -233,7 +233,7 @@ public class QuestionIdExperiment {
 				scores.get(sid).put(pid, new  HashMap<String, Double>());
 			}
 		}
-		
+
 		for (int i = 0; i < ds.samples.size(); i++) {
 			QASample sample = ds.samples.get(i);
 			int sid = sample.sentenceId;
