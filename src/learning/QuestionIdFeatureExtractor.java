@@ -229,24 +229,30 @@ public class QuestionIdFeatureExtractor {
 		// *************** Words in the sentence ****************
 		for (int i = 0; i < length; i++) {
 			// FIXME: into args: window size.
-			/*if (Math.abs(i - propId) > 15 || i == propId) {
+			if (i == propId) {
 				continue;
-			}*/
+			}
 			String utag = univDict.getUnivPostag(postags[i]);
-			//ArrayList<TypedDependency> depPath = lookupDepPath(
-			//		sample.kBestParses.get(0), i, propId);
-			//String rels = getRelPathString(depPath, i);
+			String rels = "";
+			if (Math.abs(propId - i) < 20) {
+				ArrayList<TypedDependency> depPath =
+						lookupDepPath(sample.kBestParses.get(0), i, propId);
+				if (depPath.size() < 3) {
+					rels = getRelPathString(depPath, i);
+				}
+			}
 			boolean isPP = utag.equals("PRT");
 			boolean matchPP = isPP && tokens[i].equals(qpp);
 			for (String qfeat : qfeats) {
-				/*fv.adjustOrPutValue(fdict.addString("RelPath=" + rels + "#" + qfeat, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("Pos=" + postags[i] + "#" + qfeat, acceptNew), 1, 1);
-				if (i < propId) {
-					fv.adjustOrPutValue(fdict.addString("LfPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
-				} else {
-					fv.adjustOrPutValue(fdict.addString("RtPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+				if (!rels.isEmpty()) {
+					fv.adjustOrPutValue(fdict.addString("RelPath=" + rels + "#" + qfeat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(fdict.addString("Pos=" + postags[i] + "#" + qfeat, acceptNew), 1, 1);
+					if (i < propId) {
+						fv.adjustOrPutValue(fdict.addString("LfPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+					} else {
+						fv.adjustOrPutValue(fdict.addString("RtPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
+					}
 				}
-				*/
 				if (isPP) {
 					fv.adjustOrPutValue(fdict.addString("PP=" + tokens[i] + "#" + qfeat, acceptNew), 1, 1);
 					if (matchPP) {
