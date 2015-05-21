@@ -79,8 +79,8 @@ public class QuestionGenerator {
 		return lb.split("=")[0].split("_")[0] + (lb.contains("_") ? "_PP" : "");
 	}
 	
-	public ArrayList<String[]> generateQuestions(
-			Sentence sentence, int propHead, TIntDoubleHashMap predLabels) {
+	public ArrayList<String[]> generateQuestions(Sentence sentence, int propHead,
+			HashMap<String, Double> labels) {
 		assert (tempDict != null);
 		// Now truly, generate the questions.
 
@@ -89,18 +89,18 @@ public class QuestionGenerator {
 		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
 		ArrayList<String[]> questions = new ArrayList<String[]>();
 		
-		HashSet<String> labels = new HashSet<String>();
-		HashSet<String> labelPfx = new HashSet<String>();
-		for (int labelId : predLabels.keys()) {
-			if (labelId >= slotDict.size()) {
-				System.out.println("Unidentified label ID:\t" + labelId);
-				continue;
+		HashMap<String, String> slots = new HashMap<String, String>();
+		HashMap<String, Double> scores = new HashMap<String, Double>();
+		
+		for (String lb : labels.keySet()) {
+			String k = lb.split("=")[0], v = lb.split("=")[1];
+			double sc = labels.get(lb);
+			if (!slots.containsKey(k) || scores.get(k) < labels.get(lb)) {
+				slots.put(k, v);
+				scores.put(k, sc);
 			}
-			String lb = slotDict.getString(labelId);
-			labels.add(lb);
-			labelPfx.add(getLabelPrefix(lb));
 		}
-		for (String lb : labels) {
+		for (String lb : labels.keySet()) {
 			String pfx = getLabelPrefix(lb);
 			String[] bestTemp = null;
 			double bestTempScore = -1.0;
@@ -108,7 +108,7 @@ public class QuestionGenerator {
 			for (String tempStr : tempDict.getStrings()) {
 				String[] temp = tempStr.split("\t");
 				int freq = tempDict.getCount(tempStr);
-				double score = getTemplateScore(temp, pfx, labels);
+				double score = getTemplateScore(temp, pfx, slots, scores);
 				if (score > bestTempScore ||
 					(score == bestTempScore && freq > bestTempFreq)) {
 					bestTempScore = score;
@@ -121,25 +121,24 @@ public class QuestionGenerator {
 				continue;
 			}
 			String[] question = new String[QASlots.numSlots];
-			/*
+
 			String whSlot = lb.split("=")[1];
 			String ph3Key = "", ph3Slot = "";
 			if (!bestTemp[3].equals("_")) {
 				ph3Key = bestTemp[3].contains("PP") ? slotKeys.get(bestTemp[3]) : bestTemp[3];
 				ph3Slot = ph3Key.startsWith("WHERE") ? "somewhere" : slotValue.get(ph3Key.split("_")[0]);
 			}
-					
 			
 			Arrays.fill(question, "");
 			// WH
-			if (qkey.startsWith("ARG")) {
+			if (pfx.startsWith("W0") || pfx.startsWith("W1") || pfx.startsWith("W2")) {
 				question[0] = whSlot.equals("someone") ? "who" : "what";
 			} else {
-				question[0] = qkey.toLowerCase();
+				question[0] = pfx.toLowerCase();
 			}
 			// AUX+TRG
 			if (bestTemp[4].equals("active")) {
-				if (qkey.startsWith("ARG0")) {
+				if (pfx.startsWith("W0")) {
 					question[1] = verb.endsWith("ing") ? "is" : "";
 					question[3] = verb;
 				} else {
@@ -151,18 +150,17 @@ public class QuestionGenerator {
 				question[3] = verb.endsWith("ing") ? "being " + infl[4] : infl[4];
 			}
 			// PH1
-			question[2] = bestTemp[1].equals("_") ? "" : slotValue.get(bestTemp[1]);
+			question[2] = bestTemp[1].equals("_") ? "" : slots.get(bestTemp[1]);
 			// PH2
-			question[4] = bestTemp[2].equals("_") ? "" : slotValue.get(bestTemp[2]);
+			question[4] = bestTemp[2].equals("_") ? "" : slots.get(bestTemp[2]);
 			// PP
-			if (qkey.contains("_")) {
-				question[5] = qkey.split("_")[1];
+			if (pfx.contains("_")) {
+				question[5] = pfx.split("_")[1];
 			} else if (ph3Key.contains("_")) {
 				question[5] = ph3Key.split("_")[1];
 			}
 			// PH3
 			question[6] = ph3Slot;	
-			*/
 			questions.add(question);
 		}
 		return questions;
