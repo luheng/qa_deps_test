@@ -70,11 +70,24 @@ public class QuestionIdExperiment {
 		tempDict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
+				HashMap<String, String> slots = new HashMap<String, String>();
+				HashMap<String, String> qas = new HashMap<String, String>();
 				for (QAPair qa : sent.qaLists.get(propHead)) {
 					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
 					for (int i = 0; i < temp.length - 1; i++) {
 						if (!temp[i].isEmpty()) {
 							labelDict.addString(temp[i]);
+							String pfx = temp[i].split("=")[0];
+							String val = temp[i].split("=")[1];
+							/*
+							if (slots.containsKey(pfx) && !slots.get(pfx).equals(val)) {
+								System.out.println("label collision on:\t" + pfx);
+								System.out.println(qa.getQuestionString());
+								System.out.println(qas.get(pfx));
+							}
+							*/
+							slots.put(pfx, val);
+							qas.put(pfx, qa.getQuestionString());
 						}
 					}
 					tempDict.addString(getTemplateString(temp));
@@ -82,8 +95,8 @@ public class QuestionIdExperiment {
 			}
 		}
 		labelDict = new CountDictionary(labelDict, config.minQuestionLabelFreq);
-		labelDict.prettyPrint();
-		tempDict.prettyPrint();
+		//labelDict.prettyPrint();
+		//tempDict.prettyPrint();
 		//prefixDict.prettyPrint();
 		
 		// *********** Generate training/test samples **********
@@ -211,13 +224,13 @@ public class QuestionIdExperiment {
 			new HashMap<Integer, HashMap<Integer, HashMap<String, String>>>();
 		HashMap<Integer, HashMap<Integer, HashMap<String, Double>>> scores =
 				new HashMap<Integer, HashMap<Integer, HashMap<String, Double>>>();
-		
-		for (int i = 0; i < ds.sentences.size(); i++) {
-			for (int pid : ds.sentences.get(i).qaLists.keySet()) {
-				slots.put(i, new HashMap<Integer, HashMap<String, String>>());
-				slots.get(i).put(pid, new  HashMap<String, String>());
-				scores.put(i, new HashMap<Integer, HashMap<String, Double>>());
-				scores.get(i).put(pid, new  HashMap<String, Double>());
+		for (AnnotatedSentence sent : ds.sentences) {
+			int sid = sent.sentence.sentenceID;
+			for (int pid : sent.qaLists.keySet()) {
+				slots.put(sid, new HashMap<Integer, HashMap<String, String>>());
+				slots.get(sid).put(pid, new  HashMap<String, String>());
+				scores.put(sid, new HashMap<Integer, HashMap<String, Double>>());
+				scores.get(sid).put(pid, new  HashMap<String, Double>());
 			}
 		}
 		
@@ -225,15 +238,17 @@ public class QuestionIdExperiment {
 			QASample sample = ds.samples.get(i);
 			int sid = sample.sentenceId;
 			int pid = sample.propHead;
-			String pfx = sample.questionLabel.split("=")[0];
-			String val = sample.questionLabel.split("=")[1];
 			double[] prob = new double[2];
 			Linear.predictProbability(model, ds.features[i], prob);
-			HashMap<String, Double> sc = scores.get(sid).get(pid);
+			/*
+			String pfx = sample.questionLabel.split("=")[0];
+			String val = sample.questionLabel.split("=")[1];
 			if (!sc.containsKey(val) || sc.get(val) < prob[0]) {
 				slots.get(sid).get(pid).put(pfx, val);
-				sc.put(pfx, prob[0]);
 			}
+			*/
+			HashMap<String, Double> sc = scores.get(sid).get(pid);
+			sc.put(sample.questionLabel, prob[0]);
 		}
 		// Get top K
 		for (int i = 0; i < ds.sentences.size(); i++) {
@@ -245,13 +260,11 @@ public class QuestionIdExperiment {
 				Collections.sort(scRank, Collections.reverseOrder());
 				double threshold = scRank.get(topK);
 				System.out.println(topK + ", " + threshold);
-				
 				HashMap<String, String> sl = slots.get(i).get(pid);
 				HashMap<String, Double> sc = scores.get(i).get(pid);
-				for (String pfx : sc.keySet()) {
-					double s = sc.get(pfx);
-					if (s < threshold) {
-						sl.remove(pfx);
+				for (String lb : sc.keySet()) {
+					if (sc.get(lb) >= threshold) {
+						sl.put(lb, "");
 					}
 				}
 			}
@@ -262,12 +275,12 @@ public class QuestionIdExperiment {
 			QASample sample = ds.samples.get(i);
 			int sid = sample.sentenceId;
 			int pid = sample.propHead;
-			String pfx = sample.questionLabel.split("=")[0];
-			String val = sample.questionLabel.split("=")[1];
-			
+			// String pfx = sample.questionLabel.split("=")[0];
+			// String val = sample.questionLabel.split("=")[1];
+			//int pred = (sl.containsKey(pfx) && sl.get(pfx).equals(val)) ? 1 : -1;
 			HashMap<String, String> sl = slots.get(sid).get(pid);
 			int gold = sample.isPositiveSample ? 1 : -1;
-			int pred = (sl.containsKey(pfx) && sl.get(pfx).equals(val)) ? 1 : -1;
+			int pred = sl.containsKey(sample.questionLabel) ? 1 : -1;
 			f1.numGold += (gold > 0 ? 1 : 0);
 			f1.numProposed += (pred > 0 ? 1 : 0);
 			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);
