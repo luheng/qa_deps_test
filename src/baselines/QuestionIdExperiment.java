@@ -164,6 +164,7 @@ public class QuestionIdExperiment {
 	}
 	
 	public double[][][] trainAndPredict(LiblinearHyperParameters prm,
+										double threshold,
 										int topK,
 										boolean getPrecRecallCurve,
 										boolean generateQuestions) {
@@ -177,7 +178,8 @@ public class QuestionIdExperiment {
 		
 		double[][][] results = new double[testSets.size() + 1][][];
 		results[0] = new double[1][];
-		results[0][0] = predictAndEvaluate(trainSet, model, topK, "");
+		results[0][0] = predictAndEvaluate(
+				trainSet, model, threshold, topK, "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
 				StringUtils.doubleArrayToString("\t", results[0][0])));
@@ -185,14 +187,25 @@ public class QuestionIdExperiment {
 		for (int d = 0; d < testSets.size(); d++) {
 			QuestionIdDataset ds = testSets.get(d);
 			if (getPrecRecallCurve) {
-				results[d+1] = new double[labelDict.size()][];
-				for (int k = 1; k <= labelDict.size(); k++) {
-					results[d+1][k-1] = predictAndEvaluate(ds, model, k, "");
+				if (threshold < 0) {
+					results[d+1] = new double[100][];
+					for (int k = 0; k < 100; k++) {
+						double thr = 1.0 * k / 100;
+						results[d+1][k] = predictAndEvaluate(
+								ds, model, thr, -1, "");
+					}
+				} else {
+					results[d+1] = new double[labelDict.size()][];
+					for (int k = 1; k <= labelDict.size(); k++) {
+						results[d+1][k-1] = predictAndEvaluate(
+								ds, model, -1.0, k, "");
+					}
 				}
 			} else {
 				results[d+1] = new double[1][];
-				results[d+1][0] = predictAndEvaluate(ds, model, topK,
-						generateQuestions ? "qgenpath" : "");
+				results[d+1][0] = predictAndEvaluate(
+						ds, model, threshold, topK,
+							generateQuestions ? "qgenpath" : "");
 			}
 		}
 		return results;
@@ -212,6 +225,7 @@ public class QuestionIdExperiment {
 	private double[] predictAndEvaluate(
 			QuestionIdDataset ds,
 			Model model,
+			double threshold,
 			int topK,
 			String qgenPath) {
 		// Aggregate results
@@ -254,14 +268,16 @@ public class QuestionIdExperiment {
 		for (AnnotatedSentence sent : ds.sentences) {
 			int sid = sent.sentence.sentenceID;
 			for (int pid : sent.qaLists.keySet()) {
-				ArrayList<Double> scRank = new ArrayList<Double>();
 				HashMap<String, Double> labels = new HashMap<String, Double>();
-				for (double s : scores.get(sid).get(pid).values()) {
-					scRank.add(s);
+				double thr = threshold;
+				if (thr < 0) {
+					ArrayList<Double> scRank = new ArrayList<Double>();
+					for (double s : scores.get(sid).get(pid).values()) {
+						scRank.add(s);
+					}
+					Collections.sort(scRank, Collections.reverseOrder());
+					thr = scRank.get(Math.min(scRank.size(), topK) - 1);
 				}
-				Collections.sort(scRank, Collections.reverseOrder());
-				double threshold = scRank.get(Math.min(scRank.size(), topK) - 1);
-				
 				HashMap<String, String> sl = slots.get(sid).get(pid);
 				HashMap<String, Double> sc = scores.get(sid).get(pid);
 				for (String k : sc.keySet()) {
@@ -342,6 +358,7 @@ public class QuestionIdExperiment {
 			LiblinearHyperParameters prm = prms.get(i);
 			System.out.println(prm.toString());
 			results[i] = exp.trainAndPredict(prm,
+				exp.config.evalThreshold,
 				exp.config.evalTopK,
 				true,  /* get precision-reall curve */
 				false  /* generate question */);

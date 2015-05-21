@@ -4,9 +4,9 @@ import gnu.trove.map.hash.TIntDoubleHashMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 
+import util.FeatureUtils;
 import data.Corpus;
 import data.CountDictionary;
 import data.UniversalPostagMap;
@@ -40,76 +40,6 @@ public class QuestionIdFeatureExtractor {
 		this(corpus, numBestParses, minFeatureFreq);
 		this.useLexicalFeatures = useLexicalFeatures;
 		this.useDependencyFeatures = useDependencyFeatures;
-	}
-	
-	private HashSet<TypedDependency> lookupParentsByChild(
-			Collection<TypedDependency> deps, int childId) {
-		HashSet<TypedDependency> parents = new HashSet<TypedDependency>();
-		for (TypedDependency dep : deps) {
-			if (dep.dep().index() == childId + 1) {
-				parents.add(dep);
-			}
-		}
-		return parents;
-	}
-	
-	private HashSet<TypedDependency> lookupChildrenByParent(
-			Collection<TypedDependency> deps, int parentId) {
-		HashSet<TypedDependency> parents = new HashSet<TypedDependency>();
-		for (TypedDependency dep : deps) {
-			if (dep.gov().index() == parentId + 1) {
-				parents.add(dep);
-			}
-		}
-		return parents;
-	}
-	
-	private ArrayList<TypedDependency> lookupDepPath(
-			Collection<TypedDependency> deps, int startId, int endId) {
-		ArrayList<Integer> queue = new ArrayList<Integer>();
-		HashMap<Integer, ArrayList<TypedDependency>> paths  =
-				new HashMap<Integer, ArrayList<TypedDependency>>();
-		queue.add(startId);
-		paths.put(startId, new ArrayList<TypedDependency>());
-		while (!queue.isEmpty() && !paths.containsKey(endId)) {
-			int currId = queue.get(0), nextId = -1;
-			queue.remove(0);
-			for (TypedDependency dep : deps) {
-				if (dep.gov().index() - 1 == currId) {
-					nextId = dep.dep().index() - 1;
-				} else if (dep.dep().index() - 1 == currId) {
-					nextId = dep.gov().index() - 1;
-				}
-				if (nextId >= 0 && !paths.containsKey(nextId)) {
-					queue.add(nextId);
-					ArrayList<TypedDependency> newPath =
-							new ArrayList<TypedDependency>();
-					newPath.addAll(paths.get(currId));
-					newPath.add(dep);
-					paths.put(nextId, newPath);
-				}
-			}
-		}
-		return paths.get(endId);
-	}
-	
-	private String getRelPathString(ArrayList<TypedDependency> depPath,
-			int startId) {
-		if (depPath == null) {
-			return "-";
-		}
-		String rels = "";
-		int currId = startId;
-		for (TypedDependency dep : depPath) {
-			if (dep.gov().index() - 1 == currId) {
-				currId = dep.dep().index() - 1;
-				rels += dep.reln().toString() + "/";
-			} else {
-				currId = dep.gov().index() - 1;
-				rels += dep.reln().toString() + "\\";
-			}
-		}
-		return rels;
 	}
 	
 	private static HashSet<String> getQLabelFeatures(String qlabel) {
@@ -146,7 +76,8 @@ public class QuestionIdFeatureExtractor {
 		String prop = tokens[propId];
 		String plemma = inflDict.getBestBaseVerb(prop);
 		String pvoice = "Aktv";
-		for (TypedDependency dep : lookupChildrenByParent(sample.kBestParses.get(0), propId)) {
+		for (TypedDependency dep : FeatureUtils
+				.lookupChildrenByParent(sample.kBestParses.get(0), propId)) {
 			if (dep.reln().toString().equals("auxpass")) {
 				pvoice = "Psv";
 				break;
@@ -160,7 +91,6 @@ public class QuestionIdFeatureExtractor {
 		
 		int kBest = useDependencyFeatures ?
 				Math.min(numBestParses, sample.kBestParses.size()) : 0;
-		
 		// ***************** Proposition features ********************		
 		fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
 		fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
@@ -174,7 +104,7 @@ public class QuestionIdFeatureExtractor {
 		for (int i = 0; i < kBest; i++) {
 			Collection<TypedDependency> deps = sample.kBestParses.get(i);
 			// Predicate parents
-			for (TypedDependency dep : lookupParentsByChild(deps, propId)) {
+			for (TypedDependency dep : FeatureUtils.lookupParentsByChild(deps, propId)) {
 				String relStr = dep.reln().toString();
 				String govTok = dep.gov().word();
 				fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr, acceptNew), 1, 1);
@@ -189,7 +119,7 @@ public class QuestionIdFeatureExtractor {
 				}
 			}
 			// Predicate children
-			for (TypedDependency dep : lookupChildrenByParent(deps, propId)) {
+			for (TypedDependency dep : FeatureUtils.lookupChildrenByParent(deps, propId)) {
 				String relStr = dep.reln().toString();
 				String modTok = dep.gov().word();
 				int modIdx = dep.dep().index() - 1;
@@ -224,6 +154,7 @@ public class QuestionIdFeatureExtractor {
 			}
 			String utag = univDict.getUnivPostag(postags[i]);
 			String rels = "";
+			/*
 			if (Math.abs(propId - i) < 20) {
 				ArrayList<TypedDependency> depPath =
 						lookupDepPath(sample.kBestParses.get(0), i, propId);
@@ -231,6 +162,7 @@ public class QuestionIdFeatureExtractor {
 					rels = getRelPathString(depPath, i);
 				}
 			}
+			*/
 			boolean isPP = utag.equals("PRT");
 			boolean matchPP = isPP && tokens[i].equals(qpp);
 			for (String qfeat : qfeats) {

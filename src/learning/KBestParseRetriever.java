@@ -45,11 +45,9 @@ public class KBestParseRetriever {
                 "-retainTmpSubcategories",
                 "-printPCFGkBest", String.valueOf(kBest),
                 "-maxLength", "100");
-		
 		this.tlp = new PennTreebankLanguagePack();
 		this.gsf = tlp.grammaticalStructureFactory();
 		this.umap = ExperimentUtils.loadPostagMap();
-		
 		this.cachedSentenceId = -1;
 	}
 
@@ -225,7 +223,6 @@ public class KBestParseRetriever {
 					postags[j] = tags.get(j).tag();
 					univPostags[j] = umap.getUnivPostag(postags[j]);
 				}
-				// TODO: add lemma
 			}
 		}
 		cachedSentenceId = sentence.sentenceID;
