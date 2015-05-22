@@ -55,13 +55,6 @@ public class QuestionIdFeatureExtractor {
 		}
 		feats.add("QVal=" + qval);
 		feats.add("QLab=" + qlabel);
-		/*
-		if (qtype.equals("W0")) {
-			feats.add("Subj");
-		} else if (qtype.equals("W1") || qtype.equals("W2")) {
-			feats.add("Obj");
-		}
-		*/
 		return feats;
 	}
 	
@@ -96,10 +89,10 @@ public class QuestionIdFeatureExtractor {
 		
 		int kBest = useDependencyFeatures ?
 				Math.min(numBestParses, sample.kBestParses.size()) : 0;
-		// ***************** Proposition features ********************		
-		fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
-		fv.adjustOrPutValue(fdict.addString("PV=" + pvoice, acceptNew), 1, 1);
+		// ***************** Proposition features ********************	
+		// fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
+		// fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
+		// fv.adjustOrPutValue(fdict.addString("PV=" + pvoice, acceptNew), 1, 1);
 		for (String qfeat : qfeats) {
 			fv.adjustOrPutValue(fdict.addString("PTOK=" + prop + "#" + qfeat, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma + "#" + qfeat, acceptNew), 1, 1);
@@ -112,8 +105,8 @@ public class QuestionIdFeatureExtractor {
 			for (TypedDependency dep : FeatureUtils.lookupParentsByChild(deps, propId)) {
 				String relStr = dep.reln().toString();
 				String govTok = dep.gov().word();
-				fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr, acceptNew), 1, 1);
-				fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok, acceptNew), 1, 1);
+				// fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr, acceptNew), 1, 1);
+				// fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok, acceptNew), 1, 1);
 				for (String qfeat : qfeats) {
 					fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr + "#" + qfeat, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok + "#" + qfeat, acceptNew), 1, 1);
