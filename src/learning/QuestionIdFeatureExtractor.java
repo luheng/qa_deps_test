@@ -53,9 +53,7 @@ public class QuestionIdFeatureExtractor {
 		if (!qpp.isEmpty()) {
 			feats.add("QPP=" + qpp);
 		}
-		if (!qval.equals(".")) {
-			feats.add("QVal=" + qval);
-		}
+		feats.add("QVal=" + qval);
 		feats.add("QLab=" + qlabel);
 		return feats;
 	}
@@ -154,15 +152,14 @@ public class QuestionIdFeatureExtractor {
 			}
 			String utag = univDict.getUnivPostag(postags[i]);
 			String rels = "";
-			/*
-			if (Math.abs(propId - i) < 20) {
+			if (Math.abs(propId - i) < 10) {
 				ArrayList<TypedDependency> depPath =
-						lookupDepPath(sample.kBestParses.get(0), i, propId);
+						FeatureUtils.lookupDepPath(
+								sample.kBestParses.get(0), i, propId);
 				if (depPath != null && depPath.size() < 3) {
-					rels = getRelPathString(depPath, i);
+					rels = FeatureUtils.getRelPathString(depPath, i);
 				}
 			}
-			*/
 			boolean isPP = utag.equals("PRT");
 			boolean matchPP = isPP && tokens[i].equals(qpp);
 			for (String qfeat : qfeats) {
