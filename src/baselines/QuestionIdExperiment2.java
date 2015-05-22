@@ -2,24 +2,16 @@ package baselines;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-import config.DataConfig;
-import config.QuestionIdConfig;
 import util.StrUtils;
-import annotation.QuestionEncoder;
-import learning.KBestParseRetriever;
 import learning.QASample;
 import learning.QuestionIdDataset;
-import learning.QuestionIdFeatureExtractor;
 import data.AnnotatedSentence;
-import data.Corpus;
 import data.CountDictionary;
 import data.QAPair;
 import de.bwaldvogel.liblinear.Feature;
@@ -31,144 +23,45 @@ import de.bwaldvogel.liblinear.SolverType;
 import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 
-public class QuestionIdExperiment {
-	protected QuestionIdConfig config;
+public class QuestionIdExperiment2 extends QuestionIdExperiment {
 	
-	protected Corpus baseCorpus; 
-	protected QuestionIdFeatureExtractor featureExtractor;
-	protected QuestionGenerator qgen;
-	CountDictionary labelDict, tempDict;
+/*	private static String[] classes = new String[] {
+		"W0", "W1", "W2", "WHERE", "WHEN", "HOW", "HOW MUCH", "WHY"
+	};
+*/	
+	CountDictionary classes;
+	HashMap<String, Model> models;
+	HashMap<String, Feature[][]> trainFeatures;
+	HashMap<String, double[]> trainLabels;
 	
-	protected QuestionIdDataset trainSet;
-	protected ArrayList<QuestionIdDataset> testSets;
-	
-	protected String getSampleFileName(QuestionIdDataset ds) {
-		return ds.datasetName + ".qgen.k" + config.kBest + ".smp";
-	}
-	
-	public QuestionIdExperiment(String questionIdConfigPath)
+	public QuestionIdExperiment2(String questionIdConfigPath)
 			throws IOException {
-		config = questionIdConfigPath.isEmpty() ? new QuestionIdConfig():
-					new QuestionIdConfig(questionIdConfigPath);
-		baseCorpus = new Corpus("qa-exp-corpus");
-		testSets = new ArrayList<QuestionIdDataset>();
+		super(questionIdConfigPath);
+		models = new HashMap<String, Model>();
+		trainFeatures = new HashMap<String, Feature[][]>();
+		trainLabels = new HashMap<String, double[]>();
 		
-		System.out.println(config.toString());
-		
-		// ********** Config and load QA Data ********************
-		trainSet = new QuestionIdDataset(baseCorpus,
-				StrUtils.join("_", config.trainSets));
-		for (String dsName : config.trainSets) {
-			trainSet.loadData(DataConfig.getDataset(dsName));
+		classes = new CountDictionary();
+		for (QASample sample : trainSet.samples) {
+			String cl  = sample.questionLabel.split("=")[0].split("_")[0];
+			classes.addString(cl);
 		}
-		for (String dsName : config.testSets) {
-			QuestionIdDataset ds = new QuestionIdDataset(baseCorpus, dsName);
-			ds.loadData(DataConfig.getDataset(dsName));
-			testSets.add(ds);
-		}
-		
-		// ************ Extract slot labels and templates **************
-		labelDict = new CountDictionary();
-		tempDict = new CountDictionary();
-		for (AnnotatedSentence sent : trainSet.sentences) {
-			for (int propHead : sent.qaLists.keySet()) {
-				HashMap<String, String> slots = new HashMap<String, String>();
-				for (QAPair qa : sent.qaLists.get(propHead)) {
-					String[] temp = QuestionEncoder.getLabels(qa.questionWords);
-					for (String lb : temp) {
-						if (!lb.contains("=")) {
-							continue;
-						}
-						String pfx = lb.split("=")[0];
-						String val = lb.split("=")[1];
-						if (slots.containsKey(pfx) &&
-							!slots.get(pfx).equals(val)) {
-							slots.put(pfx, "something");
-						} else {
-							slots.put(pfx, val);
-						}
-						if (!config.aggregateLabels) {
-							labelDict.addString(lb);
-						}
-					}
-					tempDict.addString(getTemplateString(temp));
-				}
-				if (config.aggregateLabels) {
-					for (String pfx : slots.keySet()) {
-						labelDict.addString(pfx + "=" + slots.get(pfx));
-					}
+		classes.prettyPrint();
+		for (String cl : classes.getStrings()) {
+			int numSamples = classes.getCount(cl);
+			Feature[][] feats = new Feature[numSamples][];
+			double[] labels = new double[numSamples];
+			int cnt = 0;
+			for (int i = 0; i < trainSet.samples.size(); i++) {
+				QASample sample = trainSet.samples.get(i);
+				if (cl.equals(sample.questionLabel.split("=")[0].split("_")[0])) {
+					feats[cnt] = trainSet.features[i];
+					labels[cnt++] = trainSet.labels[i];
 				}
 			}
+			trainFeatures.put(cl, feats);
+			trainLabels.put(cl, labels);
 		}
-		assert (config.minQuestionLabelFreq == 1);
-		labelDict = new CountDictionary(labelDict, config.minQuestionLabelFreq);
-		labelDict.prettyPrint();
-		tempDict.prettyPrint();
-		
-		// *********** Generate training/test samples **********
-		if (config.regenerateSamples) {
-			KBestParseRetriever syntaxHelper =
-					new KBestParseRetriever(config.kBest);
-			trainSet.generateSamples(syntaxHelper, labelDict,
-									 config.aggregateLabels);
-			for (QuestionIdDataset ds : testSets) {
-				ds.generateSamples(syntaxHelper, labelDict,
-								   config.aggregateLabels);
-			}
-			// Cache qaSamples to file because parsing is slow.
-			ObjectOutputStream ostream = null;
-			try {
-				ostream = new ObjectOutputStream(
-						new FileOutputStream(getSampleFileName(trainSet)));
-				ostream.writeObject(trainSet.samples);
-				ostream.flush();
-				ostream.close();
-				for (QuestionIdDataset ds : testSets) {
-					ostream = new ObjectOutputStream(
-							new FileOutputStream(getSampleFileName(ds)));
-					ostream.writeObject(ds.samples);
-					ostream.flush();
-					ostream.close();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else {
-			try {
-     			trainSet.loadSamples(getSampleFileName(trainSet));
-     			for (QuestionIdDataset ds : testSets) {
-					ds.loadSamples(getSampleFileName(ds));
-				}
-			} catch (ClassNotFoundException | IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		qgen = new QuestionGenerator(baseCorpus, labelDict, tempDict);
-		
-		// ********** Extract features ***************
-		featureExtractor = new QuestionIdFeatureExtractor(
-				baseCorpus,
-				config.kBest,
-				config.minFeatureFreq,
-				config.useLexicalFeatures,
-				config.useDependencyFeatures);
-		featureExtractor.extractFeatures(trainSet.samples);
-		trainSet.extractFeaturesAndLabels(featureExtractor,
-				config.normalizeFeatures);
-		for (QuestionIdDataset ds : testSets) {
-			ds.extractFeaturesAndLabels(featureExtractor,
-					config.normalizeFeatures);
-		}
-	}
-	
-	private String getTemplateString(String[] temp) {
-		String[] shortTemp = new String[temp.length];
-		for (int i = 0; i < temp.length; i++) {
-			String s = temp[i].split("=")[0];
-			shortTemp[i] = s.contains("_") ? s.split("_")[0] + "_PP" : s;
-		}
-		return StrUtils.join("\t", "_", shortTemp);
 	}
 	
 	public double[][][] trainAndPredict(LiblinearHyperParameters prm,
@@ -180,15 +73,17 @@ public class QuestionIdExperiment {
 		System.out.println(String.format("Training with %d samples.",
 				trainSet.features.length));
 		int numFeatures = featureExtractor.numFeatures();
-		Model model = train(
-				trainSet.features,
-				trainSet.labels,
-				numFeatures, prm);
+		
+		for (String cl : classes.getStrings()) {
+			Model model = train(cl, trainFeatures.get(cl), trainLabels.get(cl),
+					numFeatures, prm);
+			models.put(cl, model);
+		}
 		
 		double[][][] results = new double[testSets.size() + 1][][];
 		results[0] = new double[1][];
 		results[0][0] = predictAndEvaluate(
-				trainSet, model, threshold, topK, "", "");
+				trainSet, models, threshold, topK, "", "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
 				StrUtils.doubleArrayToString("\t", results[0][0])));
@@ -201,19 +96,19 @@ public class QuestionIdExperiment {
 					for (int k = 0; k < config.numPRCurvePoints; k++) {
 						double thr = 1.0 * k / config.numPRCurvePoints;
 						results[d+1][k] = predictAndEvaluate(
-								ds, model, thr, -1, "", "");
+								ds, models, thr, -1, "", "");
 					}
 				} else {
 					results[d+1] = new double[labelDict.size()][];
 					for (int k = 1; k <= labelDict.size(); k++) {
 						results[d+1][k-1] = predictAndEvaluate(
-								ds, model, -1.0, k, "", "");
+								ds, models, -1.0, k, "", "");
 					}
 				}
 			} else {
 				results[d+1] = new double[1][];
 				results[d+1][0] = predictAndEvaluate(
-						ds, model, threshold, topK,
+						ds, models, threshold, topK,
 						qgenPath.isEmpty() ? "" : qgenPath + ds.datasetName,
 						debugPath.isEmpty() ? "" : debugPath + ds.datasetName);
 			}
@@ -221,7 +116,7 @@ public class QuestionIdExperiment {
 		return results;
 	}
 	
-	private Model train(Feature[][] features, double[] labels,
+	private Model train(String cl, Feature[][] features, double[] labels,
 			int numFeatures, LiblinearHyperParameters par) {
 		Problem training = new Problem();
 		training.l = features.length;
@@ -234,7 +129,7 @@ public class QuestionIdExperiment {
 	
 	private double[] predictAndEvaluate(
 			QuestionIdDataset ds,
-			Model model,
+			HashMap<String, Model> models,
 			double evalThreshold,
 			int evalTopK,
 			String qgenPath,
@@ -263,6 +158,8 @@ public class QuestionIdExperiment {
 			QASample sample = ds.samples.get(i);
 			int sid = sample.sentenceId;
 			int pid = sample.propHead;
+			String cl = sample.questionLabel.split("=")[0].split("_")[0];
+			Model model = models.get(cl);
 			double[] prob = new double[2];
 			Linear.predictProbability(model, ds.features[i], prob);
 			HashMap<String, String> sl = slots.get(sid).get(pid);
@@ -410,10 +307,10 @@ public class QuestionIdExperiment {
 	}
 	
 	public static void main(String[] args) {
-		QuestionIdExperiment exp = null;
+		QuestionIdExperiment2 exp = null;
 		String questionIdConfigPath = args.length > 0 ? args[0] : "";
 		try {
-			exp = new QuestionIdExperiment(questionIdConfigPath);
+			exp = new QuestionIdExperiment2(questionIdConfigPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
