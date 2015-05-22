@@ -55,11 +55,13 @@ public class QuestionIdFeatureExtractor {
 		}
 		feats.add("QVal=" + qval);
 		feats.add("QLab=" + qlabel);
+		/*
 		if (qtype.equals("W0")) {
 			feats.add("Subj");
 		} else if (qtype.equals("W1") || qtype.equals("W2")) {
 			feats.add("Obj");
 		}
+		*/
 		return feats;
 	}
 	
