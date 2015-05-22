@@ -48,13 +48,13 @@ public class QuestionIdFeatureExtractor {
 		String qval = qlabel.split("=")[1];    // i.e. someone, something
 		String qtype = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. W0, 
 		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
-		// feats.add("QKey=" + qkey);
+		feats.add("QKey=" + qkey);
 		feats.add("QType=" + qtype);
 		if (!qpp.isEmpty()) {
 			feats.add("QPP=" + qpp);
 		}
 		feats.add("QVal=" + qval);
-		// feats.add("QLab=" + qlabel);
+		feats.add("QLab=" + qlabel);
 		if (qtype.equals("W0")) {
 			feats.add("Subj");
 		} else if (qtype.equals("W1") || qtype.equals("W2")) {
