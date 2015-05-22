@@ -265,9 +265,11 @@ public class QuestionIdExperiment {
 		F1Metric microF1 = new F1Metric();
 		double macroPrec = .0, macroRecall = .0;
 		int cnt = 0;
+		System.out.println(ds.goldLabels.size());
 		for (AnnotatedSentence sent : ds.sentences) {
 			int sid = sent.sentence.sentenceID;
-			for (int pid : sent.qaLists.keySet()) {				
+			for (int pid : sent.qaLists.keySet()) {
+				System.out.println(sid + ", " + pid);
 				HashSet<String> gl = ds.goldLabels.get(sid).get(pid);
   			    HashSet<String> sl = slots.get(sid).get(pid);
 				HashMap<String, Double> sc = scores.get(sid).get(pid);

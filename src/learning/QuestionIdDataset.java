@@ -25,16 +25,19 @@ public class QuestionIdDataset extends QADataset {
 		goldLabels = new HashMap<Integer, HashMap<Integer, HashSet<String>>>();
 		for (AnnotatedSentence annotSent : sentences) {
 			Sentence sent = annotSent.sentence;
-			goldLabels.put(sent.sentenceID, new HashMap<Integer, HashSet<String>>());
+			int sid = sent.sentenceID;
+			goldLabels.put(sid, new HashMap<Integer, HashSet<String>>());
 			for (int propHead : annotSent.qaLists.keySet()) {
-				goldLabels.get(sent.sentenceID).put(propHead, new HashSet<String>());
+				goldLabels.get(sid).put(propHead, new HashSet<String>());
 				for (QAPair qa : annotSent.qaLists.get(propHead)) {
 					String lb = QuestionEncoder.getLabels(qa.questionWords)[0];
-					goldLabels.get(sent.sentenceID).get(propHead).add(lb);
+					goldLabels.get(sid).get(propHead).add(lb);
 				
 				}
 			}
 		}
+		System.out.println("prepared labels for:\t" + datasetName);
+		System.out.println(goldLabels.size());
 	}
 	
 	private static HashSet<String> getPPOptions(Sentence sent) {
