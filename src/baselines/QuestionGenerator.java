@@ -109,7 +109,7 @@ public class QuestionGenerator {
 				isPassive = true;
 			}
 			//System.out.println(hasNegation ? "Neg" : "");
-			System.out.println(isPassive ? "Passive" : "Active");
+			//System.out.println(isPassive ? "Passive" : "Active");
 			if (isPassive) {
 				// make active
 				if (auxStr.contains("been")) {
@@ -121,21 +121,21 @@ public class QuestionGenerator {
 				} else if (auxStr.contains("is") || auxStr.contains("are")) {
 					newStr = infl[1];
 				} else if (auxStr.contains("were") || auxStr.contains("was")) {
-					newStr = infl[3];
+					newStr = infl[4];
 				}
 				System.out.println("pas->act:\t" + newStr);
 			} else {
 				// make passive
-				if (auxStr.contains(infl[2])) {
-					newStr = auxStr.replace(infl[2], "being " + infl[3]);
-				} else if (auxStr.contains(infl[3]) &&
+				if (verb.equals(infl[2])) {
+					newStr = auxStr + " being " + infl[4];
+				} else if (verb.equals(infl[3]) &&
 						(auxStr.contains("has") || auxStr.contains("have") ||
 						 auxStr.contains("had"))) {
-					newStr = auxStr.replace(infl[3], "been " + infl[3]);
-				} else if (auxStr.equals(infl[1])) {
-					newStr = "is " + infl[3];
-				} else if (auxStr.equals(infl[2])) {
-					newStr = "was " + infl[3];
+					newStr = auxStr + " been " + infl[4];
+				} else if (verb.equals(infl[1]) && auxStr.isEmpty()) {
+					newStr = "is " + infl[4];
+				} else if (verb.equals(infl[2])) {
+					newStr = "was " + infl[4];
 				}
 				System.out.println("act->pas:\t" + newStr);
 			}
