@@ -233,9 +233,9 @@ public class QuestionGenerator {
 				if (bestTemp[1].equals("_")) {
 					question[QASlots.TRGSlotId] = ss[v][0];
 				} else {
-					if (bestTemp[1].equals(infl[3])) {
+					if (ss[v][0].equals(infl[3])) {
 						question[QASlots.AUXSlotId] = "did";
-					} else if (bestTemp[1].equals(infl[1])) {
+					} else if (ss[v][0].equals(infl[1])) {
 						question[QASlots.AUXSlotId] = "does";
 					} else {
 						question[QASlots.AUXSlotId] = "do";
