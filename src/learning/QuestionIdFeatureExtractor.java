@@ -48,13 +48,18 @@ public class QuestionIdFeatureExtractor {
 		String qval = qlabel.split("=")[1];    // i.e. someone, something
 		String qtype = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. W0, 
 		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
-		feats.add("QKey=" + qkey);
+		// feats.add("QKey=" + qkey);
 		feats.add("QType=" + qtype);
 		if (!qpp.isEmpty()) {
 			feats.add("QPP=" + qpp);
 		}
 		feats.add("QVal=" + qval);
-		feats.add("QLab=" + qlabel);
+		// feats.add("QLab=" + qlabel);
+		if (qtype.equals("W0")) {
+			feats.add("Subj");
+		} else if (qtype.equals("W1") || qtype.equals("W2")) {
+			feats.add("Obj");
+		}
 		return feats;
 	}
 	
@@ -151,6 +156,7 @@ public class QuestionIdFeatureExtractor {
 				continue;
 			}
 			String utag = univDict.getUnivPostag(postags[i]);
+			/*
 			String rels = "";
 			if (Math.abs(propId - i) < 10) {
 				ArrayList<TypedDependency> depPath =
@@ -160,9 +166,11 @@ public class QuestionIdFeatureExtractor {
 					rels = FeatureUtils.getRelPathString(depPath, i);
 				}
 			}
+			*/
 			boolean isPP = utag.equals("PRT");
 			boolean matchPP = isPP && tokens[i].equals(qpp);
 			for (String qfeat : qfeats) {
+				/*
 				if (!rels.isEmpty()) {
 					fv.adjustOrPutValue(fdict.addString("RelPath=" + rels + "#" + qfeat, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("Pos=" + postags[i] + "#" + qfeat, acceptNew), 1, 1);
@@ -171,7 +179,7 @@ public class QuestionIdFeatureExtractor {
 					} else {
 						fv.adjustOrPutValue(fdict.addString("RtPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
 					}
-				}
+				}*/
 				if (isPP) {
 					fv.adjustOrPutValue(fdict.addString("PP=" + tokens[i] + "#" + qfeat, acceptNew), 1, 1);
 					if (matchPP) {
