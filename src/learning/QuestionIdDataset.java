@@ -23,34 +23,6 @@ public class QuestionIdDataset extends QADataset {
 		super(corpus, name);
 	}
 	
-	@SuppressWarnings("unused")
-	private static HashSet<String> getSlotLabels(Sentence sent) {
-		HashSet<String> slots = new HashSet<String>();
-		HashSet<String> ppOpts = getPPOptions(sent);
-		String[] ph3Opts = new String[] {
-				"someone", "something",
-				"do something", "doing something",
-				"be something", "being something"
-		};
-		for (String ph : new String[] {"someone", "something"}) {
-			slots.add("ARG_0" + "=" + ph);
-			slots.add("ARG_1" + "=" + ph);
-		}
-		for (String ph : ph3Opts) {
-			slots.add("ARG_2" + "=" + ph);
-		}
-		for (String pp : ppOpts) {
-			for (String ph : ph3Opts) {
-				slots.add("ARG_" + pp + "=" + ph);
-			}
-			for (String mod : new String[]{
-					"WHERE", "WHEN", "WHY", "HOW", "HOW MUCH"}) {
-				slots.add(mod + "_" + pp + "=.");
-			}
-		}
-		return slots;
-	}
-	
 	private static HashSet<String> getPPOptions(Sentence sent) {
 		HashSet<String> opSet = new HashSet<String>();
 		for (int i = 0; i < sent.length; i++) {
@@ -147,6 +119,19 @@ public class QuestionIdDataset extends QADataset {
 				samples.size() - numPositiveSamples));
 	}
 	
+	private static TIntDoubleHashMap normalize(TIntDoubleHashMap fv) {
+		TIntDoubleHashMap newFv = new TIntDoubleHashMap();
+		double l2Norm = 0.0;
+		for (double v : fv.values()) {
+			l2Norm += v * v;
+		}
+		l2Norm = Math.sqrt(l2Norm);
+		for (int k : fv.keys()) {
+			newFv.put(k, fv.get(k) / l2Norm);
+		}
+		return newFv;
+	}
+	
 	public void extractFeaturesAndLabels(
 			QuestionIdFeatureExtractor featureExtractor) {
 		int numSamples = samples.size();
@@ -154,7 +139,7 @@ public class QuestionIdDataset extends QADataset {
 		labels = new double[numSamples];
 		for (int i = 0; i < numSamples; i++) {
 			QASample sample = samples.get(i);
-			TIntDoubleHashMap fv = featureExtractor.getFeatures(sample);
+			TIntDoubleHashMap fv = normalize(featureExtractor.getFeatures(sample));
 			features[i] = new Feature[fv.size()];
 			int[] fids = Arrays.copyOf(fv.keys(), fv.size());
 			Arrays.sort(fids);

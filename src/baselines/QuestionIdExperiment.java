@@ -211,8 +211,8 @@ public class QuestionIdExperiment {
 				results[d+1] = new double[1][];
 				results[d+1][0] = predictAndEvaluate(
 						ds, model, threshold, topK,
-						qgenPath.isEmpty() ? "" : qgenPath + "-" + ds.datasetName,
-						debugPath.isEmpty() ? "" : debugPath + "-" + ds.datasetName);
+						qgenPath.isEmpty() ? "" : qgenPath + ds.datasetName,
+						debugPath.isEmpty() ? "" : debugPath + ds.datasetName);
 			}
 		}
 		return results;
@@ -322,15 +322,15 @@ public class QuestionIdExperiment {
 				// Generate questions
 				if (debugWriter != null) {
 					try {
-						qgenWriter.write("\n" + sent.sentence.getTokensString());
-						qgenWriter.write("\n" + sent.sentence.getTokenString(pid));
+						debugWriter.write("\n" + sent.sentence.getTokensString());
+						debugWriter.write("\n" + sent.sentence.getTokenString(pid));
 						debugWriter.write("\nGold:\t");
 						for (int id : goldLabels.get(sid).get(pid)) {
 							debugWriter.write(labelDict.getString(id) + "\t");
 						}
 						debugWriter.write("\nPred:\t");
 						for (String lb : labels.keySet()) {
-							debugWriter.write(lb + "," + labels.get(lb) + "\t");
+							debugWriter.write(String.format("%s,%.2f\t", lb, labels.get(lb)));
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
