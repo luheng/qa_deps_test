@@ -31,6 +31,19 @@ public class StrUtils {
 		return joined;
 	}
 	
+	public static String join(String delimiter, Object[] objects, int startId) {
+		String joined = "";
+		for (int i = startId; i < objects.length; i++) {
+			if (!objects[i].toString().trim().isEmpty()) {
+				if (!joined.isEmpty()) {
+					joined += delimiter;
+				}
+				joined += objects[i];
+			}
+		}
+		return joined;
+	}
+	
 	public static String join(String delimiter, ArrayList<Object> objects) {
 		String joined = "";
 		for (Object obj : objects) {
@@ -107,5 +120,6 @@ public class StrUtils {
 	public static HashSet<String> asSet(String... vals) {
 		return new HashSet<String>(Arrays.asList(vals));
 	}
+
 
 }

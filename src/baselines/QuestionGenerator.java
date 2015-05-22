@@ -14,7 +14,6 @@ import data.VerbInflectionDictionary;
 import util.StrUtils;
 
 import experiments.ExperimentUtils;
-import gnu.trove.map.hash.TIntDoubleHashMap;
 
 public class QuestionGenerator {
 
@@ -88,19 +87,20 @@ public class QuestionGenerator {
 		return lb.split("=")[0].split("_")[0] + (lb.contains("_") ? "_PP" : "");
 	}
 	
-	public ArrayList<String[]> generateQuestions(Sentence sentence, int propHead,
-			HashMap<String, Double> labels) {
-		assert (tempDict != null);
-		// Now truly, generate the questions.
+	// active aux, active trg, passive aux passive trg
+	private String[][] getAuxTrg(Sentence sentence, int propHead) {
+		String[][] ss = new String[2][];
+		
 		String verb = sentence.getTokenString(propHead);
 		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
+		
 		String[] aux = getAuxiliary(sentence, propHead);
-		boolean isPassive = false, hasNegation = false;
+		boolean isPassive = false;
 		String newStr = "";
+		String auxStr = (aux == null ? "" : StrUtils.join(" ", aux));
+		
+		//System.out.println(auxStr + " " + sentence.getTokenString(propHead));
 
-		String auxStr = (aux == null ? "" : StrUtils.join(" ", aux));		
-		System.out.println(sentence.getTokensString() + "\n" + auxStr + " " + sentence.getTokenString(propHead));
-		hasNegation = (auxStr.contains("\'t") || auxStr.contains("not"));
 		if (!verb.endsWith("ing") && (
 				auxStr.contains("been") || auxStr.contains("being") ||
 				auxStr.contains("be") || auxStr.contains("is") ||
@@ -123,11 +123,14 @@ public class QuestionGenerator {
 			} else if (auxStr.contains("were") || auxStr.contains("was")) {
 				newStr = infl[4];
 			}
-			System.out.println("pas->act:\t" + newStr);
+			// System.out.println("pas->act:\t" + newStr);
 		} else {
 			// make passive
 			if (verb.equals(infl[2])) {
 				newStr = auxStr + " being " + infl[4];
+				if (auxStr.isEmpty() || auxStr.startsWith("not") || auxStr.startsWith("n\'t")) {
+					newStr = "is " + newStr;
+				}
 			} else if (verb.equals(infl[4]) &&
 					(auxStr.contains("has") || auxStr.contains("have") ||
 					 auxStr.contains("had"))) {
@@ -147,8 +150,25 @@ public class QuestionGenerator {
 			} else {
 				newStr = "was " + infl[4];
 			}
-			System.out.println("act->pas:\t" + newStr);
+			// System.out.println("act->pas:\t" + newStr);
 		}
+		auxStr = auxStr + " " + verb;
+		auxStr.trim();
+		if (isPassive) {
+			ss[0] = newStr.split(" ");
+			ss[1] = auxStr.split(" ");
+		} else {
+			ss[1] = newStr.split(" ");
+			ss[0] = auxStr.split(" ");
+		}
+		return ss;
+	}
+	
+	public ArrayList<String[]> generateQuestions(Sentence sentence, int propHead,
+			HashMap<String, Double> labels) {
+		assert (tempDict != null);
+		// Now truly, generate the questions.
+		
 		
 		ArrayList<String[]> questions = new ArrayList<String[]>();
 		
@@ -171,6 +191,8 @@ public class QuestionGenerator {
 				nscores.put(npfx, sc);
 			}
 		}
+		
+		String[][] ss = getAuxTrg(sentence, propHead);
 		for (String lb : labels.keySet()) {
 			String whKey = lb.split("=")[0];
 			String whVal = lb.split("=")[1];
@@ -200,19 +222,17 @@ public class QuestionGenerator {
 				question[QASlots.WHSlotId] = whKey.toLowerCase().split("_")[0];
 			}
 			// AUX+TRG
-			if (bestTemp[4].equals("active")) {
-				if (whKey.startsWith("W0")) {
-					question[QASlots.AUXSlotId] =
-							verb.endsWith("ing") ? "is" : "";
-					question[QASlots.TRGSlotId] = verb;
+			int v = bestTemp[4].equals("active") ? 0 : 1;
+				
+				if (ss[v].length == 1) {
+					question[QASlots.TRGSlotId] = ss[v][0];
+				} else if (ss[v].length > 2 && (ss[v][1].equals("n\'t") ||
+												ss[v][1].equals("not"))) {
+					question[QASlots.AUXSlotId] = ss[v][0] + " " + ss[v][1];
+					question[QASlots.TRGSlotId] = StrUtils.join(" ", ss[v], 2);
 				} else {
-					question[QASlots.AUXSlotId] = "did";
-					question[QASlots.TRGSlotId] = infl[0];
-				}
-			} else {
-				question[QASlots.AUXSlotId] = "is";
-				question[QASlots.TRGSlotId] =
-						verb.endsWith("ing") ? "being " + infl[4] : infl[4];
+					question[QASlots.AUXSlotId] = ss[v][0];
+					question[QASlots.TRGSlotId] = StrUtils.join(" ", ss[v], 1);
 			}
 			String ph1Key = "", ph2Key = "", ph3Key = "";
 			// PH1
