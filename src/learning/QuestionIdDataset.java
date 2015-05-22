@@ -18,6 +18,7 @@ import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
 
 public class QuestionIdDataset extends QADataset {
+	public HashMap<Integer, HashMap<Integer, HashSet<String>>> goldLabels;
 	
 	public QuestionIdDataset(Corpus corpus, String name) {
 		super(corpus, name);
@@ -64,7 +65,9 @@ public class QuestionIdDataset extends QADataset {
 		int numTargetWords = 0, numPositiveSamples = 0;
 		for (AnnotatedSentence annotSent : sentences) {
 			Sentence sent = annotSent.sentence;
+			goldLabels.put(sent.sentenceID, new HashMap<Integer, HashSet<String>>());
 			for (int propHead : annotSent.qaLists.keySet()) {
+				goldLabels.get(sent.sentenceID).put(propHead, new HashSet<String>());
 				HashMap<String, String> slots = new HashMap<String, String>();
 				HashSet<Integer> qlabelIds = new HashSet<Integer>();
 				for (QAPair qa : annotSent.qaLists.get(propHead)) {
@@ -85,6 +88,7 @@ public class QuestionIdDataset extends QADataset {
 					String lb = QuestionEncoder.getLabels(qa.questionWords)[0];
 					String pfx = lb.split("=")[0];
 					String val = lb.split("=")[1];
+					goldLabels.get(sent.sentenceID).get(propHead).add(lb);
 					if (!aggregateLabels || slots.get(pfx).equals(val)) {
 						qlabelIds.add(qlabelDict.lookupString(lb));
 						continue;

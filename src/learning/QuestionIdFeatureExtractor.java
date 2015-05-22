@@ -44,7 +44,7 @@ public class QuestionIdFeatureExtractor {
 	
 	private static HashSet<String> getQLabelFeatures(String qlabel) {
 		HashSet<String> feats = new HashSet<String>();
-		String qkey = qlabel.split("=")[0];    
+		String qkey = qlabel.split("=")[0];    // i.e. W2_to
 		String qval = qlabel.split("=")[1];    // i.e. someone, something
 		String qtype = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. W0, 
 		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
