@@ -95,11 +95,21 @@ public class QuestionGenerator {
 		String verb = sentence.getTokenString(propHead);
 		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
 		String[] aux = getAuxiliary(sentence, propHead);
-		boolean isPassive = false;
+		boolean isPassive = false, hasNegation = false;
 		if (aux != null) {
 			String auxStr = StrUtils.join(" ", aux);
 			System.out.println(sentence.getTokensString() + "\n" + sentence.getTokenString(propHead));
-			System.out.println(auxStr);			
+			System.out.println(auxStr);
+			hasNegation = (auxStr.contains("\'t") || auxStr.contains("not"));
+			if (!verb.endsWith("ing") && (
+					auxStr.contains("been") || auxStr.contains("being") ||
+					auxStr.contains("be") || auxStr.contains("is") ||
+					auxStr.contains("are") || auxStr.contains("were") ||
+					auxStr.contains("was"))) {
+				isPassive = true;
+			}
+			System.out.println(hasNegation ? "Neg" : "");
+			System.out.println(isPassive ? "Passive" : "Active");
 		}
 		
 		ArrayList<String[]> questions = new ArrayList<String[]>();
