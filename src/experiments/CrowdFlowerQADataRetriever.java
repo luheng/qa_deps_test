@@ -26,7 +26,6 @@ import data.SRLCorpus;
 import data.SRLSentence;
 import data.QAPair;
 import annotation.CrowdFlowerQAResult;
-import annotation.PropositionAligner;
 import annotation.QuestionEncoder;
 import annotation.SRLAnnotationValidator;
 
@@ -176,7 +175,7 @@ public class CrowdFlowerQADataRetriever {
 				String[] question = result.questions.get(i);
 				String keyStr = String.format("%d_%d_%d_%s",
 						result.sentenceId, result.propEnd - 1,
-						result.cfWorkerId, QuestionEncoder.encode(question, sentence));
+						result.cfWorkerId, QuestionEncoder.getLabels(question)[0]);
 				String aStr = StringUtils.join(" ... ", result.answers.get(i)); 
 				String qaStr = StringUtils.join(" ", question) + "?\t" + aStr;
 						

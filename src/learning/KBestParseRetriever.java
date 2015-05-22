@@ -123,7 +123,7 @@ public class KBestParseRetriever {
 			}
 		}
 		// Generate all samples for the question.
-		String qlabel = QuestionEncoder.getQuestionLabel(qa.questionWords);
+		String qlabel = QuestionEncoder.getLabels(qa.questionWords)[0];
 		ArrayList<QASample> samples = new ArrayList<QASample>();
 		for (int idx = 0; idx < qa.sentence.length; idx++) {
 			if (answerHeads.contains(idx)) {
@@ -161,7 +161,7 @@ public class KBestParseRetriever {
 			retrieveAndCacheSyntax(qa.sentence);
 		}
 		// Generate all samples for the question.
-		String qlabel = QuestionEncoder.getQuestionLabel(qa.questionWords);
+		String qlabel = QuestionEncoder.getLabels(qa.questionWords)[0];
 		ArrayList<QASample> samples = new ArrayList<QASample>();
 		for (int idx = 0; idx < qa.sentence.length; idx++) {
 			if (qa.answerFlags[idx] > 0) {

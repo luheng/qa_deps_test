@@ -235,8 +235,8 @@ public class QuestionIdExperiment {
 	private double[] predictAndEvaluate(
 			QuestionIdDataset ds,
 			Model model,
-			double threshold,
-			int topK,
+			double evalThreshold,
+			int evalTopK,
 			String qgenPath,
 			String debugPath) {
 		// Aggregate results
@@ -300,7 +300,7 @@ public class QuestionIdExperiment {
 			int sid = sent.sentence.sentenceID;
 			for (int pid : sent.qaLists.keySet()) {
 				HashMap<String, Double> labels = new HashMap<String, Double>();
-				double thr = threshold;
+				double thr = evalThreshold;
 				if (thr < 0) {
 					// Get top K
 					ArrayList<Double> scRank = new ArrayList<Double>();
@@ -308,12 +308,12 @@ public class QuestionIdExperiment {
 						scRank.add(s);
 					}
 					Collections.sort(scRank, Collections.reverseOrder());
-					thr = scRank.get(Math.min(scRank.size(), topK) - 1);
+					thr = scRank.get(Math.min(scRank.size(), evalTopK) - 1);
 				}
 				HashMap<String, String> sl = slots.get(sid).get(pid);
 				HashMap<String, Double> sc = scores.get(sid).get(pid);
 				for (String k : sc.keySet()) {
-					if (sc.get(k) < threshold) {
+					if (sc.get(k) < thr) {
 						sl.remove(k);
 					}
 				}
@@ -321,7 +321,7 @@ public class QuestionIdExperiment {
 					String lb = config.aggregateLabels ? k + "=" + sl.get(k) : k;
 					labels.put(lb, sc.get(k));
 				}
-				// 	System.out.println(topK + ", " + threshold + ", " + labels.size());
+				//System.out.println(topK + ", " + thr + ", " + labels.size());
 				// Generate questions
 				if (debugWriter != null) {
 					try {

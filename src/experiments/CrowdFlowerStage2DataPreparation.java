@@ -160,7 +160,7 @@ public class CrowdFlowerStage2DataPreparation {
 					row.add(StringUtils.intArrayToString(" ", workerIds));
 					row.add(getHighlightedQuestion(qwords));
 					row.add(qstr);
-					row.add(QuestionEncoder.encode(qwords, sent));
+					row.add(QuestionEncoder.getLabels(qwords)[0]);
 					csvWriter.printRecord(row);
 					
 					rowCounter ++;
