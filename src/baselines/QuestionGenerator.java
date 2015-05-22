@@ -108,7 +108,7 @@ public class QuestionGenerator {
 					auxStr.contains("was"))) {
 				isPassive = true;
 			}
-			System.out.println(hasNegation ? "Neg" : "");
+			//System.out.println(hasNegation ? "Neg" : "");
 			System.out.println(isPassive ? "Passive" : "Active");
 			if (isPassive) {
 				// make active
@@ -124,6 +124,15 @@ public class QuestionGenerator {
 					newStr = infl[3];
 				}
 				System.out.println("pas->act:\t" + newStr);
+			} else {
+				// make passive
+				if (auxStr.contains(infl[2])) {
+					newStr = auxStr.replace(infl[2], "being " + infl[3]);
+				} else if (auxStr.contains(infl[3]) &&
+						(auxStr.contains("has") || auxStr.contains("have") ||
+						 auxStr.contains("had"))) {
+					newStr = auxStr.replace(infl[3], "been " + infl[3]);
+				}
 			}
 		}
 		
