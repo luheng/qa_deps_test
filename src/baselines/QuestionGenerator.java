@@ -108,6 +108,13 @@ public class QuestionGenerator {
 				auxStr.contains("was"))) {
 			isPassive = true;
 		}
+		if (auxStr.isEmpty()) {
+			if (verb.equals(infl[0]) && !verb.equals(infl[3])) {
+				auxStr = "would";
+			} else if (verb.equals(infl[2])) {
+				auxStr = "is";
+			}
+		}
 		//System.out.println(hasNegation ? "Neg" : "");
 		//System.out.println(isPassive ? "Passive" : "Active");
 		if (isPassive) {
@@ -167,9 +174,6 @@ public class QuestionGenerator {
 	public ArrayList<String[]> generateQuestions(Sentence sentence, int propHead,
 			HashMap<String, Double> labels) {
 		assert (tempDict != null);
-		// Now truly, generate the questions.
-		
-		
 		ArrayList<String[]> questions = new ArrayList<String[]>();
 		
 		HashMap<String, String> slots = new HashMap<String, String>();
@@ -192,7 +196,10 @@ public class QuestionGenerator {
 			}
 		}
 		
+		String verb = sentence.getTokenString(propHead);
+		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
 		String[][] ss = getAuxTrg(sentence, propHead);
+		
 		for (String lb : labels.keySet()) {
 			String whKey = lb.split("=")[0];
 			String whVal = lb.split("=")[1];
@@ -225,7 +232,18 @@ public class QuestionGenerator {
 			int v = bestTemp[4].equals("active") ? 0 : 1;
 				
 				if (ss[v].length == 1) {
-					question[QASlots.TRGSlotId] = ss[v][0];
+					if (bestTemp[1].equals("_")) {
+						question[QASlots.TRGSlotId] = ss[v][0];
+					} else {
+						if (bestTemp[1].equals(infl[3])) {
+							question[QASlots.AUXSlotId] = "did";
+						} else if (bestTemp[1].equals(infl[1])) {
+							question[QASlots.AUXSlotId] = "does";
+						} else {
+							question[QASlots.AUXSlotId] = "do";
+						}
+						question[QASlots.TRGSlotId] = infl[0];
+					}
 				} else if (ss[v].length > 2 && (ss[v][1].equals("n\'t") ||
 												ss[v][1].equals("not"))) {
 					question[QASlots.AUXSlotId] = ss[v][0] + " " + ss[v][1];
