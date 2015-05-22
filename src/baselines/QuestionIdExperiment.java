@@ -224,7 +224,6 @@ public class QuestionIdExperiment {
 			int evalTopK,
 			String qgenPath,
 			String debugPath) {
-		// Aggregate results
 		HashMap<Integer, HashMap<Integer, HashSet<String>>> slots =
 			new HashMap<Integer, HashMap<Integer, HashSet<String>>>();
 		HashMap<Integer, HashMap<Integer, HashMap<String, Double>>> scores =
@@ -423,8 +422,9 @@ public class QuestionIdExperiment {
 				for (int k = 0; k < res[j+1].length; k++) {
 					System.out.println(k + "\t" +
 						StrUtils.doubleArrayToString("\t", res[j+1][k]));
-					if (res[j+1][k][3] > bestPoint) {
-						bestPoint = res[j+1][k][3];
+					// By macro F1
+					if (res[j+1][k][2] > bestPoint) {
+						bestPoint = res[j+1][k][2];
 						bestK = k;
 					}
 				}
