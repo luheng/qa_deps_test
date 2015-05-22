@@ -7,6 +7,7 @@ import org.apache.commons.csv.CSVRecord;
 import util.StringUtils;
 
 public class CrowdFlowerQAResult extends CrowdFlowerResult {
+	private static final long serialVersionUID = 1L;
 	// Used to align with original data.
 	public int sentenceId, propositionId, propStart, propEnd, propHead;
 	public String proposition;

@@ -8,7 +8,6 @@ import data.QAPairOld;
 import data.SRLCorpus;
 import data.SRLSentence;
 import evaluation.F1Metric;
-import experiments.ExperimentUtils;
 
 /**
  * To validate SRL annotation (pilot study).
@@ -225,15 +224,5 @@ public class SRLAnnotationValidatorOld {
 		}
 		
 		System.out.println(avgF1.toString());
-	}
-	
-	public static void main(String[] args) {
-		SRLCorpus trainCorpus = ExperimentUtils.loadSRLCorpus("en-srl-trial");
-		ArrayList<AnnotatedDepSentence> annotatedSentences =
-				ExperimentUtils.loadSRLAnnotationSentences(trainCorpus);
-	
-		// TODO: validate SRL (unlabeled) accuracy.
-		SRLAnnotationValidatorOld tester = new SRLAnnotationValidatorOld();
-		tester.computeSRLAccuracy(annotatedSentences, trainCorpus);
 	}
 }

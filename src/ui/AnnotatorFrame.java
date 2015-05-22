@@ -15,9 +15,7 @@ import annotation.CandidateProposition;
 import data.AnnotatedDepSentence;
 import data.DepSentence;
 import data.QAPairOld;
-import data.SRLCorpus;
 import data.SRLSentence;
-import experiments.ExperimentUtils;
 import experiments.InteractiveAnnotationExperiment;
 
 public class AnnotatorFrame extends Frame implements ActionListener {
@@ -281,15 +279,7 @@ public class AnnotatorFrame extends Frame implements ActionListener {
 	}
 
 	  public static void main(String args[]) {
-		  SRLCorpus corpus = ExperimentUtils.loadSRLCorpus("en-srl-train");
-		  
 		  ArrayList<DepSentence> sentences = new ArrayList<DepSentence>();
-		  /*
-		  for (DepSentence sentence : corpus.sentences) {
-			  if (sentence.getTokensString().contains("expected to")) {
-				  sentences.add(sentence);
-			  }
-		  }*/
 		  AnnotatorFrame frame = new AnnotatorFrame(sentences);
 		  frame.setVisible(true);
 	  }

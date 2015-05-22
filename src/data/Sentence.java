@@ -2,9 +2,7 @@ package data;
 
 import util.StringUtils;
 
-public class Sentence implements java.io.Serializable {
-	private static final long serialVersionUID = 1L;
-	
+public class Sentence {
 	public int[] tokens;
 	public int length;
 	public int sentenceID;

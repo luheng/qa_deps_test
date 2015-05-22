@@ -12,7 +12,6 @@ import annotation.SRLAnnotationValidator;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.SRLCorpus;
-import data.WikipediaCorpus;
 import experiments.ExperimentUtils;
 
 public class QADataProcessor {

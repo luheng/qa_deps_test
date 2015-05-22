@@ -5,7 +5,6 @@ import java.util.Arrays;
 
 import scorer.QuestionAnswerScorer;
 import util.LatticeUtils;
-import util.StringUtils;
 import data.AnnotatedDepSentence;
 import data.DepSentence;
 import data.QAPairOld;

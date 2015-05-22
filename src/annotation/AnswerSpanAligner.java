@@ -3,7 +3,6 @@ package annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import data.DepSentence;
 import data.Sentence;
 
 public class AnswerSpanAligner {

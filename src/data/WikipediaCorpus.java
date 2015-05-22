@@ -240,7 +240,7 @@ public class WikipediaCorpus extends Corpus {
 		while ((currLine = reader.readLine()) != null) {
 			String[] info = currLine.split("\t");
 			int docId = Integer.parseInt(info[0]);
-			String docTitle = info[1].trim();
+			// String docTitle = info[1].trim();
 			int paraId = Integer.parseInt(info[2]);
 			int sentInPara = Integer.parseInt(info[3]);
 			String[] tokens = info[4].split("\\s+");

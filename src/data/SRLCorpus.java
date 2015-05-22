@@ -1,6 +1,5 @@
 package data;
 
-import experiments.ExperimentUtils;
 import gnu.trove.list.array.TIntArrayList;
 
 import java.io.BufferedReader;

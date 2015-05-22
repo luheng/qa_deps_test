@@ -9,10 +9,7 @@ import annotation.QASlots;
 import data.Corpus;
 import data.CountDictionary;
 import data.Sentence;
-import data.UniversalPostagMap;
-import data.VerbInflectionDictionary;
 import edu.stanford.nlp.trees.TypedDependency;
-import experiments.ExperimentUtils;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
 public class QGenFeatureExtractor {

@@ -11,6 +11,7 @@ import org.apache.commons.csv.CSVRecord;
 // question,question_label,radio_ans_gold,radio_reason_gold,
 // sent_id,sentence,stage1_id
 public class CrowdFlowerStage2Result extends CrowdFlowerResult {
+	private static final long serialVersionUID = 1L;
 	// Used to align with original data.
 	public int sentenceId, propositionId, propStart, propEnd, propHead,
 			   stage1Id;
