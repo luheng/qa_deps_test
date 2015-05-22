@@ -96,10 +96,10 @@ public class QuestionGenerator {
 		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
 		String[] aux = getAuxiliary(sentence, propHead);
 		boolean isPassive = false, hasNegation = false;
+		String newStr = "";
 		if (aux != null) {
 			String auxStr = StrUtils.join(" ", aux);
-			System.out.println(sentence.getTokensString() + "\n" + sentence.getTokenString(propHead));
-			System.out.println(auxStr);
+			System.out.println(sentence.getTokensString() + "\n" + sentence.getTokenString(propHead) + " " + auxStr);
 			hasNegation = (auxStr.contains("\'t") || auxStr.contains("not"));
 			if (!verb.endsWith("ing") && (
 					auxStr.contains("been") || auxStr.contains("being") ||
@@ -110,6 +110,21 @@ public class QuestionGenerator {
 			}
 			System.out.println(hasNegation ? "Neg" : "");
 			System.out.println(isPassive ? "Passive" : "Active");
+			if (isPassive) {
+				// make active
+				if (auxStr.contains("been")) {
+					newStr = auxStr.replaceAll("been", "") + " " + verb;
+				} else if (auxStr.contains("being")) {
+					newStr = auxStr.replaceAll("being", "") + " " + infl[2];
+				} else if (auxStr.contains("be")) {
+					newStr = auxStr.replaceAll("be", "") + " " + infl[0];
+				} else if (auxStr.contains("is") || auxStr.contains("are")) {
+					newStr = infl[1];
+				} else if (auxStr.contains("were") || auxStr.contains("was")) {
+					newStr = infl[3];
+				}
+				System.out.println("pas->act:\t" + newStr);
+			}
 		}
 		
 		ArrayList<String[]> questions = new ArrayList<String[]>();
