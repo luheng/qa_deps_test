@@ -466,10 +466,7 @@ public class QuestionIdExperiment {
 			QuestionIdDataset ds = exp.testSets.get(j);
 			System.out.println(String.format(
 					"Testing accuracy on %s", ds.datasetName));
-			for (int k = 0; k < res[j+1].length; k++) {
-				System.out.println(k + "\t" +
-						StringUtils.doubleArrayToString("\t", res[j+1][k]));
-			}
+			System.out.println(StringUtils.doubleArrayToString("\t", res[j+1][0]));
 		}
 	}
 }

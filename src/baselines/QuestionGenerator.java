@@ -168,7 +168,7 @@ public class QuestionGenerator {
 				question[QASlots.PH3SlotId] = ph3Key.startsWith("WHERE") ?
 						"somewhere" : slots.get(ph3Key);
 			}
-			System.out.println(whKey + ", " + ph1Key + ", " + ph2Key + ", " + ph3Key);
+			// System.out.println(whKey + ", " + ph1Key + ", " + ph2Key + ", " + ph3Key);
 			// PP
 			if (whKey.contains("_")) {
 				question[QASlots.PPSlotId] = whKey.split("_")[1];
