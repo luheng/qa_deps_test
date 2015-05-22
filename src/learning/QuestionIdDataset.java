@@ -2,6 +2,7 @@ package learning;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,6 +23,10 @@ public class QuestionIdDataset extends QADataset {
 	
 	public QuestionIdDataset(Corpus corpus, String name) {
 		super(corpus, name);
+	}
+	
+	public void loadData(String filePath) throws IOException {
+		super.loadData(filePath);
 		goldLabels = new HashMap<Integer, HashMap<Integer, HashSet<String>>>();
 		for (AnnotatedSentence annotSent : sentences) {
 			Sentence sent = annotSent.sentence;
@@ -36,8 +41,6 @@ public class QuestionIdDataset extends QADataset {
 				}
 			}
 		}
-		System.out.println("prepared labels for:\t" + datasetName);
-		System.out.println(goldLabels.size());
 	}
 	
 	private static HashSet<String> getPPOptions(Sentence sent) {
