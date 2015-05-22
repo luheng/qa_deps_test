@@ -14,7 +14,7 @@ import annotation.CrowdFlowerQAResult;
 import annotation.QuestionEncoder;
 import data.SRLCorpus;
 import data.SRLSentence;
-import util.StringUtils;
+import util.StrUtils;
 import gnu.trove.list.array.TIntArrayList;
 
 public class CrowdFlowerStage2DataPreparation {	
@@ -81,7 +81,7 @@ public class CrowdFlowerStage2DataPreparation {
 	private static String[] getQuestionWords(String qstr,
 			CrowdFlowerQAResult cfResult) {
 		for (String[] question : cfResult.questions) {
-			if (StringUtils.join(" ", question).trim().equals(qstr)) {
+			if (StrUtils.join(" ", question).trim().equals(qstr)) {
 				return question;
 			}
 		}
@@ -157,7 +157,7 @@ public class CrowdFlowerStage2DataPreparation {
 					row.add(String.valueOf(propSpan[1]));
 					row.add(sent.getTokenString(propSpan));
 					// Stage 1 Annotation Info
-					row.add(StringUtils.intArrayToString(" ", workerIds));
+					row.add(StrUtils.intArrayToString(" ", workerIds));
 					row.add(getHighlightedQuestion(qwords));
 					row.add(qstr);
 					row.add(QuestionEncoder.getLabels(qwords)[0]);
@@ -199,7 +199,7 @@ public class CrowdFlowerStage2DataPreparation {
 						new HashMap<String, TIntArrayList>());
 			}
 			for (String[] question : result.questions) {
-				String qstr = StringUtils.join(" ", question).trim();
+				String qstr = StrUtils.join(" ", question).trim();
 				if (!questionMap.get(sentId).containsKey(qstr)) {
 					questionMap.get(sentId).get(propHead).put(qstr,
 							new TIntArrayList());

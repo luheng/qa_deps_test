@@ -26,7 +26,7 @@ import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.Problem;
 import evaluation.AnswerIdEvaluator;
 import experiments.LiblinearHyperParameters;
-import util.StringUtils;
+import util.StrUtils;
 
 public class AnswerIdExperiment {
 	private AnswerIdConfig config;
@@ -50,7 +50,7 @@ public class AnswerIdExperiment {
 						new AnswerIdConfig(answerIdConfigPath);
 		baseCorpus = new Corpus("qa-exp-corpus");
 		trainSet = new AnswerIdDataset(baseCorpus,
-				StringUtils.join("_", config.trainSets));
+				StrUtils.join("_", config.trainSets));
 		testSets = new ArrayList<AnswerIdDataset>();
 		
 		// ********** Config and load QA Data ********************

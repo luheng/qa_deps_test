@@ -2,7 +2,7 @@ package annotation;
 
 import java.util.HashSet;
 
-import util.StringUtils;
+import util.StrUtils;
 
 public class QASlotPrepositions {
 
@@ -24,7 +24,7 @@ public class QASlotPrepositions {
 		"without"
 	};
 	
-	public static final HashSet<String> ppSet = StringUtils.asSet(values);
+	public static final HashSet<String> ppSet = StrUtils.asSet(values);
 	
 	public static final String[] mostFrequentPPs = {
 		"by",
@@ -35,5 +35,5 @@ public class QASlotPrepositions {
 	//	"of"
 	};
 	public static final HashSet<String> mostFrequentPPSet =
-			StringUtils.asSet(mostFrequentPPs);
+			StrUtils.asSet(mostFrequentPPs);
 }

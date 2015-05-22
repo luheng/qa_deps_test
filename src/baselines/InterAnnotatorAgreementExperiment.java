@@ -13,7 +13,7 @@ import data.Corpus;
 import data.QAPair;
 import data.SRLCorpus;
 import data.WikipediaCorpus;
-import util.StringUtils;
+import util.StrUtils;
 
 public class InterAnnotatorAgreementExperiment {
 
@@ -158,7 +158,7 @@ public class InterAnnotatorAgreementExperiment {
 							qa.questionLabel + "\t" + 
 							qa.getQuestionString() + "\t" +
 							qa.getAnswerString() + "\t" +
-							StringUtils.join(",", qa.annotators));
+							StrUtils.join(",", qa.annotators));
 					
 					for (int i = 0; i < numAnnotators; i++) {
 						if (qa.annotators.size() > i) {
@@ -173,7 +173,7 @@ public class InterAnnotatorAgreementExperiment {
 					macroCount[i] += cnt[i];
 				}
 				System.out.println(
-						StringUtils.doubleArrayToString("\t", cnt));
+						StrUtils.doubleArrayToString("\t", cnt));
 				System.out.println();
 				totalQAs += numAgreedQAs;
 				if (numAgreedQAs > 0) {
@@ -186,9 +186,9 @@ public class InterAnnotatorAgreementExperiment {
 			macroCount[i] /= totalProps;
 		}
 		System.out.println("Micro:\t" +
-				StringUtils.doubleArrayToString("\t", microCount));
+				StrUtils.doubleArrayToString("\t", microCount));
 		System.out.println("Macro:\t" +
-				StringUtils.doubleArrayToString("\t", macroCount));
+				StrUtils.doubleArrayToString("\t", macroCount));
 	}
 	
 	public static void main(String[] args) {

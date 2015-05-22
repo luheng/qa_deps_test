@@ -3,7 +3,7 @@ package annotation;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import util.StringUtils;
+import util.StrUtils;
 import data.DepCorpus;
 import data.DepSentence;
 import data.Sentence;
@@ -57,7 +57,7 @@ public class AuxiliaryVerbIdentifier {
 	public AuxiliaryVerbIdentifier(DepCorpus corpus) {
 		verbPosID = corpus.posDict.lookupString("VERB");
 		advPosID = corpus.posDict.lookupString("ADV");
-		copulaVerbs = StringUtils.asSet("be", "being", "am", "\'m", "is",
+		copulaVerbs = StrUtils.asSet("be", "being", "am", "\'m", "is",
 				"\'s", "are", "\'re", "was", "were", "been", "being");
 	}
 	

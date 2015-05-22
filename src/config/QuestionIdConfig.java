@@ -4,7 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import util.StringUtils;
+import util.StrUtils;
 
 public class QuestionIdConfig {
 	static Properties properties;
@@ -75,8 +75,8 @@ public class QuestionIdConfig {
 		str += "randomSeed\t" + randomSeed + "\n";
 		str += "minFeatureFreq\t" + minFeatureFreq + "\n";
 		
-		str += "trainSets\t" + StringUtils.join(",", trainSets) + "\n";
-		str += "testSets\t" + StringUtils.join(",", testSets) + "\n";
+		str += "trainSets\t" + StrUtils.join(",", trainSets) + "\n";
+		str += "testSets\t" + StrUtils.join(",", testSets) + "\n";
 		str += "minQuestionLabelFreq\t" + minQuestionLabelFreq + "\n";
 		str += "kBest\t" + kBest + "\n";
 		str += "featureKBest\t" + featureKBest + "\n";

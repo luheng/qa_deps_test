@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 import config.DataConfig;
 import config.QuestionIdConfig;
-import util.StringUtils;
+import util.StrUtils;
 import annotation.QuestionEncoder;
 import learning.KBestParseRetriever;
 import learning.QASample;
@@ -39,7 +39,7 @@ public class WhoDidWhatQuestionIdExperiment {
 		
 		// ********** Config and load QA Data ********************
 		trainSet = new QuestionIdDataset(baseCorpus,
-				StringUtils.join("_", config.trainSets));
+				StrUtils.join("_", config.trainSets));
 		for (String dsName : config.trainSets) {
 			trainSet.loadData(DataConfig.getDataset(dsName));
 		}
@@ -207,13 +207,13 @@ public class WhoDidWhatQuestionIdExperiment {
 		System.out.println(String.format(
 				"Training accuracy on %s:\t%s",
 					exp.trainSet.datasetName,
-					StringUtils.doubleArrayToString("\t", results[0])));
+					StrUtils.doubleArrayToString("\t", results[0])));
 		for (int j = 0; j < exp.testSets.size(); j++) {
 			QuestionIdDataset ds = exp.testSets.get(j);
 			System.out.println(String.format(
 					"Testing accuracy on %s:\t%s",
 						ds.datasetName,
-						StringUtils.doubleArrayToString("\t", results[j+1])));
+						StrUtils.doubleArrayToString("\t", results[j+1])));
 		}
 	}
 }

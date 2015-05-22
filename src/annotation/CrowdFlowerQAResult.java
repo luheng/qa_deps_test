@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import org.apache.commons.csv.CSVRecord;
 
-import util.StringUtils;
+import util.StrUtils;
 
 public class CrowdFlowerQAResult extends CrowdFlowerResult {
 	private static final long serialVersionUID = 1L;
@@ -96,7 +96,7 @@ public class CrowdFlowerQAResult extends CrowdFlowerResult {
 		result += String.format("sentId: %d\tpropId: %d\tprop: %s\n",
 								sentenceId, propositionId, proposition);
 		for (int i = 0; i < questions.size(); i++) {
-			result += StringUtils.join(" ", questions.get(i)) + "?\t" +
+			result += StrUtils.join(" ", questions.get(i)) + "?\t" +
 					  answers.get(i) + "\n";
 		}
 		if (!ffQuestion.isEmpty() || !ffAnswer.isEmpty() ||

@@ -3,7 +3,7 @@ package data;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import util.StringUtils;
+import util.StrUtils;
 import annotation.AnswerSpanAligner;
 import annotation.CrowdFlowerResult;
 import annotation.QuestionEncoder;
@@ -34,7 +34,7 @@ public class QAPair implements java.io.Serializable {
 			questionWords[i] = question[i].toLowerCase();
 		}
 		questionLabel = QuestionEncoder.getLabels(question)[0];
-		questionString = StringUtils.join(" ", questionWords);
+		questionString = StrUtils.join(" ", questionWords);
 		answerFlags = new int[sent.length];
 		answers = new ArrayList<String>();
 		Arrays.fill(answerFlags, 0);
@@ -78,7 +78,7 @@ public class QAPair implements java.io.Serializable {
 			questionWords[i] = question[i].toLowerCase();
 		}
 		questionLabel = QuestionEncoder.getLabels(question)[0];
-		questionString = StringUtils.join(" ", questionWords);
+		questionString = StrUtils.join(" ", questionWords);
 		answerFlags = new int[sent.length];
 		answers = new ArrayList<String>();
 		Arrays.fill(answerFlags, 0);
@@ -144,7 +144,7 @@ public class QAPair implements java.io.Serializable {
 		if (questionWords == null) {
 			return "";
 		}
-		return StringUtils.join(" ", questionWords) + "?";
+		return StrUtils.join(" ", questionWords) + "?";
 	}
 	
 	public String getPaddedQuestionString() {

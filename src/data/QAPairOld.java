@@ -2,7 +2,7 @@ package data;
 
 import java.util.Arrays;
 
-import util.StringUtils;
+import util.StrUtils;
 
 public class QAPairOld {
 	public String[] questionTokens, answerTokens, propositionTokens;
@@ -89,17 +89,17 @@ public class QAPairOld {
 	}
 	
 	public String getQuestionString() {
-		return StringUtils.join(" ", questionTokens);
+		return StrUtils.join(" ", questionTokens);
 	}
 	
 	public String getAnswerString() {
-		return StringUtils.join(" ", answerTokens);
+		return StrUtils.join(" ", answerTokens);
 	}
 	
 	@Override
 	public String toString() {
-		return StringUtils.join(" ", questionTokens) + "\t" +
-			   StringUtils.join(" ", answerTokens);
+		return StrUtils.join(" ", questionTokens) + "\t" +
+			   StrUtils.join(" ", answerTokens);
 	}
 	
 	public void printAlignment() {

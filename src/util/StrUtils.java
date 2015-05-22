@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class StringUtils {
+public class StrUtils {
 	public static String join(String delimiter, Object[] objects) {
 		String joined = "";
 		for (int i = 0; i < objects.length; i++) {

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import scorer.DistanceScorer;
 import scorer.UniversalGrammarScorer;
 import util.LatticeUtils;
-import util.StringUtils;
+import util.StrUtils;
 import data.AnnotatedDepSentence;
 import data.DepCorpus;
 import data.DepSentence;

@@ -11,7 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import util.RandomSampler;
-import util.StringUtils;
+import util.StrUtils;
 import data.DepCorpus;
 import data.DepSentence;
 
@@ -66,7 +66,7 @@ public class DataPreparationExperiment {
 				String[] tokens =
 						trainCorpus.wordDict.getStringArray(sentence.tokens); 
 				writer.print(String.format("%d\t%s\n\n", id,
-						StringUtils.join(" ", tokens)));
+						StrUtils.join(" ", tokens)));
 			}
 			writer.close();
 		} catch (IOException e) {

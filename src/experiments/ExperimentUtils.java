@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 import config.DataConfig;
 import util.CSVUtils;
-import util.StringUtils;
+import util.StrUtils;
 import annotation.DistanceSensitiveQuestionAnswerAligner;
 import annotation.GreedyQuestionAnswerAligner;
 import annotation.AbstractQuestionAnswerAligner;
@@ -159,7 +159,7 @@ public class ExperimentUtils {
 			int sentPtr = 0;
 			while ((line = reader.readLine()) != null) {
 				ArrayList<String> columns = CSVUtils.getColumns(line.trim());
-				if (StringUtils.isEmptyStringArray(columns)) {
+				if (StrUtils.isEmptyStringArray(columns)) {
 					// Expecting a new sentence
 					sentPtr += 1;
 					if (sentPtr >= maxNumSentences) {
@@ -238,7 +238,7 @@ public class ExperimentUtils {
 					// Slot 6: Preposition
 					// Slot 9: Answer
 					String propositionString = info[0];
-					String questionString = StringUtils.join(" ", info, 1, 9);
+					String questionString = StrUtils.join(" ", info, 1, 9);
 					String answerString = info[9].trim();
 				
 					// Special case: if the question contains a preposition, and

@@ -1,6 +1,6 @@
 package data;
 
-import util.StringUtils;
+import util.StrUtils;
 
 public class Sentence {
 	public int[] tokens;
@@ -18,7 +18,7 @@ public class Sentence {
 	}
 
 	public String getTokensString() {
-		return StringUtils.join(" ", corpus.wordDict.getStringArray(tokens));
+		return StrUtils.join(" ", corpus.wordDict.getStringArray(tokens));
 	}
 	
 	public String getTokenString(int index) {
@@ -46,7 +46,7 @@ public class Sentence {
 	}
 	
 	public String getNumberedTokensString() {
-		return StringUtils.numberedJoin(" ",
+		return StrUtils.numberedJoin(" ",
 				corpus.wordDict.getStringArray(tokens));
 	}
 	

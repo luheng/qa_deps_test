@@ -15,7 +15,7 @@ import learning.KBestParseRetriever;
 import learning.QASample;
 import data.Corpus;
 import edu.stanford.nlp.trees.TypedDependency;
-import util.StringUtils;
+import util.StrUtils;
 
 public class RandomChildAnswerIdExperiment {
 	private AnswerIdConfig config;
@@ -41,7 +41,7 @@ public class RandomChildAnswerIdExperiment {
 		
 		baseCorpus = new Corpus("qa-exp-corpus");
 		trainSet = new AnswerIdDataset(baseCorpus,
-				StringUtils.join("_", config.trainSets));
+				StrUtils.join("_", config.trainSets));
 		testSets = new ArrayList<AnswerIdDataset>();
 		
 		// ********** Config and load QA Data ********************

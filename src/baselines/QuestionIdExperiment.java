@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 import config.DataConfig;
 import config.QuestionIdConfig;
-import util.StringUtils;
+import util.StrUtils;
 import annotation.QuestionEncoder;
 import learning.KBestParseRetriever;
 import learning.QASample;
@@ -57,7 +57,7 @@ public class QuestionIdExperiment {
 		
 		// ********** Config and load QA Data ********************
 		trainSet = new QuestionIdDataset(baseCorpus,
-				StringUtils.join("_", config.trainSets));
+				StrUtils.join("_", config.trainSets));
 		for (String dsName : config.trainSets) {
 			trainSet.loadData(DataConfig.getDataset(dsName));
 		}
@@ -168,7 +168,7 @@ public class QuestionIdExperiment {
 			String s = temp[i].split("=")[0];
 			shortTemp[i] = s.contains("_") ? s.split("_")[0] + "_PP" : s;
 		}
-		return StringUtils.join("\t", "_", shortTemp);
+		return StrUtils.join("\t", "_", shortTemp);
 	}
 	
 	public double[][][] trainAndPredict(LiblinearHyperParameters prm,
@@ -191,7 +191,7 @@ public class QuestionIdExperiment {
 				trainSet, model, threshold, topK, "", "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
-				StringUtils.doubleArrayToString("\t", results[0][0])));
+				StrUtils.doubleArrayToString("\t", results[0][0])));
 		
 		for (int d = 0; d < testSets.size(); d++) {
 			QuestionIdDataset ds = testSets.get(d);
@@ -355,7 +355,7 @@ public class QuestionIdExperiment {
 						}
 						qgenWriter.write("=========== generated ==============\n");
 						for (String[] question : questions) {
-							qgenWriter.write(StringUtils.join("\t", question) + "\n");
+							qgenWriter.write(StrUtils.join("\t", question) + "\n");
 						}
 						qgenWriter.write("\n");
 					} catch (IOException e) {
@@ -446,7 +446,7 @@ public class QuestionIdExperiment {
 			System.out.println(String.format(
 					"Training accuracy on %s:\t%s",
 						exp.trainSet.datasetName,
-						StringUtils.doubleArrayToString("\t", res[0][0])));
+						StrUtils.doubleArrayToString("\t", res[0][0])));
 			double bestPoint = 0;
 			for (int j = 0; j < exp.testSets.size(); j++) {
 				QuestionIdDataset ds = exp.testSets.get(j);
@@ -454,7 +454,7 @@ public class QuestionIdExperiment {
 						"Testing accuracy on %s", ds.datasetName));
 				for (int k = 0; k < res[j+1].length; k++) {
 					System.out.println(k + "\t" +
-						StringUtils.doubleArrayToString("\t", res[j+1][k]));
+						StrUtils.doubleArrayToString("\t", res[j+1][k]));
 					if (res[j+1][k][3] > bestPoint) {
 						bestPoint = res[j+1][k][3];
 						bestK = k;
@@ -480,7 +480,7 @@ public class QuestionIdExperiment {
 			QuestionIdDataset ds = exp.testSets.get(j);
 			System.out.println(String.format(
 					"Testing accuracy on %s", ds.datasetName));
-			System.out.println(StringUtils.doubleArrayToString("\t", res[j+1][0]));
+			System.out.println(StrUtils.doubleArrayToString("\t", res[j+1][0]));
 		}
 	}
 }

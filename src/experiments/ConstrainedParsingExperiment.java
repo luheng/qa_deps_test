@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import util.LatticeUtils;
-import util.StringUtils;
+import util.StrUtils;
 import annotation.GreedyQuestionAnswerAligner;
 import data.AnnotatedDepSentence;
 import data.DepCorpus;
@@ -150,12 +150,12 @@ public class ConstrainedParsingExperiment {
 					depSentence.length,
 					sentence.qaList.size(),
 					acc1.accuracy(),
-					StringUtils.doubleArrayToString("\t", results)));
+					StrUtils.doubleArrayToString("\t", results)));
 			// Output gold and parsed dependency.
-			System.out.println(StringUtils.join("\t",
+			System.out.println(StrUtils.join("\t",
 					depSentence.corpus.wordDict.getStringArray(depSentence.tokens)));
-			System.out.println(StringUtils.intArrayToString("\t", depSentence.parents));
-			System.out.println(StringUtils.intArrayToString("\t", prediction));
+			System.out.println(StrUtils.intArrayToString("\t", depSentence.parents));
+			System.out.println(StrUtils.intArrayToString("\t", prediction));
 			System.out.println(sentence.toString());
 			
 			//}

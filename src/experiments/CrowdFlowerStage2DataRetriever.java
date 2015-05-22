@@ -11,7 +11,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
 import util.LatticeUtils;
-import util.StringUtils;
+import util.StrUtils;
 import data.AnnotatedSentence;
 import data.Proposition;
 import data.SRLCorpus;
@@ -254,8 +254,8 @@ public class CrowdFlowerStage2DataRetriever {
 						// Print debug output.
 						System.out.println(
 							qlabel + "\t" +
-							StringUtils.join(",", s1QMap.get(qlabel).toArray()) + "\t" +
-							StringUtils.join(",", s2QMap.get(qlabel).toArray()) + "\t" +
+							StrUtils.join(",", s1QMap.get(qlabel).toArray()) + "\t" +
+							StrUtils.join(",", s2QMap.get(qlabel).toArray()) + "\t" +
 							printAnswerTokens(sent, s1AMap.get(qlabel)) + "\t" + 
 							printAnswerTokens(sent, s2AMap.get(qlabel)) + "\t" + 
 							(disagree ? "NA" : " ") + "\t" +

@@ -3,7 +3,7 @@ package data;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import util.StringUtils;
+import util.StrUtils;
 
 public class DepSentence extends Sentence {
 	public int[] postags, parents, deptags;
@@ -25,11 +25,11 @@ public class DepSentence extends Sentence {
 	}
 	
 	public String getPostagsString() {
-		return StringUtils.join(" ", ((DepCorpus) corpus).posDict.getStringArray(postags));
+		return StrUtils.join(" ", ((DepCorpus) corpus).posDict.getStringArray(postags));
 	}
 	
 	public String getDeptagString() {
-		return StringUtils.join(" ", ((DepCorpus) corpus).depDict.getStringArray(deptags));
+		return StrUtils.join(" ", ((DepCorpus) corpus).depDict.getStringArray(deptags));
 	}
 	
 	public JSONObject toJSON() {

@@ -18,7 +18,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
 import util.LatticeUtils;
-import util.StringUtils;
+import util.StrUtils;
 import data.AnnotatedSentence;
 import data.DepSentence;
 import data.Proposition;
@@ -110,8 +110,8 @@ public class CrowdFlowerQADataRetriever {
 				System.out.println("Prop:\t" + sentence.getTokenString(propHead));
 				System.out.println("Feedback:\t" + result.feedback);
 				for (int i = 0; i < result.questions.size(); i++) {
-					System.out.println("\t" + StringUtils.join(" ", result.questions.get(i)));
-					System.out.println("\t" + StringUtils.join(" / ", result.answers.get(i)));
+					System.out.println("\t" + StrUtils.join(" ", result.questions.get(i)));
+					System.out.println("\t" + StrUtils.join(" / ", result.answers.get(i)));
 				}
 				System.out.println();
 			}
@@ -176,8 +176,8 @@ public class CrowdFlowerQADataRetriever {
 				String keyStr = String.format("%d_%d_%d_%s",
 						result.sentenceId, result.propEnd - 1,
 						result.cfWorkerId, QuestionEncoder.getLabels(question)[0]);
-				String aStr = StringUtils.join(" ... ", result.answers.get(i)); 
-				String qaStr = StringUtils.join(" ", question) + "?\t" + aStr;
+				String aStr = StrUtils.join(" ... ", result.answers.get(i)); 
+				String qaStr = StrUtils.join(" ", question) + "?\t" + aStr;
 						
 				if (qmap.containsKey(keyStr) && !amap.get(keyStr).equals(aStr)) {
 					System.out.println(keyStr);

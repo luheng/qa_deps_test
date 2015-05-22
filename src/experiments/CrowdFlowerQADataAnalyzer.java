@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import util.Distribution;
-import util.StringUtils;
+import util.StrUtils;
 import data.AnnotatedSentence;
 import data.CountDictionary;
 import data.SRLCorpus;
@@ -318,8 +318,8 @@ public class CrowdFlowerQADataAnalyzer {
 						corpus.sentences.get(result.sentenceId);
 				System.out.println("Proposition:\t" + result.proposition);
 				for (int i = 0; i < result.questions.size(); i++) {
-					System.out.println("\t" + StringUtils.join(" ", result.questions.get(i)));
-					System.out.println("\t\t" + StringUtils.join(" ", result.answers.get(i)));
+					System.out.println("\t" + StrUtils.join(" ", result.questions.get(i)));
+					System.out.println("\t\t" + StrUtils.join(" ", result.answers.get(i)));
 				}
 				System.out.println(sentence.toString());
 				System.out.println(result.feedback + "\n");
