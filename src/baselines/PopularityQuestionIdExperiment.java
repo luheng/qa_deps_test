@@ -163,24 +163,7 @@ public class PopularityQuestionIdExperiment {
 				goldLabels.get(sid).put(pid, new ArrayList<Integer>());
 			}
 		}
-		for (int i = 0; i < ds.samples.size(); i++) {
-			QASample sample = ds.samples.get(i);
-			int labelId = sample.questionLabelId;
-			int gold = sample.isPositiveSample ? 1 : -1;
-			int pred = (labelId == l1 || labelId == l2) ? 1 : -1;
-			f1.numGold += (gold > 0 ? 1 : 0);
-			f1.numProposed += (pred > 0 ? 1 : 0);
-			f1.numMatched += ((gold > 0 && pred > 0) ? 1 : 0);
-			numCorrect += (gold == pred ? 1 : 0);			
-			int sid = sample.sentenceId;
-			int pid = sample.propHead;
-			if (gold > 0) {
-				goldLabels.get(sid).get(pid).add(labelId);
-			}
-			if (pred > 0) {
-				predLabels.get(sid).get(pid).add(labelId);
-			}
-		}
+		
 		if (generateQuestions) {
 			QuestionGenerator qgen = new QuestionGenerator(baseCorpus, labelDict, tempDict);
 			for (AnnotatedSentence annotSent : ds.sentences) {
