@@ -160,13 +160,12 @@ public class QuestionGenerator {
 			// System.out.println("act->pas:\t" + newStr);
 		}
 		auxStr = auxStr + " " + verb;
-		auxStr.trim();
 		if (isPassive) {
-			ss[0] = newStr.split(" ");
-			ss[1] = auxStr.split(" ");
+			ss[0] = newStr.trim().split(" ");
+			ss[1] = auxStr.trim().split(" ");
 		} else {
-			ss[1] = newStr.split(" ");
-			ss[0] = auxStr.split(" ");
+			ss[1] = newStr.trim().split(" ");
+			ss[0] = auxStr.trim().split(" ");
 		}
 		return ss;
 	}
