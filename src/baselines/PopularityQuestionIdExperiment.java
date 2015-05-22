@@ -137,16 +137,16 @@ public class PopularityQuestionIdExperiment {
 		for (int d = 0; d < testSets.size(); d++) {
 			QuestionIdDataset ds = testSets.get(d);
 			if (config.evalThreshold > 0) {
-				results[d+1] = new double[config.numPRCurvePoints][];
+				results[d] = new double[config.numPRCurvePoints][];
 				for (int k = 0; k < config.numPRCurvePoints; k++) {
 					double thr = 1.0 * k / config.numPRCurvePoints;
-					results[d+1][k] = predictAndEvaluate(
+					results[d][k] = predictAndEvaluate(
 							ds, thr, -1, "", "");
 				}
 			} else {
-				results[d+1] = new double[labelDict.size()][];
+				results[d] = new double[labelDict.size()][];
 				for (int k = 1; k <= labelDict.size(); k++) {
-					results[d+1][k-1] = predictAndEvaluate(
+					results[d][k-1] = predictAndEvaluate(
 							ds, -1.0, k, "", "");
 				}
 			}
