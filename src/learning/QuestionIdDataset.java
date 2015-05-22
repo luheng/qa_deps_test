@@ -119,7 +119,7 @@ public class QuestionIdDataset extends QADataset {
 				samples.size() - numPositiveSamples));
 	}
 	
-	private static TIntDoubleHashMap normalize(TIntDoubleHashMap fv) {
+	private static TIntDoubleHashMap normalizeFeatures(TIntDoubleHashMap fv) {
 		TIntDoubleHashMap newFv = new TIntDoubleHashMap();
 		double l2Norm = 0.0;
 		for (double v : fv.values()) {
@@ -133,13 +133,16 @@ public class QuestionIdDataset extends QADataset {
 	}
 	
 	public void extractFeaturesAndLabels(
-			QuestionIdFeatureExtractor featureExtractor) {
+			QuestionIdFeatureExtractor featureExtractor, boolean normalize) {
 		int numSamples = samples.size();
 		features = new Feature[numSamples][];
 		labels = new double[numSamples];
 		for (int i = 0; i < numSamples; i++) {
 			QASample sample = samples.get(i);
-			TIntDoubleHashMap fv = normalize(featureExtractor.getFeatures(sample));
+			TIntDoubleHashMap fv = featureExtractor.getFeatures(sample);
+			if (normalize) {
+				fv = normalizeFeatures(fv);
+			}
 			features[i] = new Feature[fv.size()];
 			int[] fids = Arrays.copyOf(fv.keys(), fv.size());
 			Arrays.sort(fids);

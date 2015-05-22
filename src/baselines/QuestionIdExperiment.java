@@ -153,9 +153,11 @@ public class QuestionIdExperiment {
 				config.useLexicalFeatures,
 				config.useDependencyFeatures);
 		featureExtractor.extractFeatures(trainSet.samples);
-		trainSet.extractFeaturesAndLabels(featureExtractor);
+		trainSet.extractFeaturesAndLabels(featureExtractor,
+				config.normalizeFeatures);
 		for (QuestionIdDataset ds : testSets) {
-			ds.extractFeaturesAndLabels(featureExtractor);
+			ds.extractFeaturesAndLabels(featureExtractor,
+					config.normalizeFeatures);
 		}
 	}
 	

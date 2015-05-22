@@ -16,7 +16,8 @@ public class QuestionIdConfig {
 	public int minQuestionLabelFreq;
 	public int kBest;
 	public int featureKBest;
-				
+	public boolean normalizeFeatures;
+	
 	public boolean regenerateSamples;
 	public boolean useSpanBasedSamples;
 	public boolean useLexicalFeatures;
@@ -51,6 +52,8 @@ public class QuestionIdConfig {
 		minQuestionLabelFreq = Integer.parseInt(properties.getProperty("minQuestionLabelFreq"));
 		kBest = Integer.parseInt(properties.getProperty("kBest"));
 		featureKBest = Integer.parseInt(properties.getProperty("featureKBest"));
+		normalizeFeatures = Boolean.parseBoolean(properties.getProperty("normalizeFeatures"));
+		
 		evalThreshold = Double.parseDouble(properties.getProperty("evalThreshold"));
 		evalTopK = Integer.parseInt(properties.getProperty("evalTopK"));
 		numPRCurvePoints = Integer.parseInt(properties.getProperty("numPRCurvePoints"));
@@ -77,6 +80,7 @@ public class QuestionIdConfig {
 		str += "minQuestionLabelFreq\t" + minQuestionLabelFreq + "\n";
 		str += "kBest\t" + kBest + "\n";
 		str += "featureKBest\t" + featureKBest + "\n";
+		str += "normalizeFeatures\t" + normalizeFeatures + "\n";
 					
 		str += "regenerateSamples\t" + regenerateSamples + "\n";
 		str += "useSpanBasedSamples\t" + useSpanBasedSamples + "\n";
