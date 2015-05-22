@@ -98,7 +98,7 @@ public class QuestionGenerator {
 		boolean isPassive = false, hasNegation = false;
 		String newStr = "";
 
-		String auxStr = (aux == null ? StrUtils.join(" ", aux) : "");
+		String auxStr = (aux == null ? "" : StrUtils.join(" ", aux));		
 		System.out.println(sentence.getTokensString() + "\n" + auxStr + " " + sentence.getTokenString(propHead));
 		hasNegation = (auxStr.contains("\'t") || auxStr.contains("not"));
 		if (!verb.endsWith("ing") && (
