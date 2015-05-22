@@ -116,7 +116,7 @@ public class QuestionGenerator {
 					newStr = auxStr.replaceAll("been", "") + " " + verb;
 				} else if (auxStr.contains("being")) {
 					newStr = auxStr.replaceAll("being", "") + " " + infl[2];
-				} else if (auxStr.contains("be")) {
+				} else if (auxStr.contains("be ")) {
 					newStr = auxStr.replaceAll("be", "") + " " + infl[0];
 				} else if (auxStr.contains("is") || auxStr.contains("are")) {
 					newStr = infl[1];
@@ -128,13 +128,23 @@ public class QuestionGenerator {
 				// make passive
 				if (verb.equals(infl[2])) {
 					newStr = auxStr + " being " + infl[4];
-				} else if (verb.equals(infl[3]) &&
+				} else if (verb.equals(infl[4]) &&
 						(auxStr.contains("has") || auxStr.contains("have") ||
 						 auxStr.contains("had"))) {
 					newStr = auxStr + " been " + infl[4];
-				} else if (verb.equals(infl[1]) && auxStr.isEmpty()) {
-					newStr = "is " + infl[4];
-				} else if (verb.equals(infl[2])) {
+				} else if (verb.equals(infl[1])) {
+					if (auxStr.isEmpty()) {
+						newStr = "is " + infl[4];
+					} else if (auxStr.contains("do ")) {
+						newStr = auxStr.replace("do", "is") + " " + infl[4];
+					} else if (auxStr.contains("does ")) {
+						newStr = auxStr.replace("does", "is") + " " + infl[4];
+					} else if (auxStr.contains("did ")) {
+						newStr = auxStr.replace("did", "was") + " " + infl[4];
+					} else {
+						newStr = auxStr + " be " + infl[4];
+					}
+				} else {
 					newStr = "was " + infl[4];
 				}
 				System.out.println("act->pas:\t" + newStr);
