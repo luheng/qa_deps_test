@@ -287,7 +287,7 @@ public class PopularityQuestionIdExperiment {
 					"Testing accuracy on %s", ds.datasetName));
 			for (int k = 0; k < results[j].length; k++) {
 				System.out.println(k + "\t" +
-					StrUtils.doubleArrayToString("\t", results[j+1][k]));
+					StrUtils.doubleArrayToString("\t", results[j][k]));
 			}
 		}
 	}
