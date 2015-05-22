@@ -27,6 +27,7 @@ import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.Problem;
+import de.bwaldvogel.liblinear.SolverType;
 import evaluation.F1Metric;
 import experiments.LiblinearHyperParameters;
 
@@ -411,9 +412,19 @@ public class QuestionIdExperiment {
 		}
 		ArrayList<LiblinearHyperParameters> prms =
 				new ArrayList<LiblinearHyperParameters>();
+		/*
 		for (String prmStr : exp.config.liblinParameters) {
 			prms.add(new LiblinearHyperParameters(prmStr));
 		}
+		*/
+		/*********** Grid Search Parameters **********/
+		for (double C : new double[] {0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8}) {
+			for (double eps : new double[] {1e-4, 1e-3, 1e-2, 0.1}) {
+				prms.add(new LiblinearHyperParameters(SolverType.L1R_LR, C, eps));
+				prms.add(new LiblinearHyperParameters(SolverType.L2R_LR, C, eps));
+			}
+		}
+		
 		double[][][][] results = new double[prms.size()][][][];
 		for (int i = 0; i < prms.size(); i++) {
 			LiblinearHyperParameters prm = prms.get(i);
@@ -425,6 +436,7 @@ public class QuestionIdExperiment {
 				"",  /* qgen path */
 				""   /* debug path */);
 		}
+	
 		System.out.println("====== training finished =======");
 		int bestPrmId = 0, bestK = 0;
 		double bestPrmF1 = 0.0;
