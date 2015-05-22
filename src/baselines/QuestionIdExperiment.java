@@ -1,6 +1,9 @@
 package baselines;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -169,7 +172,8 @@ public class QuestionIdExperiment {
 										double threshold,
 										int topK,
 										boolean getPrecRecallCurve,
-										boolean generateQuestions) {
+										String qgenPath,
+										String debugPath) {
 		System.out.println(String.format("Training with %d samples.",
 				trainSet.features.length));
 		int numFeatures = featureExtractor.numFeatures();
@@ -181,7 +185,7 @@ public class QuestionIdExperiment {
 		double[][][] results = new double[testSets.size() + 1][][];
 		results[0] = new double[1][];
 		results[0][0] = predictAndEvaluate(
-				trainSet, model, threshold, topK, "");
+				trainSet, model, threshold, topK, "", "");
 		System.out.println(String.format("Training accuracy on %s:\t%s",
 				trainSet.datasetName,
 				StringUtils.doubleArrayToString("\t", results[0][0])));
@@ -194,20 +198,21 @@ public class QuestionIdExperiment {
 					for (int k = 0; k < config.numPRCurvePoints; k++) {
 						double thr = 1.0 * k / config.numPRCurvePoints;
 						results[d+1][k] = predictAndEvaluate(
-								ds, model, thr, -1, "");
+								ds, model, thr, -1, "", "");
 					}
 				} else {
 					results[d+1] = new double[labelDict.size()][];
 					for (int k = 1; k <= labelDict.size(); k++) {
 						results[d+1][k-1] = predictAndEvaluate(
-								ds, model, -1.0, k, "");
+								ds, model, -1.0, k, "", "");
 					}
 				}
 			} else {
 				results[d+1] = new double[1][];
 				results[d+1][0] = predictAndEvaluate(
 						ds, model, threshold, topK,
-							generateQuestions ? "qgenpath" : "");
+						qgenPath.isEmpty() ? "" : qgenPath + "-" + ds.datasetName,
+						debugPath.isEmpty() ? "" : debugPath + "-" + ds.datasetName);
 			}
 		}
 		return results;
@@ -229,19 +234,25 @@ public class QuestionIdExperiment {
 			Model model,
 			double threshold,
 			int topK,
-			String qgenPath) {
+			String qgenPath,
+			String debugPath) {
 		// Aggregate results
 		HashMap<Integer, HashMap<Integer, HashMap<String, String>>> slots =
 			new HashMap<Integer, HashMap<Integer, HashMap<String, String>>>();
 		HashMap<Integer, HashMap<Integer, HashMap<String, Double>>> scores =
 				new HashMap<Integer, HashMap<Integer, HashMap<String, Double>>>();
+		HashMap<Integer, HashMap<Integer, ArrayList<Integer>>> goldLabels =
+				new HashMap<Integer, HashMap<Integer, ArrayList<Integer>>>();
+		
 		for (AnnotatedSentence sent : ds.sentences) {
 			int sid = sent.sentence.sentenceID;
 			slots.put(sid, new HashMap<Integer, HashMap<String, String>>());
 			scores.put(sid, new HashMap<Integer, HashMap<String, Double>>());
+			goldLabels.put(sid, new HashMap<Integer, ArrayList<Integer>>());
 			for (int pid : sent.qaLists.keySet()) {
 				slots.get(sid).put(pid, new  HashMap<String, String>());
 				scores.get(sid).put(pid, new  HashMap<String, Double>());
+				goldLabels.get(sid).put(pid, new  ArrayList<Integer>());
 			}
 		}
 
@@ -265,7 +276,23 @@ public class QuestionIdExperiment {
 				sl.put(lb, "");
 				sc.put(lb, prob[0]);
 			}
+			if (sample.isPositiveSample) {
+				goldLabels.get(sid).get(pid).add(sample.questionLabelId);
+			}
 		}
+		
+		BufferedWriter qgenWriter = null, debugWriter = null;
+		try {
+			if (!qgenPath.isEmpty()) {
+				qgenWriter = new BufferedWriter(new FileWriter(new File(qgenPath)));			
+			}
+			if (!debugPath.isEmpty()) {
+				debugWriter = new BufferedWriter(new FileWriter(new File(debugPath)));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		for (AnnotatedSentence sent : ds.sentences) {
 			int sid = sent.sentence.sentenceID;
 			for (int pid : sent.qaLists.keySet()) {
@@ -293,28 +320,58 @@ public class QuestionIdExperiment {
 				}
 				// 	System.out.println(topK + ", " + threshold + ", " + labels.size());
 				// Generate questions
-				if (!qgenPath.isEmpty()) {
+				if (debugWriter != null) {
+					try {
+						qgenWriter.write("\n" + sent.sentence.getTokensString());
+						qgenWriter.write("\n" + sent.sentence.getTokenString(pid));
+						debugWriter.write("\nGold:\t");
+						for (int id : goldLabels.get(sid).get(pid)) {
+							debugWriter.write(labelDict.getString(id) + "\t");
+						}
+						debugWriter.write("\nPred:\t");
+						for (String lb : labels.keySet()) {
+							debugWriter.write(lb + "," + labels.get(lb) + "\t");
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				if (qgenWriter != null) {
 					ArrayList<String[]> questions = qgen.generateQuestions(
 							sent.sentence, pid, labels);
 					if (questions == null) {
 						continue;
+					}					
+					try {
+						qgenWriter.write(sent.sentence.getTokensString() + "\n");
+						qgenWriter.write(sent.sentence.getTokenString(pid) + "\n");
+						qgenWriter.write("=========== annotated ==============\n");
+						for (QAPair qa : sent.qaLists.get(pid)) {
+							qgenWriter.write(qa.getQuestionString() + "\t" +
+									qa.getAnswerString() + "\n");
+						}
+						qgenWriter.write("=========== generated ==============\n");
+						for (String[] question : questions) {
+							qgenWriter.write(StringUtils.join("\t", question) + "\n");
+						}
+						qgenWriter.write("\n");
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-					// TODO: Print to file
-					System.out.println(sent.sentence.getTokensString());
-					System.out.println(sent.sentence.getTokenString(pid));
-					System.out.println("=========== annotated ==============");
-					for (QAPair qa : sent.qaLists.get(pid)) {
-						System.out.println(qa.getQuestionString() + "\t" +
-								qa.getAnswerString());
-					}
-					System.out.println("=========== generated ==============");
-					for (String[] question : questions) {
-						System.out.println(StringUtils.join("\t", question));
-					}
-					System.out.println();
 				}
 			}
 		}
+		try {
+			if (qgenWriter != null) {
+				qgenWriter.close();
+			}
+			if (debugWriter != null) {
+				debugWriter.close();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
 		for (int i = 0; i < ds.samples.size(); i++) {
@@ -363,9 +420,12 @@ public class QuestionIdExperiment {
 				exp.config.evalThreshold,
 				exp.config.evalTopK,
 				true,  /* get precision-reall curve */
-				false  /* generate question */);
+				"",  /* qgen path */
+				""   /* debug path */);
 		}
 		System.out.println("====== training finished =======");
+		int bestPrmId = 0, bestK = 0;
+		double bestPrmF1 = 0.0;
 		for (int i = 0; i < prms.size(); i++) {
 			double[][][] res = results[i];
 			System.out.println(prms.get(i).toString());
@@ -373,6 +433,7 @@ public class QuestionIdExperiment {
 					"Training accuracy on %s:\t%s",
 						exp.trainSet.datasetName,
 						StringUtils.doubleArrayToString("\t", res[0][0])));
+			double bestPoint = 0;
 			for (int j = 0; j < exp.testSets.size(); j++) {
 				QuestionIdDataset ds = exp.testSets.get(j);
 				System.out.println(String.format(
@@ -380,16 +441,27 @@ public class QuestionIdExperiment {
 				for (int k = 0; k < res[j+1].length; k++) {
 					System.out.println(k + "\t" +
 						StringUtils.doubleArrayToString("\t", res[j+1][k]));
+					if (res[j+1][k][3] > bestPoint) {
+						bestPoint = res[j+1][k][3];
+						bestK = k;
+					}
 				}
 			}
+			if (bestPoint > bestPrmF1) {
+				bestPrmId = i;
+				bestPrmF1 = bestPoint;
+			}
 		}
+		System.out.println("Best PRM:\t" + prms.get(bestPrmId));
+		System.out.println("Best K:\t" + bestK);
 		// TODO Pick best PRM
-		/*
-		double[][][] res = exp.trainAndPredict(prms.get(0),
-				exp.config.evalTopK,
+		boolean useTopK = (exp.config.evalThreshold > 0);
+		double[][][] res = exp.trainAndPredict(prms.get(bestPrmId),
+				useTopK ? (1.0 * bestK / exp.config.numPRCurvePoints) : -1.0,
+				useTopK ? -1 : bestK + 1,
 				false,  // get precision-reall curve
-				true // generate question
-				);
+				"qgen-",
+				"debug-");
 		for (int j = 0; j < exp.testSets.size(); j++) {
 			QuestionIdDataset ds = exp.testSets.get(j);
 			System.out.println(String.format(
@@ -399,6 +471,5 @@ public class QuestionIdExperiment {
 						StringUtils.doubleArrayToString("\t", res[j+1][k]));
 			}
 		}
-		*/
 	}
 }
