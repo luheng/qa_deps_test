@@ -230,27 +230,27 @@ public class QuestionGenerator {
 			}
 			// AUX+TRG
 			int v = bestTemp[4].equals("active") ? 0 : 1;
-				
-				if (ss[v].length == 1) {
-					if (bestTemp[1].equals("_")) {
-						question[QASlots.TRGSlotId] = ss[v][0];
-					} else {
-						if (bestTemp[1].equals(infl[3])) {
-							question[QASlots.AUXSlotId] = "did";
-						} else if (bestTemp[1].equals(infl[1])) {
-							question[QASlots.AUXSlotId] = "does";
-						} else {
-							question[QASlots.AUXSlotId] = "do";
-						}
-						question[QASlots.TRGSlotId] = infl[0];
-					}
-				} else if (ss[v].length > 2 && (ss[v][1].equals("n\'t") ||
-												ss[v][1].equals("not"))) {
-					question[QASlots.AUXSlotId] = ss[v][0] + " " + ss[v][1];
-					question[QASlots.TRGSlotId] = StrUtils.join(" ", ss[v], 2);
+			if (ss[v].length == 1) {
+				if (bestTemp[1].equals("_")) {
+					System.out.println(StrUtils.join("\t", bestTemp));
+					question[QASlots.TRGSlotId] = ss[v][0];
 				} else {
-					question[QASlots.AUXSlotId] = ss[v][0];
-					question[QASlots.TRGSlotId] = StrUtils.join(" ", ss[v], 1);
+					if (bestTemp[1].equals(infl[3])) {
+						question[QASlots.AUXSlotId] = "did";
+					} else if (bestTemp[1].equals(infl[1])) {
+						question[QASlots.AUXSlotId] = "does";
+					} else {
+						question[QASlots.AUXSlotId] = "do";
+					}
+					question[QASlots.TRGSlotId] = infl[0];
+				}
+			} else if (ss[v].length > 2 && (ss[v][1].equals("n\'t") ||
+											ss[v][1].equals("not"))) {
+				question[QASlots.AUXSlotId] = ss[v][0] + " " + ss[v][1];
+				question[QASlots.TRGSlotId] = StrUtils.join(" ", ss[v], 2);
+			} else {
+				question[QASlots.AUXSlotId] = ss[v][0];
+				question[QASlots.TRGSlotId] = StrUtils.join(" ", ss[v], 1);
 			}
 			String ph1Key = "", ph2Key = "", ph3Key = "";
 			// PH1
