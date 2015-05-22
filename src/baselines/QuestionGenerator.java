@@ -232,7 +232,6 @@ public class QuestionGenerator {
 			int v = bestTemp[4].equals("active") ? 0 : 1;
 			if (ss[v].length == 1) {
 				if (bestTemp[1].equals("_")) {
-					System.out.println(StrUtils.join("\t", bestTemp));
 					question[QASlots.TRGSlotId] = ss[v][0];
 				} else {
 					if (bestTemp[1].equals(infl[3])) {
