@@ -299,6 +299,8 @@ public class QuestionIdExperiment {
 		for (AnnotatedSentence sent : ds.sentences) {
 			int sid = sent.sentence.sentenceID;
 			for (int pid : sent.qaLists.keySet()) {
+				HashMap<String, String> sl = slots.get(sid).get(pid);
+				HashMap<String, Double> sc = scores.get(sid).get(pid);
 				HashMap<String, Double> labels = new HashMap<String, Double>();
 				double thr = evalThreshold;
 				if (thr < 0) {
@@ -310,8 +312,6 @@ public class QuestionIdExperiment {
 					Collections.sort(scRank, Collections.reverseOrder());
 					thr = scRank.get(Math.min(scRank.size(), evalTopK) - 1);
 				}
-				HashMap<String, String> sl = slots.get(sid).get(pid);
-				HashMap<String, Double> sc = scores.get(sid).get(pid);
 				for (String k : sc.keySet()) {
 					if (sc.get(k) < thr) {
 						sl.remove(k);
@@ -334,6 +334,14 @@ public class QuestionIdExperiment {
 						debugWriter.write("\nPred:\t");
 						for (String lb : labels.keySet()) {
 							debugWriter.write(String.format("%s,%.2f\t", lb, labels.get(lb)));
+						}
+						debugWriter.write("\nRecall loss:\t");
+						for (int id : goldLabels.get(sid).get(pid)) {
+							String lb = labelDict.getString(id);
+							if (!labels.containsKey(lb)) {
+								debugWriter.write(String.format(
+										"%s,%.2f\t", lb, sc.get(lb)));
+							}
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
