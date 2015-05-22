@@ -61,7 +61,6 @@ public class QuestionIdFeatureExtractor {
 	private TIntDoubleHashMap extractFeatures(CountDictionary fdict,
 			QASample sample, boolean acceptNew) {
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
-		
 		// *************** Information used to extract features **********
 		int length = sample.tokens.length;
 		String[] tokens = new String[length];
@@ -81,7 +80,6 @@ public class QuestionIdFeatureExtractor {
 				break;
 			}
 		}
-		
 		String qlabel = sample.questionLabel;
 		String qkey = qlabel.split("=")[0]; 
 		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
@@ -89,10 +87,8 @@ public class QuestionIdFeatureExtractor {
 		
 		int kBest = useDependencyFeatures ?
 				Math.min(numBestParses, sample.kBestParses.size()) : 0;
+
 		// ***************** Proposition features ********************	
-		// fv.adjustOrPutValue(fdict.addString("PTOK=" + prop, acceptNew), 1, 1);
-		// fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma, acceptNew), 1, 1);
-		// fv.adjustOrPutValue(fdict.addString("PV=" + pvoice, acceptNew), 1, 1);
 		for (String qfeat : qfeats) {
 			fv.adjustOrPutValue(fdict.addString("PTOK=" + prop + "#" + qfeat, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString("PLEM=" + plemma + "#" + qfeat, acceptNew), 1, 1);
@@ -105,8 +101,6 @@ public class QuestionIdFeatureExtractor {
 			for (TypedDependency dep : FeatureUtils.lookupParentsByChild(deps, propId)) {
 				String relStr = dep.reln().toString();
 				String govTok = dep.gov().word();
-				// fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr, acceptNew), 1, 1);
-				// fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok, acceptNew), 1, 1);
 				for (String qfeat : qfeats) {
 					fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr + "#" + qfeat, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PGOVkb=" + govTok + "#" + qfeat, acceptNew), 1, 1);
@@ -146,40 +140,22 @@ public class QuestionIdFeatureExtractor {
 		
 		// *************** Words in the sentence ****************
 		for (int i = 0; i < length; i++) {
-			// FIXME: into args: window size.
-			if (i == propId) {
-				continue;
-			}
 			String utag = univDict.getUnivPostag(postags[i]);
-			/*
-			String rels = "";
-			if (Math.abs(propId - i) < 10) {
-				ArrayList<TypedDependency> depPath =
-						FeatureUtils.lookupDepPath(
-								sample.kBestParses.get(0), i, propId);
-				if (depPath != null && depPath.size() < 3) {
-					rels = FeatureUtils.getRelPathString(depPath, i);
-				}
-			}
-			*/
 			boolean isPP = utag.equals("PRT");
 			boolean matchPP = isPP && tokens[i].equals(qpp);
+			if (! isPP) {
+				continue;
+			}
+			String rels = "";
+			ArrayList<TypedDependency> depPath =
+					FeatureUtils.lookupDepPath(sample.kBestParses.get(0), i, propId);
+			//if (depPath != null && depPath.size() < 3) {
+			rels = FeatureUtils.getRelPathString(depPath, i);
 			for (String qfeat : qfeats) {
-				/*
-				if (!rels.isEmpty()) {
-					fv.adjustOrPutValue(fdict.addString("RelPath=" + rels + "#" + qfeat, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("Pos=" + postags[i] + "#" + qfeat, acceptNew), 1, 1);
-					if (i < propId) {
-						fv.adjustOrPutValue(fdict.addString("LfPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
-					} else {
-						fv.adjustOrPutValue(fdict.addString("RtPos=" + postags[i] + "#PV=" + pvoice + "#" + qfeat, acceptNew), 1, 1);
-					}
-				}*/
-				if (isPP) {
-					fv.adjustOrPutValue(fdict.addString("PP=" + tokens[i] + "#" + qfeat, acceptNew), 1, 1);
-					if (matchPP) {
-						fv.adjustOrPutValue(fdict.addString("matchPP" + "#" + qfeat, acceptNew), 1, 1);
-					}
+				fv.adjustOrPutValue(fdict.addString("PP=" + tokens[i] + "#" + qfeat, acceptNew), 1, 1);
+				fv.adjustOrPutValue(fdict.addString("PPRel=" + rels + "#" + qfeat, acceptNew), 1, 1);
+				if (matchPP) {
+					fv.adjustOrPutValue(fdict.addString("matchPP" + "#" + qfeat, acceptNew), 1, 1);
 				}
 				if (isPP && i == propId + 1) {
 					fv.adjustOrPutValue(fdict.addString("VPP=" + tokens[i] + "#" + qfeat, acceptNew), 1, 1);
@@ -191,12 +167,10 @@ public class QuestionIdFeatureExtractor {
 			}
 		}
 		
-		// *************** Question *******************
+		// *************** QLabel bias *******************
 		for (String qfeat : qfeats) {
 			fv.adjustOrPutValue(fdict.addString(qfeat, acceptNew), 1, 1);
 		}
-		// *************** Bias feature ... ***************
-		fv.adjustOrPutValue(fdict.addString("BIAS=.", acceptNew), 1, 1);
 		fv.remove(-1);
 		// Binarize features.
 		for (int fid : fv.keys()) {
