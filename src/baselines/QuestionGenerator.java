@@ -132,7 +132,12 @@ public class QuestionGenerator {
 						(auxStr.contains("has") || auxStr.contains("have") ||
 						 auxStr.contains("had"))) {
 					newStr = auxStr.replace(infl[3], "been " + infl[3]);
+				} else if (auxStr.equals(infl[1])) {
+					newStr = "is " + infl[3];
+				} else if (auxStr.equals(infl[2])) {
+					newStr = "was " + infl[3];
 				}
+				System.out.println("act->pas:\t" + newStr);
 			}
 		}
 		
