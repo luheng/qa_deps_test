@@ -24,10 +24,19 @@ public class WhoDidWhatQuestionIdExperiment {
 	private Corpus baseCorpus; 
 	private QuestionIdDataset trainSet;
 	private ArrayList<QuestionIdDataset> testSets;
-	private CountDictionary labelDict;
+	private CountDictionary labelDict, tempDict;
 	
 	private String getSampleFileName(QuestionIdDataset ds) {
 		return ds.datasetName + ".qgen.k" + config.kBest + ".smp";
+	}
+	
+	private String getTemplateString(String[] temp) {
+		String[] shortTemp = new String[temp.length];
+		for (int i = 0; i < temp.length; i++) {
+			String s = temp[i].split("=")[0];
+			shortTemp[i] = s.contains("_") ? s.split("_")[0] + "_PP" : s;
+		}
+		return StrUtils.join("\t", "_", shortTemp);
 	}
 	
 	public WhoDidWhatQuestionIdExperiment(String questionIdConfigPath)
@@ -50,6 +59,7 @@ public class WhoDidWhatQuestionIdExperiment {
 		}
 		
 		labelDict = new CountDictionary();
+		tempDict = new CountDictionary();
 		for (AnnotatedSentence sent : trainSet.sentences) {
 			for (int propHead : sent.qaLists.keySet()) {
 				HashMap<String, String> slots = new HashMap<String, String>();
@@ -71,6 +81,7 @@ public class WhoDidWhatQuestionIdExperiment {
 							labelDict.addString(lb);
 						}
 					}
+					tempDict.addString(getTemplateString(temp));
 				}
 				if (config.aggregateLabels) {
 					for (String pfx : slots.keySet()) {
@@ -120,21 +131,18 @@ public class WhoDidWhatQuestionIdExperiment {
 		}		
 	}
 	
-	public double[][] predict(boolean generateQuestions) {
-		if (generateQuestions) {
-			// TODO: baseline qgen?
-		}
-		
+	public double[][] predict() {
 		double[][] results = new double[testSets.size() + 1][];
-		results[0] = predictAndEvaluate(trainSet);
+		results[0] = predictAndEvaluate(trainSet, false /* qgen */);
 		for (int d = 0; d < testSets.size(); d++) {
 			QuestionIdDataset ds = testSets.get(d);
-			results[d+1] = predictAndEvaluate(ds);
+			results[d+1] = predictAndEvaluate(ds, true /* qgen */);
 		}
 		return results;
 	}
 	
-	private double[] predictAndEvaluate(QuestionIdDataset ds) {
+	private double[] predictAndEvaluate(QuestionIdDataset ds,
+			boolean generateQuestions) {
 		F1Metric f1 = new F1Metric();
 		int numCorrect = 0;
 		int l1 = labelDict.lookupString("W0=someone"),
@@ -170,24 +178,27 @@ public class WhoDidWhatQuestionIdExperiment {
 				predLabels.get(sid).get(pid).add(labelId);
 			}
 		}
-		/*
-		for (AnnotatedSentence annotSent : ds.sentences) {
-			int sid = annotSent.sentence.sentenceID;
-			for (int pid : annotSent.qaLists.keySet()) {
-				ArrayList<Integer> gold = goldLabels.get(sid).get(pid),
-								   pred = predLabels.get(sid).get(pid);
-				System.out.print("\nGold:\t");
-				for (int id : gold) {
-					System.out.print(labelDict.getString(id) + "\t");
+		if (generateQuestions) {
+			QuestionGenerator qgen = new QuestionGenerator(baseCorpus, labelDict, tempDict);
+			for (AnnotatedSentence annotSent : ds.sentences) {
+				int sid = annotSent.sentence.sentenceID;
+				for (int pid : annotSent.qaLists.keySet()) {
+					HashMap<String, Double> labels = new HashMap<String, Double>();
+					ArrayList<Integer> gold = goldLabels.get(sid).get(pid),
+									   pred = predLabels.get(sid).get(pid);
+					System.out.print("\nGold:\t");
+					for (int id : gold) {
+						System.out.print(labelDict.getString(id) + "\t");
+					}
+					System.out.print("\nPred:\t");
+					for (int id : pred) {
+						System.out.print(labelDict.getString(id) + "\t");
+						labels.put(labelDict.getString(id), 1.0);
+					}
+					qgen.generateQuestions(annotSent.sentence, pid, labels);
 				}
-				System.out.print("\nPred:\t");
-				for (int id : pred) {
-					System.out.print(labelDict.getString(id) + "\t");
-				}
-
 			}
 		}
-		*/
 		// Return: micro-macro
 		return new double[] {
 				1.0 * numCorrect / ds.samples.size(),
@@ -203,7 +214,7 @@ public class WhoDidWhatQuestionIdExperiment {
 			e.printStackTrace();
 			return;
 		}
-		double[][] results = exp.predict(false /* generate question */);
+		double[][] results = exp.predict();
 		System.out.println(String.format(
 				"Training accuracy on %s:\t%s",
 					exp.trainSet.datasetName,
