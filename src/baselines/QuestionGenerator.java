@@ -99,7 +99,7 @@ public class QuestionGenerator {
 		String newStr = "";
 		if (aux != null) {
 			String auxStr = StrUtils.join(" ", aux);
-			System.out.println(sentence.getTokensString() + "\n" + sentence.getTokenString(propHead) + " " + auxStr);
+			System.out.println(sentence.getTokensString() + "\n" + auxStr + " " + sentence.getTokenString(propHead));
 			hasNegation = (auxStr.contains("\'t") || auxStr.contains("not"));
 			if (!verb.endsWith("ing") && (
 					auxStr.contains("been") || auxStr.contains("being") ||
