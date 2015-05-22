@@ -36,6 +36,10 @@ public class QuestionGenerator {
 			if (tok.equals("\'s")) {
 				continue;
 			}
+			if (tok.equals("to")) {
+				// "have to"
+				break;
+			}
 			if (AuxiliaryVerbIdentifier.isAuxiliaryVerb(sentence, i) ||
 				tok.equals("not") || tok.equals("n\'t")) {
 				aux = tok + " " + aux;
