@@ -11,7 +11,6 @@ public class QuestionIdConfig {
 	public String[] trainSets, testSets;
 	public String featureOutputPath;
 	public int randomSeed;
-	public int cvFolds;
 	public int minFeatureFreq;
 	public int minQuestionLabelFreq;
 	public int kBest;
@@ -19,9 +18,10 @@ public class QuestionIdConfig {
 	public boolean normalizeFeatures;
 	
 	public boolean regenerateSamples;
-	public boolean useSpanBasedSamples;
 	public boolean useLexicalFeatures;
 	public boolean useDependencyFeatures;
+	public boolean use1BestFeatures;
+	
 	public boolean aggregateLabels;
 	public int numPRCurvePoints;
 	public double evalThreshold;
@@ -47,7 +47,7 @@ public class QuestionIdConfig {
 		
 		featureOutputPath = properties.getProperty("featureOutputPath");
 		randomSeed = Integer.parseInt(properties.getProperty("randomSeed"));
-		cvFolds = Integer.parseInt(properties.getProperty("cvFolds"));
+		// cvFolds = Integer.parseInt(properties.getProperty("cvFolds"));
 		minFeatureFreq = Integer.parseInt(properties.getProperty("minFeatureFreq"));
 		minQuestionLabelFreq = Integer.parseInt(properties.getProperty("minQuestionLabelFreq"));
 		kBest = Integer.parseInt(properties.getProperty("kBest"));
@@ -59,9 +59,9 @@ public class QuestionIdConfig {
 		numPRCurvePoints = Integer.parseInt(properties.getProperty("numPRCurvePoints"));
 		
 		regenerateSamples = Boolean.parseBoolean(properties.getProperty("regenerateSamples"));
-		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
 		useLexicalFeatures = Boolean.parseBoolean(properties.getProperty("useLexicalFeatures"));
 		useDependencyFeatures = Boolean.parseBoolean(properties.getProperty("useDependencyFeatures"));
+		use1BestFeatures = Boolean.parseBoolean(properties.getProperty("use1BestFeatures"));
 		aggregateLabels = Boolean.parseBoolean(properties.getProperty("aggregateLabels"));
 		
 		trainSets = properties.getProperty("trainSets").split(",");
@@ -83,13 +83,15 @@ public class QuestionIdConfig {
 		str += "normalizeFeatures\t" + normalizeFeatures + "\n";
 					
 		str += "regenerateSamples\t" + regenerateSamples + "\n";
-		str += "useSpanBasedSamples\t" + useSpanBasedSamples + "\n";
+		
 		str += "useLexicalFeatures\t" + useLexicalFeatures + "\n";
 		str += "useDependencyFeatures\t" + useDependencyFeatures + "\n";
+		str += "use1BestFeatures\t" + use1BestFeatures + "\n";
+		
 		str += "aggregateLabels\t" + useDependencyFeatures + "\n";
 		str += "numPRCurvePoints\t" + numPRCurvePoints + "\n";
 		str += "evalThreshold\t" + evalThreshold + "\n";
-		str += "evalTopK\t" + evalThreshold + "\n";
+		str += "evalTopK\t" + evalTopK + "\n";
 		return str;
 	}
 }

@@ -93,7 +93,6 @@ public class QADataset {
 				sentences.size(), filePath));
 	}
 	
-
 	public void loadSamples(String filePath)
 			throws IOException, ClassNotFoundException {
 		ObjectInputStream istream =

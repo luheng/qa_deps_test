@@ -137,7 +137,8 @@ public class QuestionIdExperiment {
 				config.kBest,
 				config.minFeatureFreq,
 				config.useLexicalFeatures,
-				config.useDependencyFeatures);
+				config.useDependencyFeatures,
+				config.use1BestFeatures);
 		featureExtractor.extractFeatures(trainSet.samples);
 		trainSet.extractFeaturesAndLabels(featureExtractor,
 				config.normalizeFeatures);

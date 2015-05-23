@@ -96,7 +96,8 @@ public class AnswerIdExperiment {
 				config.featureKBest,
 				config.minFeatureFreq,
 				config.useLexicalFeatures,
-				config.useDependencyFeatures);
+				config.useDependencyFeatures,
+				config.use1BestFeatures);
 		featureExtractor.extractFeatures(trainSet.samples);
 		trainSet.extractFeatures(featureExtractor);
 		trainSet.assignLabels();

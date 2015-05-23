@@ -1,7 +1,6 @@
 package learning;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
-import gnu.trove.map.hash.TIntIntHashMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,38 +9,20 @@ import java.util.HashSet;
 import util.FeatureUtils;
 import data.Corpus;
 import data.CountDictionary;
-import data.UniversalPostagMap;
-import data.VerbInflectionDictionary;
 import edu.stanford.nlp.trees.TypedDependency;
-import experiments.ExperimentUtils;
 
-public class QuestionIdFeatureExtractor {
-	@SuppressWarnings("unused")
-	private Corpus corpus = null;
-	private VerbInflectionDictionary inflDict = null;
-	private UniversalPostagMap univDict = null;
-	public CountDictionary featureDict = null;
-	private TIntIntHashMap featureFreq = null;
-	public final int numBestParses, minFeatureFreq;
-	
-	public boolean useLexicalFeatures = true;
-	public boolean useDependencyFeatures = true;
+public class QuestionIdFeatureExtractor extends QAFeatureExtractor {
 	
 	public QuestionIdFeatureExtractor(Corpus corpus, int numBestParses,
 			int minFeatureFreq) {
-		this.corpus = corpus;
-		this.numBestParses = numBestParses;
-		this.minFeatureFreq = minFeatureFreq;
-		inflDict = ExperimentUtils.loadInflectionDictionary(corpus);
-		univDict = ExperimentUtils.loadPostagMap();
+		super(corpus, numBestParses, minFeatureFreq);
 	}
 	
 	public QuestionIdFeatureExtractor(Corpus corpus, int numBestParses,
-			int minFeatureFreq,
-			boolean useLexicalFeatures, boolean useDependencyFeatures) {
-		this(corpus, numBestParses, minFeatureFreq);
-		this.useLexicalFeatures = useLexicalFeatures;
-		this.useDependencyFeatures = useDependencyFeatures;
+			int minFeatureFreq, boolean useLexicalFeatures,
+			boolean useDependencyFeatures, boolean use1BestFeatures) {
+		super(corpus, numBestParses, minFeatureFreq, useLexicalFeatures,
+				useDependencyFeatures, use1BestFeatures);
 	}
 	
 	private static HashSet<String> getQLabelFeatures(String qlabel) {
@@ -60,7 +41,7 @@ public class QuestionIdFeatureExtractor {
 		return feats;
 	}
 	
-	private TIntDoubleHashMap extractFeatures(CountDictionary fdict,
+	protected TIntDoubleHashMap extractFeatures(CountDictionary fdict,
 			QASample sample, boolean acceptNew) {
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
 		// *************** Information used to extract features **********
@@ -180,32 +161,5 @@ public class QuestionIdFeatureExtractor {
 			featureFreq.adjustOrPutValue(fid, 1, 1);
 		}
 		return fv;
-	}
-	
-	public void extractFeatures(ArrayList<QASample> samples) {
-		CountDictionary tempFeatureDict = new CountDictionary();
-		featureFreq = new TIntIntHashMap();
-		for (QASample sample : samples) {
-			extractFeatures(tempFeatureDict, sample, true /* accept new */);
-		}
-		featureDict = new CountDictionary();
-		for (int fid = 0; fid < tempFeatureDict.size(); fid ++) {
-			int cnt = featureFreq.get(fid);
-			if (cnt >= minFeatureFreq) {
-				featureDict.addString(tempFeatureDict.getString(fid), cnt);
-			}
-		}
-		System.out.println(String.format(
-				"%d features before filtering. %d features after filtering.",
-				tempFeatureDict.size(), featureDict.size()));
-	}
-	
-	public TIntDoubleHashMap getFeatures(QASample sample) {
-		assert (featureDict != null);
-		return extractFeatures(featureDict, sample, false /* accept new */);
-	}
-	
-	public int numFeatures() {
-		return featureDict.size();
 	}
 }
