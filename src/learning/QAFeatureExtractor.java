@@ -78,7 +78,6 @@ public class QAFeatureExtractor {
 		System.out.println(String.format(
 				"%d features before filtering. %d features after filtering.",
 				tempFeatureDict.size(), featureDict.size()));
-		featureFreq = null;
 	}
 	
 	public TIntDoubleHashMap getFeatures(QASample sample) {

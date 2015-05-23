@@ -73,12 +73,15 @@ public class AnswerIdFeatureExtractor extends QAFeatureExtractor {
 		String relPos = (answerId < propId ? "left" : "right");
 		
 		HashSet<String> qfeats = getQLabelFeatures(sample.questionLabel);
-		qfeats.add("BIAS=.");
+	
+		fv.adjustOrPutValue(fdict.addString(aposFeat, acceptNew), 1, 1);
+		if (useLexicalFeatures) {
+			fv.adjustOrPutValue(fdict.addString(atokFeat, acceptNew), 1, 1);
+		}
 		
 		// Proposition word and lemma, conditioned question and question label
 		// Argument word and pos, conditioned on question word and label
 		for (String qfeat : qfeats) {
-			fv.adjustOrPutValue(fdict.addString(qfeat, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString(qfeat + "_" + aposFeat, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString(plemFeat + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 			fv.adjustOrPutValue(fdict.addString(pvFeat + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
@@ -100,21 +103,15 @@ public class AnswerIdFeatureExtractor extends QAFeatureExtractor {
 				String govPos = dep.gov().index() <= 0 ? "ROOT" : postags[dep.gov().index() - 1];
 				String govTok = dep.gov().word();
 				for (String qfeat : qfeats) {
-					fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr + "_" + qfeat, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PFUNkb=" + relStr + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("PGPoskb=" + govPos + "_" + qfeat, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("PGPoskb=" + govPos + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 					if (i == 0 && use1BestFeatures) {
-						fv.adjustOrPutValue(fdict.addString("PFUN1b=" + relStr + "_" + qfeat, acceptNew), 1, 1);
 						fv.adjustOrPutValue(fdict.addString("PFUN1b=" + relStr + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
-						fv.adjustOrPutValue(fdict.addString("PGPos1b=" + govPos + "_" + qfeat, acceptNew), 1, 1);
 						fv.adjustOrPutValue(fdict.addString("PGPos1b=" + govPos + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 					}
 					if (useLexicalFeatures) {
-						fv.adjustOrPutValue(fdict.addString("PGTokkb=" + govTok + "_" + qfeat, acceptNew), 1, 1);
 						fv.adjustOrPutValue(fdict.addString("PGTokkb=" + govTok + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 						if (i == 0 && use1BestFeatures) {
-							fv.adjustOrPutValue(fdict.addString("PGTok1b=" + govTok + "_" + qfeat, acceptNew), 1, 1);
 							fv.adjustOrPutValue(fdict.addString("PGTok1b=" + govTok + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 						}
 					}
@@ -128,14 +125,14 @@ public class AnswerIdFeatureExtractor extends QAFeatureExtractor {
 				String govTok = dep.gov().word();
 				for (String qfeat : qfeats) {
 					fv.adjustOrPutValue(fdict.addString("AFUNkb=" + relStr + "_" + qfeat, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("AFUNkb=" + relStr + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
+					// fv.adjustOrPutValue(fdict.addString("AFUNkb=" + relStr + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 					fv.adjustOrPutValue(fdict.addString("AGPoskb=" + govPos + "_" + qfeat, acceptNew), 1, 1);
-					fv.adjustOrPutValue(fdict.addString("aGPoskb=" + govPos + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
+					// fv.adjustOrPutValue(fdict.addString("AGPoskb=" + govPos + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 					if (i == 0 && use1BestFeatures) {
 						fv.adjustOrPutValue(fdict.addString("AFUN1b=" + relStr + "_" + qfeat, acceptNew), 1, 1);
-						fv.adjustOrPutValue(fdict.addString("AFUN1b=" + relStr + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
+						// fv.adjustOrPutValue(fdict.addString("AFUN1b=" + relStr + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 						fv.adjustOrPutValue(fdict.addString("AGPos1b=" + govPos + "_" + qfeat, acceptNew), 1, 1);
-						fv.adjustOrPutValue(fdict.addString("AGPos1b=" + govPos + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
+						// fv.adjustOrPutValue(fdict.addString("AGPos1b=" + govPos + "_" + qfeat + "_" + aposFeat, acceptNew), 1, 1);
 					}
 					if (dep.gov().index() == propId + 1) {
 						fv.adjustOrPutValue(fdict.addString("PisPr(A)=True=" + "_" + qfeat, acceptNew), 1, 1);						
@@ -177,7 +174,6 @@ public class AnswerIdFeatureExtractor extends QAFeatureExtractor {
 					}
 				}
 			}
-
 			// Syntactic path between proposition and argument
 			ArrayList<TypedDependency> depPath = FeatureUtils.lookupDepPath(deps, answerId, propId);
 			String rels = FeatureUtils.getRelPathString(depPath, answerId);
@@ -188,11 +184,11 @@ public class AnswerIdFeatureExtractor extends QAFeatureExtractor {
 				}
 			}
 		}
-		
 		fv.remove(-1);
 		// Binarize features.
 		for (int fid : fv.keys()) {
 			fv.put(fid, 1);
+			featureFreq.adjustOrPutValue(fid, 1, 1);
 		}
 		return fv;
 	}
