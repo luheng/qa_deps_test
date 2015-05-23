@@ -24,6 +24,7 @@ import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.Problem;
+import de.bwaldvogel.liblinear.SolverType;
 import evaluation.AnswerIdEvaluator;
 import experiments.LiblinearHyperParameters;
 import util.StrUtils;
@@ -305,17 +306,23 @@ public class AnswerIdExperiment {
 			e.printStackTrace();
 			return;
 		}
+		
+		/*********** Grid Search Parameters **********/
 		ArrayList<LiblinearHyperParameters> prms =
 				new ArrayList<LiblinearHyperParameters>();
-		for (String prmStr : exp.config.liblinParameters) {
-			prms.add(new LiblinearHyperParameters(prmStr));
+		for (double C : new double[] {0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16}) {
+			for (double eps : new double[] {1e-3}) {
+				prms.add(new LiblinearHyperParameters(SolverType.L2R_LR, C, eps));
+			}
 		}
+		
 		double[][][] results = new double[prms.size()][][];
 		for (int i = 0; i < prms.size(); i++) {
 			LiblinearHyperParameters prm = prms.get(i);
 			System.out.println(prm.toString());
 			results[i] = exp.trainAndPredict(prm);
 		}
+		
 		for (int i = 0; i < prms.size(); i++) {
 			double[][] acc = results[i];
 			System.out.println(prms.get(i).toString());
