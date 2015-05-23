@@ -25,22 +25,6 @@ public class QuestionIdFeatureExtractor extends QAFeatureExtractor {
 				useDependencyFeatures, use1BestFeatures);
 	}
 	
-	private static HashSet<String> getQLabelFeatures(String qlabel) {
-		HashSet<String> feats = new HashSet<String>();
-		String qkey = qlabel.split("=")[0];    // i.e. W2_to
-		String qval = qlabel.split("=")[1];    // i.e. someone, something
-		String qtype = qkey.contains("_") ? qkey.split("_")[0] : qkey; // i.e. W0, 
-		String qpp =  qkey.contains("_") ? qkey.split("_")[1] : "";
-		feats.add("QKey=" + qkey);
-		feats.add("QType=" + qtype);
-		if (!qpp.isEmpty()) {
-			feats.add("QPP=" + qpp);
-		}
-		feats.add("QVal=" + qval);
-		feats.add("QLab=" + qlabel);
-		return feats;
-	}
-	
 	protected TIntDoubleHashMap extractFeatures(CountDictionary fdict,
 			QASample sample, boolean acceptNew) {
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();

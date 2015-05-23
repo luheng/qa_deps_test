@@ -25,6 +25,7 @@ public class AnswerIdFeatureExtractor extends QAFeatureExtractor {
 				useDependencyFeatures, use1BestFeatures);
 	}
 	
+	/*
 	private static HashSet<String> getQLabelFeatures(String qlabel) {
 		HashSet<String> feats = new HashSet<String>();
 		String qkey = qlabel.split("=")[0];    
@@ -38,6 +39,7 @@ public class AnswerIdFeatureExtractor extends QAFeatureExtractor {
 		feats.add("QLab*=" + qlabel);
 		return feats;
 	}
+	*/
 	
 	protected TIntDoubleHashMap extractFeatures(CountDictionary fdict,
 			QASample sample, boolean acceptNew) {
