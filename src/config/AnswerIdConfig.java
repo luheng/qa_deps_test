@@ -47,11 +47,7 @@ public class AnswerIdConfig {
 		kBest = Integer.parseInt(properties.getProperty("kBest"));
 		featureKBest = Integer.parseInt(properties.getProperty("featureKBest"));
 		normalizeFeatures = Boolean.parseBoolean(properties.getProperty("normalizeFeatures"));
-		
 		evalThreshold = Double.parseDouble(properties.getProperty("evalThreshold"));
-		
-		System.out.println(properties.toString());
-		System.out.println(properties.getProperty("regenerateSamples"));
 		
 		regenerateSamples = Boolean.parseBoolean(properties.getProperty("regenerateSamples"));
 		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
