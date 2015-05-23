@@ -13,7 +13,6 @@ public class AnswerIdConfig {
 	public int randomSeed;
 	// public int cvFolds;
 	public int minFeatureFreq;
-	public int minQuestionLabelFreq;
 	public int kBest;
 	public int featureKBest;
 	public boolean normalizeFeatures;
@@ -47,7 +46,6 @@ public class AnswerIdConfig {
 		randomSeed = Integer.parseInt(properties.getProperty("randomSeed"));
 		// cvFolds = Integer.parseInt(properties.getProperty("cvFolds"));
 		minFeatureFreq = Integer.parseInt(properties.getProperty("minFeatureFreq"));
-		minQuestionLabelFreq = Integer.parseInt(properties.getProperty("minQuestionLabelFreq"));
 		kBest = Integer.parseInt(properties.getProperty("kBest"));
 		featureKBest = Integer.parseInt(properties.getProperty("featureKBest"));
 		normalizeFeatures = Boolean.parseBoolean(properties.getProperty("normalizeFeatures"));
@@ -73,7 +71,6 @@ public class AnswerIdConfig {
 		
 		str += "trainSets\t" + StrUtils.join(",", trainSets) + "\n";
 		str += "testSets\t" + StrUtils.join(",", testSets) + "\n";
-		str += "minQuestionLabelFreq\t" + minQuestionLabelFreq + "\n";
 		str += "kBest\t" + kBest + "\n";
 		str += "featureKBest\t" + featureKBest + "\n";
 		str += "normalizeFeatures\t" + normalizeFeatures + "\n";
