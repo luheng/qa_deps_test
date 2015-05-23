@@ -1,6 +1,7 @@
 package learning;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
+import gnu.trove.map.hash.TIntIntHashMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +21,7 @@ public class QuestionIdFeatureExtractor {
 	private VerbInflectionDictionary inflDict = null;
 	private UniversalPostagMap univDict = null;
 	public CountDictionary featureDict = null;
+	private TIntIntHashMap featureFreq = null;
 	public final int numBestParses, minFeatureFreq;
 	
 	public boolean useLexicalFeatures = true;
@@ -175,19 +177,20 @@ public class QuestionIdFeatureExtractor {
 		// Binarize features.
 		for (int fid : fv.keys()) {
 			fv.put(fid, 1);
+			featureFreq.adjustOrPutValue(fid, 1, 1);
 		}
 		return fv;
 	}
 	
 	public void extractFeatures(ArrayList<QASample> samples) {
 		CountDictionary tempFeatureDict = new CountDictionary();
+		featureFreq = new TIntIntHashMap();
 		for (QASample sample : samples) {
 			extractFeatures(tempFeatureDict, sample, true /* accept new */);
 		}
-		
 		featureDict = new CountDictionary();
 		for (int fid = 0; fid < tempFeatureDict.size(); fid ++) {
-			int cnt = tempFeatureDict.getCount(fid);
+			int cnt = featureFreq.get(fid);
 			if (cnt >= minFeatureFreq) {
 				featureDict.addString(tempFeatureDict.getString(fid), cnt);
 			}

@@ -384,10 +384,9 @@ public class QuestionIdExperiment {
 				new ArrayList<LiblinearHyperParameters>();
 	
 		/*********** Grid Search Parameters **********/
-		//for (double C : new double[] {0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16}) {
-		for (double C : new double[] {0.03125, 0.0625}) {
+		for (double C : new double[] {0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16}) {
 			for (double eps : new double[] {1e-3}) {
-				prms.add(new LiblinearHyperParameters(SolverType.L1R_LR, C, eps));
+				// prms.add(new LiblinearHyperParameters(SolverType.L1R_LR, C, eps));
 				prms.add(new LiblinearHyperParameters(SolverType.L2R_LR, C, eps));
 			}
 		}
@@ -436,7 +435,7 @@ public class QuestionIdExperiment {
 		}
 		System.out.println("Best PRM:\t" + prms.get(bestPrmId));
 		System.out.println("Best K:\t" + bestK);
-		// TODO Pick best PRM
+		// TODO Print in Matlab friendly format
 		boolean useTopK = (exp.config.evalThreshold > 0);
 		double[][][] res = exp.trainAndPredict(prms.get(bestPrmId),
 				useTopK ? (1.0 * bestK / exp.config.numPRCurvePoints) : -1.0,
