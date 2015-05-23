@@ -49,6 +49,8 @@ public class AnswerIdExperiment {
 			throws IOException, ClassNotFoundException {
 		config = answerIdConfigPath.isEmpty() ? new AnswerIdConfig() :
 						new AnswerIdConfig(answerIdConfigPath);
+		System.out.println(config.toString());
+		
 		baseCorpus = new Corpus("qa-exp-corpus");
 		trainSet = new AnswerIdDataset(baseCorpus,
 				StrUtils.join("_", config.trainSets));

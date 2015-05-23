@@ -44,7 +44,6 @@ public class AnswerIdConfig {
 		
 		featureOutputPath = properties.getProperty("featureOutputPath");
 		randomSeed = Integer.parseInt(properties.getProperty("randomSeed"));
-		// cvFolds = Integer.parseInt(properties.getProperty("cvFolds"));
 		minFeatureFreq = Integer.parseInt(properties.getProperty("minFeatureFreq"));
 		kBest = Integer.parseInt(properties.getProperty("kBest"));
 		featureKBest = Integer.parseInt(properties.getProperty("featureKBest"));
