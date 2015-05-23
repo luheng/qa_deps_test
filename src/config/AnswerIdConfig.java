@@ -11,7 +11,6 @@ public class AnswerIdConfig {
 	public String[] trainSets, testSets;
 	public String featureOutputPath;
 	public int randomSeed;
-	// public int cvFolds;
 	public int minFeatureFreq;
 	public int kBest;
 	public int featureKBest;
@@ -50,6 +49,9 @@ public class AnswerIdConfig {
 		normalizeFeatures = Boolean.parseBoolean(properties.getProperty("normalizeFeatures"));
 		
 		evalThreshold = Double.parseDouble(properties.getProperty("evalThreshold"));
+		
+		System.out.println(properties.toString());
+		System.out.println(properties.getProperty("regenerateSamples"));
 		
 		regenerateSamples = Boolean.parseBoolean(properties.getProperty("regenerateSamples"));
 		useSpanBasedSamples = Boolean.parseBoolean(properties.getProperty("useSpanBasedSamples"));
