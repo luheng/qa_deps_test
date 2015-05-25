@@ -450,5 +450,7 @@ public class QuestionIdExperiment {
 					"Testing accuracy on %s", ds.datasetName));
 			System.out.println(StrUtils.doubleArrayToString("\t", res[j+1][0]));
 		}
+		
+		System.out.println(exp.config.toString());
 	}
 }

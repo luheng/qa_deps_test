@@ -3,12 +3,8 @@ package baselines;
 import io.XSSFDataRetriever;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Random;
 
-import annotation.SRLAnnotationValidator;
 import annotation.SRLCoverageValidator;
 import data.AnnotatedSentence;
 import data.Corpus;
