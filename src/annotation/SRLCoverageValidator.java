@@ -22,12 +22,13 @@ public class SRLCoverageValidator {
 	public boolean ignoreAmNegArcs = true;
 	public boolean ignoreRAxArcs = true;
 
-	public boolean goldPropositionOnly = false; 
+	public boolean goldPropositionOnly = true; 
 	public boolean coreArgsOnly = false;
+	public boolean nonCoreArgsOnly = true;
 	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.
-	private static boolean allowTwoHopValidation = false;
+	private static boolean allowTwoHopValidation = true;
 	
 	private static boolean hasChildInAnswer(int idx, int[] flags,
 			DepSentence sentence) {
@@ -53,19 +54,27 @@ public class SRLCoverageValidator {
 						goldArcs[i][j] = "";
 					}
 				}
-				if (coreArgsOnly && goldArcs[i][j].startsWith("AM")) {
+				if (i == 0) {
+					continue;
+				}
+				if (nonCoreArgsOnly && !goldArcs[i][j].startsWith("AM") &&
+						!goldArcs[i][j].startsWith("C-AM")) {
 					goldArcs[i][j] = "";
 				}
-				if (ignoreAmModArcs && goldArcs[i][j].equals("AM-MOD")) {
+				if (coreArgsOnly && (goldArcs[i][j].startsWith("AM") ||
+						 goldArcs[i][j].startsWith("C-AM"))) {
 					goldArcs[i][j] = "";
 				}
-				if (ignoreAmDisArcs && goldArcs[i][j].equals("AM-DIS")) {
+				if (ignoreAmModArcs && goldArcs[i][j].contains("AM-MOD")) {
 					goldArcs[i][j] = "";
 				}
-				if (ignoreAmAdvArcs && goldArcs[i][j].equals("AM-ADV")) {
+				if (ignoreAmDisArcs && goldArcs[i][j].contains("AM-DIS")) {
 					goldArcs[i][j] = "";
 				}
-				if (ignoreAmNegArcs && goldArcs[i][j].equals("AM-NEG")) {
+				if (ignoreAmAdvArcs && goldArcs[i][j].contains("AM-ADV")) {
+					goldArcs[i][j] = "";
+				}
+				if (ignoreAmNegArcs && goldArcs[i][j].contains("AM-NEG")) {
 					goldArcs[i][j] = "";
 				}
 				if (ignoreRAxArcs && goldArcs[i][j].startsWith("R-A")) {
@@ -84,7 +93,6 @@ public class SRLCoverageValidator {
 						}
 					}
 					continuation[i][j] = k;
-					System.out.println(goldArcs[i][j] + ", " + goldArcs[i][k] + ", " + j + ", " + k);
 				}
 			}
 		}
@@ -120,8 +128,9 @@ public class SRLCoverageValidator {
 			micro.add(res.get(i));
 			macro += res.get(i).accuracy();
 		}
-		System.out.println(String.format("%s\tmicro:\t%.3f\t%.3f",
-				label, micro, macro));
+		macro /= res.size();
+		System.out.println(String.format("%s\tmicro:\t%.3f\tmacro: %.3f",
+				label, micro.accuracy(), macro));
 	}
 	public void computeCoverage(Collection<AnnotatedSentence> annotations,
 			SRLCorpus corpus) {
@@ -161,8 +170,11 @@ public class SRLCoverageValidator {
 				ArrayList<QAPair> qaList = sent.qaLists.get(propId);
 				for (QAPair qa : qaList) {
 					String qlabel = qa.questionLabel.split("=")[0].split("_")[0];
-					System.out.println(qlabel);
-					if (coreArgsOnly && !qlabel.startsWith("W")) {
+					boolean coreQA = (qlabel.equals("W0") ||
+							qlabel.equals("W1") || qlabel.equals("W2"));
+					if (coreArgsOnly && !coreQA) {
+						continue;
+					} else if (nonCoreArgsOnly && coreQA) {
 						continue;
 					}
 					boolean[] matched = new boolean[length];
@@ -194,21 +206,31 @@ public class SRLCoverageValidator {
 					q2.numMatched += (matchedGold > 0 ? 1 : 0);
 				}
 				// Count gold.
+				//int cnt = 0;
 				for (int argHead = 1; argHead < length; argHead++) {
 					String goldLabel = goldArcs[propHead][argHead];
-					if (goldLabel.isEmpty() && cont[propHead][argHead] > 0) {
+					if (!goldLabel.isEmpty() && cont[propHead][argHead] == 0) {
 						s1.numCounted ++;
 						s2.numCounted ++;
+						//cnt ++;
 					}
 				}
+				//if (cnt == 0 && !goldArcs[0][propHead].isEmpty()) {
+				//	System.out.println(srlSentence.toString() + ", "
+				//			+ srlSentence.getTokenString(propHead - 1));
+				//} 
 				for (int i = 1; i < length; i++) {
 					s1.numMatched += (covered[i] == 1 ? 1 : 0);
 					s2.numMatched += (covered[i] > 0 ? 1 : 0);
 				}
-				qaCoversOneSRL.add(q1);
-				qaCoversSRL.add(q2);
-				srlCoveredByOneQA.add(s1);
-				srlCoveredByQA.add(s2);
+				if (q1.numCounted > 0) {
+					qaCoversOneSRL.add(q1);
+					qaCoversSRL.add(q2);					
+				}
+				if (s1.numCounted > 0) {
+					srlCoveredByOneQA.add(s1);
+					srlCoveredByQA.add(s2);
+				}
 			}
 		}
 		MatrixPrinter.prettyPrint(labelMap, corpus.argModDict, qlabelDict);
