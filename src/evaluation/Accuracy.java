@@ -4,7 +4,7 @@ public class Accuracy {
 	public int numMatched, numCounted;
 	
 	public Accuracy() {
-		this.numCounted = 0;
+		this.numMatched = 0;
 		this.numCounted = 0;
 	}
 	

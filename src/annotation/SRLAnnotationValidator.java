@@ -32,29 +32,6 @@ public class SRLAnnotationValidator {
 	// span, we say there is a match.
 	private static boolean allowTwoHopValidation = false;
 	
-	/*
-	private static boolean containedInAnswer(int idx, int[][] spans) {
-		for (int i = 0; i < spans.length; i++) {
-			if (spans[i][0] <= idx && idx < spans[i][1]) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	private static boolean hasChildInAnswer(int idx, int[][] spans,
-											DepSentence sentence) {
-		for (int i = 0; i < spans.length; i++) {
-			for (int j = spans[i][0]; j < spans[i][1]; j++) {
-				if (j >= 0 && sentence.parents[j] == idx) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-	*/
-	
 	private static boolean hasChildInAnswer(int idx, int[] flags,
 			DepSentence sentence) {
 		for (int i = 0; i < sentence.length; i++) {
@@ -64,13 +41,6 @@ public class SRLAnnotationValidator {
 		}
 		return false;
 	}
-	
-	/*
-	private static boolean isWhoWhatQuestion(QAPair qa) {
-		String qstr = qa.getQuestionLabel().toLowerCase();
-		return qstr.startsWith("who") || qstr.startsWith("what");
-	}
-	*/
 	
 	public String[][] getGoldSRL(SRLSentence sentence) {
 		int length = sentence.length + 1;
@@ -103,7 +73,6 @@ public class SRLAnnotationValidator {
 				}
 			}
 		}
-		
 		return goldArcs;
 	}
 	
