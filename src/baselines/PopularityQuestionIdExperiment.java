@@ -95,30 +95,8 @@ public class PopularityQuestionIdExperiment {
 		Collections.sort(sortedScores, Collections.reverseOrder());
 		
 		if (config.regenerateSamples) {
-			KBestParseRetriever syntaxHelper =
-					new KBestParseRetriever(config.kBest);
-			trainSet.generateSamples(syntaxHelper, labelDict, config.aggregateLabels);
-			for (QuestionIdDataset ds : testSets) {
-				ds.generateSamples(syntaxHelper, labelDict, config.aggregateLabels);
-			}
-			// Cache qaSamples to file because parsing is slow.
-			ObjectOutputStream ostream = null;
-			try {
-				ostream = new ObjectOutputStream(
-						new FileOutputStream(getSampleFileName(trainSet)));
-				ostream.writeObject(trainSet.samples);
-				ostream.flush();
-				ostream.close();
-				for (QuestionIdDataset ds : testSets) {
-					ostream = new ObjectOutputStream(
-							new FileOutputStream(getSampleFileName(ds)));
-					ostream.writeObject(ds.samples);
-					ostream.flush();
-					ostream.close();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			System.out.println("Error: Generate training samples first.");
+			return;
 		} else {
 			try {
      			trainSet.loadSamples(getSampleFileName(trainSet));
