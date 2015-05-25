@@ -385,7 +385,8 @@ public class QuestionIdExperiment {
 		/*********** Grid Search Parameters **********/
 		ArrayList<LiblinearHyperParameters> prms =
 				new ArrayList<LiblinearHyperParameters>();
-		for (double C : new double[] {0.03125, 0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32}) {
+		//for (double C : new double[] {0.03125, 0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32}) {
+		for (double C : new double[] {0.01, 0.1, 1, 10, 100}) {
 			for (double eps : new double[] {1e-3}) {
 				// prms.add(new LiblinearHyperParameters(SolverType.L1R_LR, C, eps));
 				prms.add(new LiblinearHyperParameters(SolverType.L2R_LR, C, eps));
@@ -437,13 +438,21 @@ public class QuestionIdExperiment {
 		System.out.println("Best PRM:\t" + prms.get(bestPrmId));
 		System.out.println("Best K:\t" + bestK);
 		// TODO Print in Matlab friendly format
-		boolean useTopK = (exp.config.evalThreshold > 0);
+		double[][][] res = exp.trainAndPredict(prms.get(bestPrmId),
+				exp.config.evalThreshold,
+				exp.config.evalTopK,
+				true,  // get precision-reall curve
+				"",
+				"");
+		/*
+		 * boolean useTopK = (exp.config.evalThreshold > 0);
 		double[][][] res = exp.trainAndPredict(prms.get(bestPrmId),
 				useTopK ? (1.0 * bestK / exp.config.numPRCurvePoints) : -1.0,
 				useTopK ? -1 : bestK + 1,
 				false,  // get precision-reall curve
 				"qgen-",
 				"debug-");
+		*/
 		for (int j = 0; j < exp.testSets.size(); j++) {
 			QuestionIdDataset ds = exp.testSets.get(j);
 			System.out.println(String.format(
