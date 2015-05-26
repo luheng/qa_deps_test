@@ -95,8 +95,8 @@ public class QuestionGenerator {
 	private String[][] getAuxTrg(Sentence sentence, int propHead) {
 		String[][] ss = new String[2][];
 		
-		String verb = sentence.getTokenString(propHead);
-		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
+		String verb = sentence.getTokenString(propHead).toLowerCase();
+		String[] infl = inflDict.getBestInflections(verb);
 		
 		String[] aux = getAuxiliary(sentence, propHead);
 		boolean isPassive = false;

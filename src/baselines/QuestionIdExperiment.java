@@ -346,6 +346,7 @@ public class QuestionIdExperiment {
 						*/
 						for (String[] question : questions) {
 							String qstr = StrUtils.join("\t", question) + "?";
+							qstr = StrUtils.join("", qstr.split("\t"));
 							qstr = Character.toUpperCase(qstr.charAt(0)) + qstr.substring(1);
 							qgenWriter.write(qstr + "\n");
 						}
