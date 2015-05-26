@@ -220,6 +220,10 @@ public class QuestionGenerator {
 			}
 			if (bestTemp == null) {
 				System.out.println("Unable to find matching template.");
+				for (String l : labels.keySet()) {
+					System.out.print(l + "\t");
+				}
+				System.out.println();
 				continue;
 			}
 			String[] question = new String[QASlots.numSlots];
