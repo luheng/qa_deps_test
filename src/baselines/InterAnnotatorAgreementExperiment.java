@@ -40,7 +40,6 @@ public class InterAnnotatorAgreementExperiment {
 	
 	private static boolean coreArgsOnly = true;
 	
-	
 	private static void readData(
 			String[] inputFiles,
 			String outputPathPrefix,
