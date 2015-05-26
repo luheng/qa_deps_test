@@ -301,7 +301,6 @@ public class QuestionIdExperiment {
 				macroRecall += f1.recall();
 				cnt ++;
 				
-				//System.out.println(topK + ", " + thr + ", " + labels.size());
 				/************ Print debugging info ***************/
 				// Generate questions
 				if (debugWriter != null) {
@@ -335,16 +334,20 @@ public class QuestionIdExperiment {
 						continue;
 					}					
 					try {
-						qgenWriter.write(sent.sentence.getTokensString() + "\n");
-						qgenWriter.write(sent.sentence.getTokenString(pid) + "\n");
+						qgenWriter.write(sent.sentence.sentenceID + "\t" + sent.sentence.getTokensString() + "\n");
+						qgenWriter.write(pid + "\t" + sent.sentence.getTokenString(pid) + "\n");
+						/*
 						qgenWriter.write("=========== annotated ==============\n");
 						for (QAPair qa : sent.qaLists.get(pid)) {
 							qgenWriter.write(qa.getQuestionString() + "\t" +
 									qa.getAnswerString() + "\n");
 						}
-						qgenWriter.write("=========== generated ==============\n");
+												qgenWriter.write("=========== generated ==============\n");
+						*/
 						for (String[] question : questions) {
-							qgenWriter.write(StrUtils.join("\t", question) + "\n");
+							String qstr = StrUtils.join("\t", question) + "?";
+							qstr = Character.toUpperCase(qstr.charAt(0)) + qstr.substring(1);
+							qgenWriter.write(qstr + "\n");
 						}
 						qgenWriter.write("\n");
 					} catch (IOException e) {
@@ -437,22 +440,24 @@ public class QuestionIdExperiment {
 		}
 		System.out.println("Best PRM:\t" + prms.get(bestPrmId));
 		System.out.println("Best K:\t" + bestK);
-		// TODO Print in Matlab friendly format
+		
+		/*
 		double[][][] res = exp.trainAndPredict(prms.get(bestPrmId),
 				exp.config.evalThreshold,
 				exp.config.evalTopK,
 				true,  // get precision-reall curve
 				"",
 				"");
-		/*
-		 * boolean useTopK = (exp.config.evalThreshold > 0);
+		*/
+
+		boolean useTopK = (exp.config.evalThreshold > 0);
 		double[][][] res = exp.trainAndPredict(prms.get(bestPrmId),
 				useTopK ? (1.0 * bestK / exp.config.numPRCurvePoints) : -1.0,
-				useTopK ? -1 : bestK + 1,
+				useTopK ? -1 : exp.config.evalTopK,
 				false,  // get precision-reall curve
 				"qgen-",
 				"debug-");
-		*/
+		
 		for (int j = 0; j < exp.testSets.size(); j++) {
 			QuestionIdDataset ds = exp.testSets.get(j);
 			System.out.println(String.format(
