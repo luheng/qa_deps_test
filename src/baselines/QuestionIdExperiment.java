@@ -345,8 +345,17 @@ public class QuestionIdExperiment {
 												qgenWriter.write("=========== generated ==============\n");
 						*/
 						for (String[] question : questions) {
-							String qstr = StrUtils.join("\t", question) + "?";
-							qstr = StrUtils.join("", qstr.split("\t"));
+							String qstr = "";
+							for (String s : question) {
+								if (s.trim().isEmpty()) {
+									continue;
+								}
+								if (!qstr.isEmpty()) {
+									qstr += " ";
+								}
+								qstr += s;
+							}
+							qstr += "?";
 							qstr = Character.toUpperCase(qstr.charAt(0)) + qstr.substring(1);
 							qgenWriter.write(qstr + "\n");
 						}
