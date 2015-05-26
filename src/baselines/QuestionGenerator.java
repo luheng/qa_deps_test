@@ -203,7 +203,9 @@ public class QuestionGenerator {
 		if (!slots.containsKey("W0") && !slots.containsKey("W1")) {
 			slots.put("W0", "something");
 			nslots.put("W0", "W0");
-			labels.put("W0=something", 1.0);
+			scores.put("W0", 1e-3);
+			nscores.put("W0", 1e-3);
+			labels.put("W0=something", 1e-3);
 		}
 		
 		String verb = sentence.getTokenString(propHead);
