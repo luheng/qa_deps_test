@@ -199,6 +199,12 @@ public class QuestionGenerator {
 			}
 		}
 		
+		// Question must have either a W0 or a W1
+		if (!slots.containsKey("W0") && !slots.containsKey("W1")) {
+			slots.put("W0", "something");
+			labels.put("W0=something", 1.0);
+		}
+		
 		String verb = sentence.getTokenString(propHead);
 		String[] infl = inflDict.getBestInflections(verb.toLowerCase());
 		String[][] ss = getAuxTrg(sentence, propHead);
