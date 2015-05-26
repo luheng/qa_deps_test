@@ -202,6 +202,7 @@ public class QuestionGenerator {
 		// Question must have either a W0 or a W1
 		if (!slots.containsKey("W0") && !slots.containsKey("W1")) {
 			slots.put("W0", "something");
+			nslots.put("W0", "W0");
 			labels.put("W0=something", 1.0);
 		}
 		
