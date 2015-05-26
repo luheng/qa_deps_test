@@ -312,7 +312,7 @@ public class AnswerIdExperiment {
 		/*********** Grid Search Parameters **********/
 		ArrayList<LiblinearHyperParameters> prms =
 				new ArrayList<LiblinearHyperParameters>();
-		for (double C : new double[] {0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16}) {
+		for (double C : new double[] {0.01, 0.1, 1, 10, 100}) {
 			for (double eps : new double[] {1e-3}) {
 				prms.add(new LiblinearHyperParameters(SolverType.L2R_LR, C, eps));
 			}
