@@ -220,6 +220,7 @@ public class QuestionGenerator {
 			}
 			if (bestTemp == null) {
 				System.out.println("Unable to find matching template.");
+				System.out.println(sentence.sentenceID + "\t" + propHead);
 				System.out.println(sentence.getTokensString() + "\n" + sentence.getTokenString(propHead));
 				for (String l : labels.keySet()) {
 					System.out.print(l + "\t");
