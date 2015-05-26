@@ -18,13 +18,13 @@ public class SRLCoverageValidator {
 	public boolean ignoreNominalArcs = true;
 	public boolean ignoreAmModArcs = true;
 	public boolean ignoreAmDisArcs = true;
-	public boolean ignoreAmAdvArcs = true;
+	public boolean ignoreAmAdvArcs = false;
 	public boolean ignoreAmNegArcs = true;
 	public boolean ignoreRAxArcs = true;
 
 	public boolean goldPropositionOnly = true; 
 	public boolean coreArgsOnly = false;
-	public boolean nonCoreArgsOnly = true;
+	public boolean nonCoreArgsOnly = false;
 	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.
@@ -113,7 +113,8 @@ public class SRLCoverageValidator {
 		for (AnnotatedSentence annotSent : annotatedSentences) {
 			for (int propHead : annotSent.qaLists.keySet()) {
 				for (QAPair qa : annotSent.qaLists.get(propHead)) {
-					String ql = qa.questionLabel.split("=")[0].split("_")[0];
+					//String ql = qa.questionLabel.split("=")[0].split("_")[0];
+					String ql = qa.questionWords[0].toUpperCase();
 					labelDict.addString(ql);
 				}
 			}
@@ -169,9 +170,11 @@ public class SRLCoverageValidator {
 						 s1 = new Accuracy(), s2 = new Accuracy();
 				ArrayList<QAPair> qaList = sent.qaLists.get(propId);
 				for (QAPair qa : qaList) {
-					String qlabel = qa.questionLabel.split("=")[0].split("_")[0];
-					boolean coreQA = (qlabel.equals("W0") ||
-							qlabel.equals("W1") || qlabel.equals("W2"));
+					// String qlabel = qa.questionLabel.split("=")[0].split("_")[0];
+					//boolean coreQA = (qlabel.equals("W0") ||
+					//		qlabel.equals("W1") || qlabel.equals("W2"));
+					String qlabel = qa.questionWords[0].toUpperCase();
+					boolean coreQA = (qlabel.equals("WHO") || qlabel.equals("WHAT"));
 					if (coreArgsOnly && !coreQA) {
 						continue;
 					} else if (nonCoreArgsOnly && coreQA) {
@@ -191,7 +194,8 @@ public class SRLCoverageValidator {
 							}
 							covered[a] ++;
 							matched[a] = true;
-							int goldLabelId = corpus.argModDict.lookupString(goldLabel);
+							int goldLabelId = corpus.argModDict.lookupString(
+									goldArcs[propHead][a]);
 							int qlabelId = qlabelDict.lookupString(qlabel);
 							labelMap[goldLabelId][qlabelId] ++;	
 						}

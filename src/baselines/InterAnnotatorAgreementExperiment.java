@@ -89,9 +89,18 @@ public class InterAnnotatorAgreementExperiment {
 		return tmp[tmp.length - 1].split("\\.")[0];
 	}
 	
+	private static String getQuestionLabel(QAPair qa) {
+		String qw = qa.questionWords[0].toUpperCase();
+		if (qw.equals("WHO") || qw.equals("WHAT")) {
+			qw = "WHOWHAT";
+		}
+		return qw;
+	}
+	
 	private static boolean equals(QAPair qa1, QAPair qa2) {
-		String l1 = qa1.questionLabel.split("=")[0],
-			   l2 = qa2.questionLabel.split("=")[0];
+		// String l1 = qa1.questionLabel.split("=")[0],
+		//	      l2 = qa2.questionLabel.split("=")[0];
+		String l1 = getQuestionLabel(qa1), l2 = getQuestionLabel(qa1);
 		int answerOverlap = 0;
 		for (int i = 0; i < qa1.answerFlags.length; i++) {
 			if (qa1.answerFlags[i] > 0 && qa2.answerFlags[i] > 0) {

@@ -2,10 +2,8 @@ package baselines;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,7 +13,6 @@ import config.DataConfig;
 import config.QuestionIdConfig;
 import util.StrUtils;
 import annotation.QuestionEncoder;
-import learning.KBestParseRetriever;
 import learning.QuestionIdDataset;
 import data.AnnotatedSentence;
 import data.Corpus;
