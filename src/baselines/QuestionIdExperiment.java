@@ -342,7 +342,7 @@ public class QuestionIdExperiment {
 							qgenWriter.write(qa.getQuestionString() + "\t" +
 									qa.getAnswerString() + "\n");
 						}
-												qgenWriter.write("=========== generated ==============\n");
+							qgenWriter.write("=========== generated ==============\n");
 						*/
 						for (String[] question : questions) {
 							String qstr = "";
@@ -357,7 +357,7 @@ public class QuestionIdExperiment {
 							}
 							qstr += "?";
 							qstr = Character.toUpperCase(qstr.charAt(0)) + qstr.substring(1);
-							qgenWriter.write(qstr + "\n");
+							qgenWriter.write("Q:\t" + qstr + "\n");
 						}
 						qgenWriter.write("\n");
 					} catch (IOException e) {
