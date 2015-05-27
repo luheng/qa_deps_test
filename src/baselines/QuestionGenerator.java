@@ -82,7 +82,9 @@ public class QuestionGenerator {
 			if (!nslots.containsKey(temp[i])) {
 				return -1;
 			}
-			score += nscores.get(temp[i]);
+			if (!temp[i].equals("WHERE")) {
+				score += nscores.get(temp[i]);
+			}
 		}
 		return score;
 	}
