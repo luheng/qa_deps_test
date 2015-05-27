@@ -310,6 +310,7 @@ public class QuestionIdExperiment {
 				cnt ++;
 				
 				/************ Evaluate generated questions ********/
+				/*
 				ArrayList<String[]> questions = qgen.generateQuestions(
 						sent.sentence, pid, labels);
 				F1Metric exactF1 = new F1Metric();
@@ -334,7 +335,7 @@ public class QuestionIdExperiment {
 				microExactF1.add(exactF1);
 				macroExactPrec += exactF1.precision();
 				macroExactRecall += exactF1.recall();
-				
+				*/
 				/************ Print debugging info ***************/
 				// Generate questions
 				if (debugWriter != null) {
@@ -362,6 +363,8 @@ public class QuestionIdExperiment {
 					}
 				}
 				if (qgenWriter != null) {		
+					ArrayList<String[]> questions = qgen.generateQuestions(
+							sent.sentence, pid, labels);
 					try {
 						qgenWriter.write(sent.sentence.sentenceID + "\t" + sent.sentence.getTokensString() + "\n");
 						qgenWriter.write(pid + "\t" + sent.sentence.getTokenString(pid) + "\n");
