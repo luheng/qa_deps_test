@@ -68,8 +68,9 @@ public class QuestionGenerator {
 		return aux.isEmpty() ? null : aux.split(" ");
 	}
 	
-	private static double getTemplateScore(String[] temp, String pfx,
-			HashMap<String, String> nslots, HashMap<String, Double> nscores) {
+	private static double getTemplateScore(String[] temp, int tempFreq,
+			String pfx, HashMap<String, String> nslots,
+			HashMap<String, Double> nscores) {
 		// Must match WH slot
 		if (!temp[0].equals(pfx)) {
 			return -1.0;
@@ -82,11 +83,14 @@ public class QuestionGenerator {
 			if (!nslots.containsKey(temp[i])) {
 				return -1;
 			}
+			/*
 			if (!temp[i].equals("WHERE")) {
 				score += nscores.get(temp[i]);
 			}
+			*/
 		}
-		return score;
+		//return score;
+		return tempFreq;
 	}
 	
 	private static String getLabelPrefix(String lb) {
@@ -223,7 +227,8 @@ public class QuestionGenerator {
 			for (String tempStr : tempDict.getStrings()) {
 				String[] temp = tempStr.split("\t");
 				//int freq = tempDict.getCount(tempStr);
-				double score = getTemplateScore(temp, npfx, nslots, nscores);
+				double score = getTemplateScore(temp, tempDict.getCount(tempStr),
+						npfx, nslots, nscores);
 				if (score > bestTempScore) {
 					bestTempScore = score;
 					bestTemp = tempStr.split("\t");
