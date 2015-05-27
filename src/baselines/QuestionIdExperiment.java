@@ -362,8 +362,8 @@ public class QuestionIdExperiment {
 					}
 				}
 				if (qgenWriter != null) {		
-					ArrayList<String[]> questions = qgen.generateQuestions(
-							sent.sentence, pid, labels);
+					//ArrayList<String[]> questions = qgen.generateQuestions(
+					//		sent.sentence, pid, labels);
 					try {
 						qgenWriter.write(sent.sentence.sentenceID + "\t" + sent.sentence.getTokensString() + "\n");
 						qgenWriter.write(pid + "\t" + sent.sentence.getTokenString(pid) + "\n");
