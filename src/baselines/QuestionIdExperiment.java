@@ -326,6 +326,7 @@ public class QuestionIdExperiment {
 						}
 						qstr += s;
 					}
+					qstr += "?";
 					if (exactMatch.contains(qstr.trim())) {
 						exactF1.numMatched ++;
 					}
