@@ -297,6 +297,7 @@ public class QuestionGenerator {
 				question[QASlots.PPSlotId] = ph3Key.split("_")[1];
 			}
 			questions.add(question);
+			System.out.println(bestTempScore  + "," + StrUtils.join(" ", question));
 		}
 		return questions;
 	}

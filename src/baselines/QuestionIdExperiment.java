@@ -496,7 +496,7 @@ public class QuestionIdExperiment {
 		boolean useTopK = (exp.config.evalThreshold > 0);
 		double[][][] res = exp.trainAndPredict(prms.get(bestPrmId),
 				useTopK ? (1.0 * bestK / exp.config.numPRCurvePoints) : -1.0,
-				useTopK ? -1 : bestK, //exp.config.evalTopK,
+				useTopK ? -1 : exp.config.evalTopK,
 				false,  // get precision-reall curve
 				"qgen-",
 				"debug-");
