@@ -365,14 +365,12 @@ public class QuestionIdExperiment {
 					try {
 						qgenWriter.write(sent.sentence.sentenceID + "\t" + sent.sentence.getTokensString() + "\n");
 						qgenWriter.write(pid + "\t" + sent.sentence.getTokenString(pid) + "\n");
-						/*
 						qgenWriter.write("=========== annotated ==============\n");
 						for (QAPair qa : sent.qaLists.get(pid)) {
 							qgenWriter.write(qa.getQuestionString() + "\t" +
 									qa.getAnswerString() + "\n");
 						}
 							qgenWriter.write("=========== generated ==============\n");
-						*/
 						for (String[] question : questions) {
 							String qstr = "";
 							for (String s : question) {
