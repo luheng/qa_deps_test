@@ -367,12 +367,13 @@ public class QuestionIdExperiment {
 					try {
 						qgenWriter.write(sent.sentence.sentenceID + "\t" + sent.sentence.getTokensString() + "\n");
 						qgenWriter.write(pid + "\t" + sent.sentence.getTokenString(pid) + "\n");
-						qgenWriter.write("=========== annotated ==============\n");
+						/*qgenWriter.write("=========== annotated ==============\n");
 						for (QAPair qa : sent.qaLists.get(pid)) {
 							qgenWriter.write(qa.getQuestionString() + "\t" +
 									qa.getAnswerString() + "\n");
 						}
-							qgenWriter.write("=========== generated ==============\n");
+							qgenWriter.write("=========== generated ==============\n");*/
+						int idx = 0;
 						for (String[] question : questions) {
 							String qstr = "";
 							for (String s : question) {
@@ -386,7 +387,8 @@ public class QuestionIdExperiment {
 							}
 							qstr += "?";
 							qstr = Character.toUpperCase(qstr.charAt(0)) + qstr.substring(1);
-							qgenWriter.write("Q:\t" + qstr + "\n");
+							qgenWriter.write("Q" + idx + "\t"  + qstr + "\n");
+							idx ++;
 						}
 						qgenWriter.write("\n");
 					} catch (IOException e) {

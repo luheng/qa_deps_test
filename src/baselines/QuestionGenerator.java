@@ -75,7 +75,7 @@ public class QuestionGenerator {
 		if (!temp[0].equals(pfx)) {
 			return -1.0;
 		}
-		double score = 0.0;
+		double score = tempFreq;
 		for (int i = 0; i <= 3; i++) {
 			if (temp[i].equals("_")) {
 				continue;
@@ -89,8 +89,7 @@ public class QuestionGenerator {
 			}
 			*/
 		}
-		//return score;
-		return tempFreq;
+		return score;
 	}
 	
 	private static String getLabelPrefix(String lb) {
