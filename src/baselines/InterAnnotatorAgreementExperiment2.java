@@ -176,7 +176,7 @@ public class InterAnnotatorAgreementExperiment2 {
 				new HashMap<Integer, AnnotatedSentence>();
 		String[] files = new String[numAnnotators];
 		for (int i = 0; i < numAnnotators; i++) {
-			files[i] = dataPath + "/" + inputFiles2[i];
+			files[i] = dataPath + "/" + inputFiles1[i];
 		}
 		
 		Corpus corpus = new Corpus("corpus");

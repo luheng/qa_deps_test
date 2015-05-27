@@ -262,12 +262,20 @@ public class QuestionIdExperiment {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		F1Metric microF1 = new F1Metric();
-		double macroPrec = .0, macroRecall = .0;
+		F1Metric microF1 = new F1Metric(),
+				 microExactF1 = new F1Metric();
+		double macroPrec = .0, macroRecall = .0,
+			   macroExactPrec = .0, macroExactRecall = .0;
+				
 		int cnt = 0;
 		for (AnnotatedSentence sent : ds.sentences) {
 			int sid = sent.sentence.sentenceID;
 			for (int pid : sent.qaLists.keySet()) {
+				HashSet<String> exactMatch = new HashSet<String>();
+				for (QAPair qa : sent.qaLists.get(pid)) {
+					exactMatch.add(qa.getQuestionString().trim());
+				}
+				
 				HashSet<String> gl = ds.goldLabels.get(sid).get(pid);
   			    HashSet<String> sl = slots.get(sid).get(pid);
 				HashMap<String, Double> sc = scores.get(sid).get(pid);
@@ -301,6 +309,31 @@ public class QuestionIdExperiment {
 				macroRecall += f1.recall();
 				cnt ++;
 				
+				/************ Evaluate generated questions ********/
+				ArrayList<String[]> questions = qgen.generateQuestions(
+						sent.sentence, pid, labels);
+				F1Metric exactF1 = new F1Metric();
+				exactF1.numGold = gl.size();
+				exactF1.numProposed = questions.size();
+				for (String[] question : questions) {
+					String qstr = "";
+					for (String s : question) {
+						if (s.trim().isEmpty()) {
+							continue;
+						}
+						if (!qstr.isEmpty()) {
+							qstr += " ";
+						}
+						qstr += s;
+					}
+					if (exactMatch.contains(qstr.trim())) {
+						exactF1.numMatched ++;
+					}
+				}
+				microExactF1.add(exactF1);
+				macroExactPrec += exactF1.precision();
+				macroExactRecall += exactF1.recall();
+				
 				/************ Print debugging info ***************/
 				// Generate questions
 				if (debugWriter != null) {
@@ -327,12 +360,7 @@ public class QuestionIdExperiment {
 						e.printStackTrace();
 					}
 				}
-				if (qgenWriter != null) {
-					ArrayList<String[]> questions = qgen.generateQuestions(
-							sent.sentence, pid, labels);
-					if (questions == null) {
-						continue;
-					}					
+				if (qgenWriter != null) {		
 					try {
 						qgenWriter.write(sent.sentence.sentenceID + "\t" + sent.sentence.getTokensString() + "\n");
 						qgenWriter.write(pid + "\t" + sent.sentence.getTokenString(pid) + "\n");
@@ -380,9 +408,15 @@ public class QuestionIdExperiment {
 		macroPrec /= cnt;
 		macroRecall /= cnt;
 		double macroF1 = 2 * macroPrec * macroRecall / (macroPrec + macroRecall);
+		macroExactPrec /= cnt;
+		macroExactRecall /= cnt;
+		double macroExactF1 = 2 * macroExactPrec * macroExactRecall /
+				(macroExactPrec + macroExactRecall);
 		return new double[] {
 				macroPrec, macroRecall, macroF1,
-				microF1.precision(), microF1.recall(), microF1.f1()}; 	
+				microF1.precision(), microF1.recall(), microF1.f1(),
+				macroExactPrec, macroExactRecall, macroExactF1,
+				microExactF1.precision(), microExactF1.recall(), microExactF1.f1()}; 	
 	}
 	
 	public static void main(String[] args) {
