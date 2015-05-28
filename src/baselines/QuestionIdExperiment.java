@@ -319,8 +319,8 @@ public class QuestionIdExperiment {
 				exactF1.numProposed = questions.size();
 				Collections.sort(questions, new Comparator<ScoredQuestion>(){
 				    public int compare(ScoredQuestion q1, ScoredQuestion q2) {
-				        return q1.score < q2.score ? -1 : 
-				        			(q1.score > q2.score ? 1 : 0);
+				        return q1.score > q2.score ? -1 : 
+				        			(q1.score < q2.score ? 1 : 0);
 				    }
 				});
 				for (ScoredQuestion sq : questions) {
@@ -395,7 +395,8 @@ public class QuestionIdExperiment {
 							}
 							qstr += "?";
 							qstr = Character.toUpperCase(qstr.charAt(0)) + qstr.substring(1);
-							qgenWriter.write("Q" + idx + "\t"  + sq.score + "\t" + qstr + "\n");
+							//qgenWriter.write("Q" + idx + "\t"  + sq.score + "\t" + qstr + "\n");
+							qgenWriter.write("Q" + idx + "\t" + qstr + "\n");
 							idx ++;
 						}
 						qgenWriter.write("\n");
