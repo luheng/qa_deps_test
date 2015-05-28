@@ -244,7 +244,7 @@ public class QuestionIdExperiment2 extends QuestionIdExperiment {
 						e.printStackTrace();
 					}
 				}
-				if (qgenWriter != null) {
+/*				if (qgenWriter != null) {
 					ArrayList<String[]> questions = qgen.generateQuestions(
 							sent.sentence, pid, labels);
 					if (questions == null) {
@@ -266,7 +266,7 @@ public class QuestionIdExperiment2 extends QuestionIdExperiment {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-				}
+				}*/
 			}
 		}
 		try {

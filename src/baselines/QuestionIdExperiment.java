@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import baselines.QuestionGenerator.ScoredQuestion;
 import config.DataConfig;
 import config.QuestionIdConfig;
 import util.StrUtils;
@@ -310,14 +312,20 @@ public class QuestionIdExperiment {
 				cnt ++;
 				
 				/************ Evaluate generated questions ********/
-				ArrayList<String[]> questions = qgen.generateQuestions(
+				ArrayList<ScoredQuestion> questions = qgen.generateQuestions(
 						sent.sentence, pid, labels);
 				F1Metric exactF1 = new F1Metric();
 				exactF1.numGold = gl.size();
 				exactF1.numProposed = questions.size();
-				for (String[] question : questions) {
+				Collections.sort(questions, new Comparator<ScoredQuestion>(){
+				    public int compare(ScoredQuestion q1, ScoredQuestion q2) {
+				        return q1.score < q2.score ? -1 : 
+				        			(q1.score > q2.score ? 1 : 0);
+				    }
+				});
+				for (ScoredQuestion sq : questions) {
 					String qstr = "";
-					for (String s : question) {
+					for (String s : sq.question) {
 						if (s.trim().isEmpty()) {
 							continue;
 						}
@@ -374,9 +382,9 @@ public class QuestionIdExperiment {
 						}
 							qgenWriter.write("=========== generated ==============\n");*/
 						int idx = 0;
-						for (String[] question : questions) {
+						for (ScoredQuestion sq : questions) {
 							String qstr = "";
-							for (String s : question) {
+							for (String s : sq.question) {
 								if (s.trim().isEmpty()) {
 									continue;
 								}
@@ -387,7 +395,7 @@ public class QuestionIdExperiment {
 							}
 							qstr += "?";
 							qstr = Character.toUpperCase(qstr.charAt(0)) + qstr.substring(1);
-							qgenWriter.write("Q" + idx + "\t"  + qstr + "\n");
+							qgenWriter.write("Q" + idx + "\t"  + sq.score + "\t" + qstr + "\n");
 							idx ++;
 						}
 						qgenWriter.write("\n");

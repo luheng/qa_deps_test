@@ -186,6 +186,7 @@ public class PopularityQuestionIdExperiment {
 				cnt ++;
 				
 				/************ Evaluate generated questions ********/
+				/*
 				ArrayList<String[]> questions = qgen.generateQuestions(
 						sent.sentence, pid, labels);
 				F1Metric exactF1 = new F1Metric();
@@ -210,7 +211,7 @@ public class PopularityQuestionIdExperiment {
 				microExactF1.add(exactF1);
 				macroExactPrec += exactF1.precision();
 				macroExactRecall += exactF1.recall();
-				
+				*/
 				/************ Print debugging info ***************/
 				if (debugWriter != null) {
 					try {
@@ -235,6 +236,7 @@ public class PopularityQuestionIdExperiment {
 						e.printStackTrace();
 					}
 				}
+				/*
 				if (qgenWriter != null) {					
 					try {
 						qgenWriter.write(sent.sentence.getTokensString() + "\n");
@@ -253,6 +255,7 @@ public class PopularityQuestionIdExperiment {
 						e.printStackTrace();
 					}
 				}
+				*/
 			}
 		}
 		try {

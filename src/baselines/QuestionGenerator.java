@@ -179,10 +179,10 @@ public class QuestionGenerator {
 		return ss;
 	}
 	
-	public ArrayList<String[]> generateQuestions(Sentence sentence, int propHead,
-			HashMap<String, Double> labels) {
+	public ArrayList<ScoredQuestion> generateQuestions(
+			Sentence sentence, int propHead, HashMap<String, Double> labels) {
 		assert (tempDict != null);
-		ArrayList<String[]> questions = new ArrayList<String[]>();
+		ArrayList<ScoredQuestion> questions = new ArrayList<ScoredQuestion>();
 		
 		HashMap<String, String> slots = new HashMap<String, String>();
 		HashMap<String, Double> scores = new HashMap<String, Double>();
@@ -302,9 +302,18 @@ public class QuestionGenerator {
 			} else if (ph3Key.contains("_")) {
 				question[QASlots.PPSlotId] = ph3Key.split("_")[1];
 			}
-			questions.add(question);
+			questions.add(new ScoredQuestion(question, labels.get(lb)));
 			//System.out.println(bestTempScore  + "," + StrUtils.join(" ", question));
 		}
 		return questions;
+	}
+	
+	class ScoredQuestion {
+		public String[] question;
+		public double score;
+		public ScoredQuestion(String[] question, double score) {
+			this.question = question;
+			this.score = score;
+		}
 	}
 }

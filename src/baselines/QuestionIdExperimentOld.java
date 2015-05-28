@@ -349,7 +349,7 @@ public class QuestionIdExperimentOld {
 					}
 				}
 				if (qgenWriter != null) {
-					ArrayList<String[]> questions = qgen.generateQuestions(
+				/*	ArrayList<String[]> questions = qgen.generateQuestions(
 							sent.sentence, pid, labels);
 					if (questions == null) {
 						continue;
@@ -369,7 +369,7 @@ public class QuestionIdExperimentOld {
 						qgenWriter.write("\n");
 					} catch (IOException e) {
 						e.printStackTrace();
-					}
+					}*/
 				}
 			}
 		}
