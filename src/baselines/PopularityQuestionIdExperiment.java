@@ -26,7 +26,6 @@ public class PopularityQuestionIdExperiment {
 	private QuestionIdDataset trainSet;
 	private ArrayList<QuestionIdDataset> testSets;
 	private CountDictionary labelDict, tempDict;
-	private QuestionGenerator qgen;
 	
 	private HashMap<Integer, Double> popScores;
 	private ArrayList<Double> sortedScores;
@@ -104,7 +103,6 @@ public class PopularityQuestionIdExperiment {
 				e.printStackTrace();
 			}
 		}
-		qgen = new QuestionGenerator(baseCorpus, labelDict, tempDict);
 	}
 	
 	public double[][][] predict() {
