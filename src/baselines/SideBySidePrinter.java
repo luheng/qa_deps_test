@@ -64,7 +64,7 @@ public class SideBySidePrinter {
 			writer.write("--------\n");
 			// Ouput annotations
 			ArrayList<Integer> propIds = new ArrayList<Integer>();
-			for (int propId : annotations.keySet()) {
+			for (int propId : sent.qaLists.keySet()) {
 				propIds.add(propId);
 			}
 			Collections.sort(propIds);
