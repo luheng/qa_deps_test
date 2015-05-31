@@ -23,7 +23,7 @@ public class SRLCoverageValidator {
 	public boolean ignoreRAxArcs = true;
 
 	public boolean goldPropositionOnly = true; 
-	public boolean coreArgsOnly = false;
+	public boolean coreArgsOnly = true;
 	public boolean nonCoreArgsOnly = false;
 	
 	// So if the gold argument head has a child that is contained in the answer
@@ -133,12 +133,15 @@ public class SRLCoverageValidator {
 		System.out.println(String.format("%s\tmicro:\t%.3f\tmacro: %.3f",
 				label, micro.accuracy(), macro));
 	}
+	
 	public void computeCoverage(Collection<AnnotatedSentence> annotations,
 			SRLCorpus corpus) {
 		CountDictionary qlabelDict = getQLabels(annotations);
 		int[][] labelMap = new int[corpus.argModDict.size()][qlabelDict.size()];
-		int[] goldCnt = new int[corpus.argModDict.size()];
-		Arrays.fill(goldCnt, 0);
+		int[] missedSRL = new int[corpus.argModDict.size()],
+			  missedQA = new int[qlabelDict.size()];
+		Arrays.fill(missedSRL, 0);
+		Arrays.fill(missedQA, 0);
 		for (int i = 0; i < labelMap.length; i++) {
 			Arrays.fill(labelMap[i], 0);
 		}
@@ -164,16 +167,23 @@ public class SRLCoverageValidator {
 				if (goldPropositionOnly && goldArcs[0][propHead].isEmpty()) {
 					continue;
 				}
-				int[] covered = new int[length];
+				int[] covered = new int[length],
+					  goldIds = new int[length];
 				Arrays.fill(covered, 0);
+				Arrays.fill(goldIds, -1);
+				for (int argHead = 1; argHead < length; argHead++) {
+					String goldLabel = goldArcs[propHead][argHead];
+					if (!goldLabel.isEmpty() && cont[propHead][argHead] == 0) {
+						goldIds[argHead] =
+								corpus.argModDict.lookupString(goldLabel);
+					}
+				}
 				Accuracy q1 = new Accuracy(), q2 = new Accuracy(),
 						 s1 = new Accuracy(), s2 = new Accuracy();
 				ArrayList<QAPair> qaList = sent.qaLists.get(propId);
 				for (QAPair qa : qaList) {
-					// String qlabel = qa.questionLabel.split("=")[0].split("_")[0];
-					//boolean coreQA = (qlabel.equals("W0") ||
-					//		qlabel.equals("W1") || qlabel.equals("W2"));
 					String qlabel = qa.questionWords[0].toUpperCase();
+					int qlabelId = qlabelDict.lookupString(qlabel);
 					boolean coreQA = (qlabel.equals("WHO") || qlabel.equals("WHAT"));
 					if (coreArgsOnly && !coreQA) {
 						continue;
@@ -194,10 +204,7 @@ public class SRLCoverageValidator {
 							}
 							covered[a] ++;
 							matched[a] = true;
-							int goldLabelId = corpus.argModDict.lookupString(
-									goldArcs[propHead][a]);
-							int qlabelId = qlabelDict.lookupString(qlabel);
-							labelMap[goldLabelId][qlabelId] ++;	
+							labelMap[goldIds[a]][qlabelId] ++;
 						}
 					}
 					int matchedGold = 0;
@@ -208,24 +215,26 @@ public class SRLCoverageValidator {
 					q2.numCounted ++;
 					q1.numMatched += (matchedGold == 1 ? 1 : 0);
 					q2.numMatched += (matchedGold > 0 ? 1 : 0);
-				}
-				// Count gold.
-				//int cnt = 0;
-				for (int argHead = 1; argHead < length; argHead++) {
-					String goldLabel = goldArcs[propHead][argHead];
-					if (!goldLabel.isEmpty() && cont[propHead][argHead] == 0) {
-						s1.numCounted ++;
-						s2.numCounted ++;
-						//cnt ++;
+					if (matchedGold == 0) {
+						missedQA[qlabelId] ++;
+						//if (qlabelDict.getString(qlabelId).equals("HOW MUCH")) {
+						//	System.out.println(srlSentence.toString());
+						//	System.out.println(qa.getQuestionString() + "\t" + qa.getAnswerString());
+						//}
 					}
 				}
-				//if (cnt == 0 && !goldArcs[0][propHead].isEmpty()) {
-				//	System.out.println(srlSentence.toString() + ", "
-				//			+ srlSentence.getTokenString(propHead - 1));
-				//} 
-				for (int i = 1; i < length; i++) {
-					s1.numMatched += (covered[i] == 1 ? 1 : 0);
-					s2.numMatched += (covered[i] > 0 ? 1 : 0);
+				// Count gold.
+				for (int argHead = 1; argHead < length; argHead++) {
+					if (goldIds[argHead] < 0) {
+						continue;
+					}
+					s1.numCounted ++;
+					s2.numCounted ++;
+					s1.numMatched += (covered[argHead] == 1 ? 1 : 0);
+					s2.numMatched += (covered[argHead] > 0 ? 1 : 0);
+					if (covered[argHead] == 0) {
+						++ missedSRL[goldIds[argHead]];
+					}
 				}
 				if (q1.numCounted > 0) {
 					qaCoversOneSRL.add(q1);
@@ -238,7 +247,8 @@ public class SRLCoverageValidator {
 			}
 		}
 		MatrixPrinter.prettyPrint(labelMap, corpus.argModDict, qlabelDict);
-		MatrixPrinter.prettyPrint(goldCnt, corpus.argModDict);
+		MatrixPrinter.prettyPrint(missedSRL, corpus.argModDict);
+		MatrixPrinter.prettyPrint(missedQA, qlabelDict);
 		
 		// Compute coverage numbers.
 		computeAverage("qaCoversOneSRL", qaCoversOneSRL);

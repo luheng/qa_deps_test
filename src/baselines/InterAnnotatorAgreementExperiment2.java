@@ -13,7 +13,7 @@ import data.Corpus;
 import data.CountDictionary;
 import data.QAPair;
 import data.SRLCorpus;
-import eval.Results;
+import evaluation.Results;
 import util.StrUtils;
 
 public class InterAnnotatorAgreementExperiment2 {
