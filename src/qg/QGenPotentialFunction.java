@@ -114,22 +114,24 @@ public class QGenPotentialFunction {
 			ArrayList<QGenSequence> sequences,
 			QGenFeatureExtractor featureExtractor) {
 		// Extract transition features.
-		/*
-		for (int i = 0; i < seqLength; i++) {
-			for (int s = 0; s < iterator[i][0]; s++) {
-				for (int sp = 0; sp < iterator[i][1]; sp++) {
-					for (int spp = 0; spp < iterator[i][2]; spp++) {
-						featureExtractor.extractTransitionFeatures(
-								lattice, i, s, sp, spp, true);
-					}
-				}
-			}
-		}
-		featureExtractor.freeze();
-		*/
 		int numSequences = sequences.size();
 		transitionFeatures = new FeatureVector[seqLength][];
 		emissionFeatures = new FeatureVector[numSequences][seqLength][];
+		
+		// Extract emission features.
+		for (int seq = 0; seq < numSequences; seq++) {
+			QGenSequence sequence = sequences.get(seq);
+			for (int i = 0; i < seqLength; i++) {
+				emissionFeatures[seq][i] = new FeatureVector[latticeSizes[i]];
+				for (int s = 0; s < iterator[i][0]; s++) {
+					TIntDoubleHashMap fv =
+						featureExtractor.extractEmissionFeatures(
+							sequence, lattice, i, s, true /* accept new */);
+					emissionFeatures[seq][i][s] = new FeatureVector(fv);
+				}
+			}
+		}
+		//featureExtractor.pruneFeatures();
 		// Extract transition features.
 		for (int i = 0; i < seqLength; i++) {
 			transitionFeatures[i] = new FeatureVector[cliqueSizes[i]];
@@ -145,19 +147,6 @@ public class QGenPotentialFunction {
 				}
 			}
 		}
-		// Extract emission features.
-		for (int seq = 0; seq < numSequences; seq++) {
-			QGenSequence sequence = sequences.get(seq);
-			for (int i = 0; i < seqLength; i++) {
-				emissionFeatures[seq][i] = new FeatureVector[latticeSizes[i]];
-				for (int s = 0; s < iterator[i][0]; s++) {
-					TIntDoubleHashMap fv =
-						featureExtractor.extractEmissionFeatures(
-							sequence, lattice, i, s, true /* accept new */);
-					emissionFeatures[seq][i][s] = new FeatureVector(fv);
-				}
-			}
-		}
 		int numFeatures = featureExtractor.featureDict.size();
 		System.out.println(String.format("Extracted %d features.", numFeatures));
 	}
@@ -166,13 +155,18 @@ public class QGenPotentialFunction {
 	 * For example, [0, 0, 5] , [1, 1, 10] -> (1 * 10 * 0) + (10 * 0) + 5
 	 * For example, [2, 3, 5] , [3, 5, 10] -> (5 * 10 * 2) + (10 * 3) + 5
 	 */
-	public int getCliqueId(int slotId, int[] latticeIds) {		
+	public int getCliqueId(int slotId, int[] latticeIds) {
+		/*
 		int step = 1, cliqueId = 0;
 		for (int i = slotId; i > slotId - kSequenceOrder; i--) {
 			cliqueId += step * (i < 0 ? 0 : latticeIds[i]);
 			step *= (i < 0 ? 1 : latticeSizes[i]);
 		}
-		return cliqueId;
+		*/
+		int s = latticeIds[slotId];
+		int sp = (slotId > 0 ? latticeIds[slotId - 1] : 0);
+		int spp = (slotId > 1 ? latticeIds[slotId - 2] : 0);
+		return getCliqueId(slotId, s, sp, spp);
 	}
 	
 	public int getCliqueId(int slotId, int s, int sp, int spp) {

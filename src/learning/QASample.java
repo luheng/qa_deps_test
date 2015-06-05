@@ -3,6 +3,7 @@ package learning;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import annotation.QuestionEncoder;
 import data.Sentence;
 import edu.stanford.nlp.trees.TypedDependency;
 
@@ -174,7 +175,7 @@ public class QASample implements java.io.Serializable {
 				propHead,
 				-1, /* question id */
 				qwords,
-				"",   /* question label */
+				QuestionEncoder.getLabels(qwords)[0],
 				-1,   /* question label id */
 				-1,  /* answer head */
 				kBestScores,

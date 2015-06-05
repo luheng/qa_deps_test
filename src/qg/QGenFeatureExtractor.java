@@ -135,7 +135,6 @@ public class QGenFeatureExtractor {
 		} else if (ppInSentence || ppInCommon) {
 			feats.add("PP=" + pp);
 		}
-		// TODO: add more pp features
 		return feats;
 	}
 	
@@ -146,7 +145,6 @@ public class QGenFeatureExtractor {
 		} else {
 			feats.add("PP=" + pp);
 		}
-		// TODO: add more pp features
 		return feats;
 	}
 	
@@ -165,7 +163,7 @@ public class QGenFeatureExtractor {
 		return feats;
 	}
 	
-	private static HashSet<String> getTransitionFeatures(
+	private static HashSet<String> getUnaryFeatures(
 			int slotId, String opt) {
 		switch (slotId) {
 		case 0: return getWhFeatures(opt);
@@ -175,6 +173,21 @@ public class QGenFeatureExtractor {
 		case 4: return getPhFeatures(opt, "PH2");
 		case 5: return getPPFeatures(opt);
 		case 6: return getPhFeatures(opt, "PH3");
+		default:
+			return new HashSet<String>();
+		}
+	}
+	
+	private static HashSet<String> getUnaryFeatures(
+			 Sentence sentence, int propHead, int slotId, String opt) {
+		switch (slotId) {
+		case 0: return getWhFeatures(sentence, propHead, opt);
+		case 1: return getAuxFeatures(sentence, propHead, opt);
+		case 2: return getPhFeatures(sentence, propHead, opt, "PH1");
+		case 3: return getTrgFeatures(sentence, propHead, opt);
+		case 4: return getPhFeatures(sentence, propHead, opt, "PH2");
+		case 5: return getPPFeatures(sentence, propHead, opt);
+		case 6: return getPhFeatures(sentence, propHead, opt, "PH3");
 		default:
 			return new HashSet<String>();
 		}
@@ -197,20 +210,17 @@ public class QGenFeatureExtractor {
 			boolean acceptNew) {		
 		HashSet<String> conjFeats = new HashSet<String>();
 		// TODO: add more specified conjunction features. i.e. voice(aux+trg)
-		HashSet<String> unaryFeats = getTransitionFeatures(slotId,
+		HashSet<String> unaryFeats = getUnaryFeatures(slotId,
 				lattice[slotId][s]);
 		conjFeats.addAll(unaryFeats);
 		if (slotId > 0) {
-			unaryFeats = getTransitionFeatures(slotId - 1,
-					lattice[slotId-1][sp]);
+			unaryFeats = getUnaryFeatures(slotId - 1, lattice[slotId-1][sp]);
 			makeConjunctionFeatures(unaryFeats, conjFeats);
 		}
 		if (slotId > 1) {
-			unaryFeats = getTransitionFeatures(slotId - 2,
-					lattice[slotId-2][spp]);
+			unaryFeats = getUnaryFeatures(slotId - 2, lattice[slotId-2][spp]);
 			makeConjunctionFeatures(unaryFeats, conjFeats);
 		}
-		
 		if (slotId == QASlots.TRGSlotId) {
 			// TODO...
 		}
@@ -242,33 +252,30 @@ public class QGenFeatureExtractor {
 	}
 	
 	public TIntDoubleHashMap extractEmissionFeatures(
-			QGenSequence sequence,  String[][] lattice, int i, int s,
+			QGenSequence sequence,  String[][] lattice, int slotId, int s,
 			boolean acceptNew) {
 		QASample sample = sequence.sample;
 		ArrayList<Collection<TypedDependency>> parses = sample.kBestParses;
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
-		String opt = QASlots.slotNames[i] + lattice[i][s];
 		
+		Sentence sent = sequence.sentence;
+		int propHead = sequence.propHead;
+		HashSet<String> unaryFeats = getUnaryFeatures(sent, propHead,slotId,
+				lattice[slotId][s]);
 		for (int k = 0; k < parses.size(); k++) {
 			Collection<TypedDependency> deps = parses.get(k);
 			for (TypedDependency dep : lookupChildrenByParent(deps, sample.propHead)) {
 				String relStr = dep.reln().toString();
 				String modTok = dep.gov().word();
 				String modPos = sample.postags[dep.dep().index() - 1];
-				fv.adjustOrPutValue(featureDict.addString("PCRelkb=" + relStr + "_" + opt, acceptNew), 1, 1);
-				fv.adjustOrPutValue(featureDict.addString("PCPoskb=" + modPos + "_" + opt, acceptNew), 1, 1);
-				fv.adjustOrPutValue(featureDict.addString("PCTokkb=" + modTok + "_" + opt, acceptNew), 1, 1);
-				/*
-				if (i == 0) {
-					fv.adjustOrPutValue(featureDict.addString("PCRel1kb=" + relStr + "_" + opt, acceptNew), 1, 1);
-					fv.adjustOrPutValue(featureDict.addString("PCPos1b=" + modPos + "_" + opt, acceptNew), 1, 1);
-					fv.adjustOrPutValue(featureDict.addString("PCTok1b=" + modTok + "_" + opt, acceptNew), 1, 1);
+				for (String feat : unaryFeats) {
+					fv.adjustOrPutValue(featureDict.addString("PCRelkb=" + relStr + "_" + feat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PCPoskb=" + modPos + "_" + feat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PCTokkb=" + modTok + "_" + feat, acceptNew), 1, 1);
 				}
-				*/
 			}
 		}
 		fv.adjustOrPutValue(featureDict.addString("E-BIAS", acceptNew), 1, 1);
-		
 		fv.remove(-1);
 		for (int fid : fv.keys()) {
 			fv.put(fid, 1);
@@ -276,12 +283,12 @@ public class QGenFeatureExtractor {
 		return fv;
 	}
 
-	public void freeze() {
-		featureDict = new CountDictionary(featureDict, minFeatureFreq);
-	}
-
 	public int numFeatures() {
 		return featureDict.size();
+	}
+
+	public void pruneFeatures() {
+		featureDict = new CountDictionary(featureDict, minFeatureFreq);
 	}
 
 }

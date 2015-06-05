@@ -2,12 +2,9 @@ package qg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.PriorityQueue;
 
-import learning.BeamSearch;
 import learning.QADataset;
 import learning.QASample;
-import learning.BeamSearch.Beam;
 import util.LatticeUtils;
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlots;
@@ -49,6 +46,7 @@ public class StructuredPerceptron {
 		double lr = learningRate;
 		QGenFactorGraph model = new QGenFactorGraph(potentialFunction);
 		for (int t = 0; t < maxNumIterations; t++) {
+			double error = .0;
 			for (QGenSequence seq : sequences) {
 				if (!seq.isLabeled) {
 					continue;
@@ -56,6 +54,17 @@ public class StructuredPerceptron {
 				// Find best sequence under current weights
 				model.computeScores(seq, weights, 0.0);
 				int[] decoded = model.viterbi();
+				for (int i = 0; i < seq.latticeIds.length; i++) {
+					if (seq.latticeIds[i] != decoded[i]) {
+						error ++;
+					}
+				}
+				/*
+				if (t > 50) {
+					System.out.println(StrUtils.intArrayToString("\t", seq.latticeIds));
+					System.out.println(StrUtils.intArrayToString("\t", decoded) + "\n");
+				}
+				*/
 				for (int i = 0; i < seq.cliqueIds.length; i++) {
 					potentialFunction.addToEmpirical(seq.sequenceId,
 							i, seq.cliqueIds[i], weights, lr);
@@ -67,8 +76,9 @@ public class StructuredPerceptron {
 				}
 			}
 			System.out.println(
-					String.format("Iteration::%d\tParameter norm::%f",
-							t, LatticeUtils.L2NormSquared(weights)));
+					String.format("Iteration::%d\tParameter norm::%f\tError::%f",
+							t, LatticeUtils.L2NormSquared(weights),
+							error / numTrains));
 		}
 		for (int i = 0; i < numFeatures; i++) {
 			avgWeights[i] /= (maxNumIterations * numTrains);
@@ -77,7 +87,8 @@ public class StructuredPerceptron {
 			if (!seq.isLabeled) {
 				continue;
 			}
-			System.out.println(trainSet.getSentence(seq.sequenceId).getTokensString());
+			System.out.println(seq.sentence.getTokensString());
+			System.out.println(seq.sentence.getTokenString(seq.propHead));
 			// Find best sequence under current weights
 			model.computeScores(seq, avgWeights, 0.0);
 			int[] decoded = model.viterbi();
@@ -104,6 +115,9 @@ public class StructuredPerceptron {
 		sequences = new ArrayList<QGenSequence>();
 		for (QASample sample : trainSet.samples) {
 			Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
+			if (!sample.questionLabel.startsWith("W0")) {
+				continue;
+			}
 			sequences.add(initializeSequence(sentence, sample, true));
 		}
 		numTrains = sequences.size();
@@ -114,7 +128,6 @@ public class StructuredPerceptron {
 			}
 		}
 		numSequences = sequences.size();
-		
 
 		System.out.println(String.format("Processing %d instances.",
 				numSequences));
