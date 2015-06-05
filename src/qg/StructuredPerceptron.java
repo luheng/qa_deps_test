@@ -6,6 +6,7 @@ import java.util.Arrays;
 import learning.QADataset;
 import learning.QASample;
 import util.LatticeUtils;
+import util.StrUtils;
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlots;
 import data.Corpus;
@@ -94,10 +95,11 @@ public class StructuredPerceptron {
 			//int[] decoded = model.viterbi();
 			int[][] decoded = model.kbestViterbi(5);
 			for (int k = 0; k < 5; k++) {
-				for (int i = 0; i < decoded.length; i++) {
-					System.out.print(potentialFunction.lattice[i][decoded[k][i]] + "\t");
-				}
-				System.out.println();
+				System.out.println(getQuestion(seq.sentence, seq.propHead, decoded[k]));
+				//for (int i = 0; i < decoded.length; i++) {
+				//	System.out.print(potentialFunction.lattice[i][decoded[k][i]] + "\t");
+				//}
+				//System.out.println();
 			}
 			System.out.println();
 		}
@@ -161,6 +163,42 @@ public class StructuredPerceptron {
 		}
 		return new QGenSequence(sequences.size(), sentence, sample,
 				latticeIds, cliqueIds, isLabeled);
+	}
+	
+	public String getQuestion(Sentence sent, int propHead, int[] states) {
+		String verb = sent.getTokenString(propHead).toLowerCase();
+		String[] infl = inflDict.getBestInflections(verb);
+		String qstr = "";
+		for (int i = 0; i < states.length; i++) {
+			String slot = potentialFunction.lattice[i][states[i]];
+			if (slot.isEmpty()) {
+				continue;
+			}
+			if (i == QASlots.TRGSlotId) {
+				String[] twords = slot.split(" ");
+				String tverb = twords[twords.length - 1];
+				String tpref = StrUtils.join(" ", twords, 0, twords.length - 1);
+				if (!tpref.isEmpty()) {
+					tpref += " ";
+				}
+				if (tverb.equals("do")) {
+					slot = tpref + infl[0];
+				} else if (tverb.equals("does")) {
+					slot = tpref + infl[1];
+				} else if (tverb.equals("doing")) {
+					slot = tpref + infl[2];
+				} else if (tverb.equals("did")) {
+					slot = tpref + infl[3];
+				} else {
+					slot = tpref + infl[4];
+				}
+			}
+			if (!qstr.isEmpty()) {
+				qstr += " ";
+			}
+			qstr += slot;
+		}
+		return qstr;
 	}
 	
 	private String getGenericTrg(Sentence sent, int propHead, String aux,
