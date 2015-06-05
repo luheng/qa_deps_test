@@ -115,9 +115,9 @@ public class StructuredPerceptron {
 		sequences = new ArrayList<QGenSequence>();
 		for (QASample sample : trainSet.samples) {
 			Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
-			if (!sample.questionLabel.startsWith("W0")) {
-				continue;
-			}
+			//if (!sample.questionLabel.startsWith("W0")) {
+			//	continue;
+			//}
 			sequences.add(initializeSequence(sentence, sample, true));
 		}
 		numTrains = sequences.size();

@@ -239,22 +239,23 @@ public class QGenFactorGraph {
 	
 	public int[][] kbestViterbi(int topK) {
 		double[][][] best = new double[sequenceLength + 1][][];
-		int[][][] backPtr = new int[sequenceLength + 1][][],
-				  backPtr2 = new int[sequenceLength + 1][][];
+		int[][][] ptr1 = new int[sequenceLength + 1][][],
+				  ptr2 = new int[sequenceLength + 1][][];
+		int[][] iterator = potentialFunction.iterator;
 		for (int i = 0; i <= sequenceLength; i++) {
-			int cs = (i < sequenceLength ? potentialFunction.cliqueSizes[i] : 1);
-			best[i] = new double[cs][topK];
-			backPtr[i] = new int[cs][topK];
-			backPtr2[i] = new int[cs][topK];
-			for (int c = 0; c < cs; c++) {
+			int csize = (i < sequenceLength ?
+					iterator[i][0] * iterator[i][1] : 1);
+			best[i] = new double[csize][topK];
+			ptr1[i] = new int[csize][topK];
+			ptr2[i] = new int[csize][topK];
+			for (int c = 0; c < csize; c++) {
 				Arrays.fill(best[i][c], Double.NEGATIVE_INFINITY);
 			}
 		}		
-		int[][] iterator = potentialFunction.iterator;
 		for (int s = 0; s < iterator[0][0]; s++) {
 			int cliqueId = potentialFunction.getCliqueId(0, s, 0, 0);
-			kbestUpdate(cliqueScores[0][cliqueId], cliqueId, 0, best[0][s],
-					backPtr[0][s], backPtr2[0][s]);
+			kbestUpdate(cliqueScores[0][cliqueId], -1, -1, best[0][s],
+					ptr1[0][s], ptr2[0][s]);
 		}
 		for (int i = 1; i < sequenceLength; i++) {
 			for (int s = 0; s < iterator[i][0]; s++) { 
@@ -267,7 +268,7 @@ public class QGenFactorGraph {
 							double score =
 									best[i-1][cLeft][k] + cliqueScores[i][c];
 							kbestUpdate(score, spp, k, best[i][cRight],
-									backPtr[i][cRight], backPtr2[i][cRight]);
+									ptr1[i][cRight], ptr2[i][cRight]);
 						}
 					}
 				}
@@ -275,21 +276,21 @@ public class QGenFactorGraph {
 		}
 		int[][] decoded = new int[topK][sequenceLength];
 		int n = sequenceLength - 1;
-		for (int c = 1; c < backPtr[n].length; c++) {
+		for (int c = 1; c < ptr1[n].length; c++) {
 			for (int k = 0; k < topK; k++) {
-				kbestUpdate(best[n][c][k], c, k, best[n+1][0], backPtr[n+1][0],
-						backPtr2[n+1][0]);
+				kbestUpdate(best[n][c][k], c, k, best[n+1][0], ptr1[n+1][0],
+						ptr2[n+1][0]);
 			}
 		}
 		for (int k0 = 0; k0 < topK; k0++) {
-			int cRight = backPtr[n+1][0][k0], k = k0;
+			int cRight = ptr1[n+1][0][k0], k = k0;
 			for (int i = n; i >= 0; i--) {
-				decoded[k][i] = cRight % iterator[i][0];
+				decoded[k0][i] = cRight % iterator[i][0];
 				if (i > 0) {
-					int spp = backPtr[i][cRight][k];
+					int spp = ptr1[i][cRight][k];
 					int sp = cRight / iterator[i][0];
+					k = ptr2[i][cRight][k];
 					cRight = spp * iterator[i][1] + sp;
-					k = backPtr2[i][cRight][k];
 				}
 			}
 		}
