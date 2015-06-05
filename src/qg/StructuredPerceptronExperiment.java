@@ -9,8 +9,6 @@ import util.StrUtils;
 import config.DataConfig;
 import config.QuestionIdConfig;
 import learning.KBestParseRetriever;
-import learning.QGenDataset;
-import learning.StructuredPerceptron;
 import data.Corpus;
 
 public class StructuredPerceptronExperiment {
@@ -20,6 +18,8 @@ public class StructuredPerceptronExperiment {
 	protected QGenDataset trainSet;
 	protected ArrayList<QGenDataset> testSets;
 	
+	private static final int maxNumIterations = 100;
+	private static final double learningRate = 1e-3;
 	private String getSampleFileName(QGenDataset ds) {
 		return ds.datasetName + ".qg.k" + config.kBest + ".smp";
 	}
@@ -85,7 +85,7 @@ public class StructuredPerceptronExperiment {
 	private void run() {
 		StructuredPerceptron sp = new StructuredPerceptron(baseCorpus, trainSet,
 				testSets);
-		sp.run(100, 0.01);
+		sp.run(maxNumIterations, learningRate);
 	}
 	
 	public static void main(String[] args) {

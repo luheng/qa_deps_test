@@ -1,9 +1,10 @@
-package learning;
+package qg;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+import learning.QASample;
 import annotation.QASlotPrepositions;
 import annotation.QASlots;
 import data.Corpus;

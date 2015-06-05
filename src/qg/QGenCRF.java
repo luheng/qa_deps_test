@@ -1,9 +1,11 @@
-package learning;
+package qg;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 
+import learning.BeamSearch;
+import learning.QASample;
 import learning.BeamSearch.Beam;
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlots;

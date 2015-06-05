@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 
+import qg.QGenCRF;
+import qg.QGenDataset;
 import config.DataConfig;
 import config.QuestionGenConfig;
 import learning.KBestParseRetriever;
-import learning.QGenCRF;
-import learning.QGenDataset;
 import data.Corpus;
 
 public class BaselineQuestionGenExperiment {

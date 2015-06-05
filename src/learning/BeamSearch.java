@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
+import qg.QGenFactorGraph;
+import qg.QGenPotentialFunction;
+import qg.QGenSequence;
 import annotation.QASlots;
 
 public class BeamSearch {
@@ -62,7 +65,7 @@ public class BeamSearch {
 		return topBeams;
 	}
 	
-	class Beam {
+	public class Beam {
 		public int[] ids;
 		public double loglik;
 		Beam(int[] id, double loglik) {

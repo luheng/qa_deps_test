@@ -1,4 +1,4 @@
-package learning;
+package qg;
 
 import java.util.ArrayList;
 

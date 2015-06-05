@@ -1,5 +1,8 @@
-package learning;
+package qg;
 
+import learning.KBestParseRetriever;
+import learning.QADataset;
+import learning.QASample;
 import data.AnnotatedSentence;
 import data.Corpus;
 import data.QAPair;

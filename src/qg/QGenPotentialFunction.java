@@ -1,4 +1,4 @@
-package learning;
+package qg;
 
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import learning.FeatureVector;
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlotPlaceHolders;
 import annotation.QASlotPrepositions;

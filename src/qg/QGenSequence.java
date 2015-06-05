@@ -1,5 +1,6 @@
-package learning;
+package qg;
 
+import learning.QASample;
 import data.Sentence;
 
 public class QGenSequence {

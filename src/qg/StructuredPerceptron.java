@@ -1,8 +1,11 @@
-package learning;
+package qg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import learning.QADataset;
+import learning.QASample;
+import util.LatticeUtils;
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlots;
 import data.Corpus;
@@ -54,16 +57,29 @@ public class StructuredPerceptron {
 					potentialFunction.addToEmpirical(seq.sequenceId,
 							i, seq.cliqueIds[i], weights, lr);
 					potentialFunction.addToEmpirical(seq.sequenceId,
-							i, decoded[i], weights, -lr);
+							i, decoded, weights, -lr);
 				}
 				for (int i = 0; i < numFeatures; i++) {
 					avgWeights[i] += weights[i];
 				}
+				if (t == 99) {
+					for (int i = 0; i < decoded.length; i++) {
+						System.out.print(potentialFunction.lattice[i][decoded[i]] + "\t");
+					}
+					System.out.println();
+				}
 			}
+			System.out.println(
+					String.format("Iteration::%d\tParameter norm::%f",
+							t, LatticeUtils.L2NormSquared(weights)));
 		}
 		for (int i = 0; i < numFeatures; i++) {
 			avgWeights[i] /= (maxNumIterations * numTrains);
 		}
+	}
+	
+	public void evaluate() {
+		
 	}
 	
 	private void initializeSequences() {
