@@ -77,16 +77,19 @@ public class StructuredPerceptron {
 			if (!seq.isLabeled) {
 				continue;
 			}
+			System.out.println(trainSet.getSentence(seq.sequenceId).getTokensString());
 			// Find best sequence under current weights
 			model.computeScores(seq, avgWeights, 0.0);
 			int[] decoded = model.viterbi();
-			for (int i = 0; i < decoded.length; i++) {
-				System.out.print(potentialFunction.lattice[i][decoded[i]] + "\t");
-			}
+			//int[][] decoded = model.kbestViterbi(5);
+			//for (int k = 0; k < 5; k++) {
+				for (int i = 0; i < decoded.length; i++) {
+					System.out.print(potentialFunction.lattice[i][decoded[i]] + "\t");
+				}
+				System.out.println();
+			//}
 			System.out.println();
 		}
-		
-		System.out.println();
 	}
 	
 	public void evaluate() {

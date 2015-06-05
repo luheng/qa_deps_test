@@ -225,9 +225,9 @@ public class QGenFactorGraph {
 		for ( ; idx < scores.length; idx++) {
 			if (newScore > scores[idx]) {
 				for (int j = scores.length - 1; j > idx; j--) {
-					scores[j+1] = scores[j];
-					ptr[j+1] = ptr[j];
-					ptr2[j+1] = ptr2[j];
+					scores[j] = scores[j-1];
+					ptr[j] = ptr[j-1];
+					ptr2[j] = ptr2[j-1];
 				}
 				scores[idx] = newScore;
 				ptr[idx] = newPtr;
@@ -240,20 +240,15 @@ public class QGenFactorGraph {
 		double[][][] best = new double[sequenceLength + 1][][];
 		int[][][] backPtr = new int[sequenceLength + 1][][],
 				  backPtr2 = new int[sequenceLength + 1][][];
-		int[] csizes = potentialFunction.cliqueSizes;
-		for (int i = 0; i < sequenceLength; i++) {
-			best[i] = new double[csizes[i]][topK];
-			backPtr[i] = new int[csizes[i]][topK];
-			backPtr2[i] = new int[csizes[i]][topK];
-			for (int c = 0; c < csizes[i]; c++) {
+		for (int i = 0; i <= sequenceLength; i++) {
+			int cs = (i < sequenceLength ? potentialFunction.cliqueSizes[i] : 1);
+			best[i] = new double[cs][topK];
+			backPtr[i] = new int[cs][topK];
+			backPtr2[i] = new int[cs][topK];
+			for (int c = 0; c < cs; c++) {
 				Arrays.fill(best[i][c], Double.NEGATIVE_INFINITY);
 			}
-		}
-		best[sequenceLength][0] = new double[topK];
-		backPtr[sequenceLength][0] = new int[topK];
-		backPtr2[sequenceLength][0] = new int[topK];
-		Arrays.fill(best[sequenceLength][0], Double.NEGATIVE_INFINITY);
-		
+		}		
 		int[][] iterator = potentialFunction.iterator;
 		for (int s = 0; s < iterator[0][0]; s++) {
 			int cliqueId = potentialFunction.getCliqueId(0, s, 0, 0);
