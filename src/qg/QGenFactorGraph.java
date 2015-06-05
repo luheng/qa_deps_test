@@ -12,8 +12,7 @@ public class QGenFactorGraph {
 	public double[][] cliqueScores;
 	public double[][] cliqueMarginals;
 	public double[][] stateMarginals;
-	public double[][] alpha, beta, best;
-	public int[][] backPtr;
+	public double[][] alpha, beta;
 	public int[][][] prev;
 	public int[] decode;
 	public double logNorm;
@@ -28,8 +27,7 @@ public class QGenFactorGraph {
 		stateMarginals = new double[sequenceLength][];
 		alpha = new double[sequenceLength][];
 		beta = new double[sequenceLength][];
-		best = new double[sequenceLength][];
-		backPtr = new int[sequenceLength][];		
+		
 		int[] csizes = potentialFunction.cliqueSizes;
 		int[] lsizes = potentialFunction.latticeSizes;
 		for (int i = 0; i < sequenceLength; i++) {
@@ -37,8 +35,6 @@ public class QGenFactorGraph {
 			cliqueMarginals[i] = new double[csizes[i]];
 			alpha[i] = new double[csizes[i]];
 			beta[i] = new double[csizes[i]];
-			best[i] = new double[csizes[i]];
-			backPtr[i] = new int[csizes[i]];
 			stateMarginals[i] = new double[lsizes[i]];
 		}
 		dp = new double[maxCliqueSize];
@@ -173,7 +169,14 @@ public class QGenFactorGraph {
 		}
 	}
 	
-	public int[] viterbiDecode() {
+	public int[] viterbi() {
+		double[][] best = new double[sequenceLength][];
+		int[][] backPtr = new int[sequenceLength][];
+		int[] csizes = potentialFunction.cliqueSizes;
+		for (int i = 0; i < sequenceLength; i++) {
+			best[i] = new double[csizes[i]];
+			backPtr[i] = new int[csizes[i]];
+		}
 		int[][] iterator = potentialFunction.iterator;
 		for (int i = 0; i < sequenceLength; i++) {
 			Arrays.fill(best[i], Double.NEGATIVE_INFINITY);
@@ -189,8 +192,8 @@ public class QGenFactorGraph {
 					for (int spp = 0; spp < iterator[i][2]; spp++) {
 						int cLeft = spp * iterator[i][1] + sp;
 						int c = cLeft * iterator[i][0] + s;
-						double score = alpha[i-1][cLeft] + cliqueScores[i][c];
-						if (score > best[i][s]) {
+						double score = best[i-1][cLeft] + cliqueScores[i][c];
+						if (score > best[i][cRight]) {
 							best[i][cRight] = score;
 							backPtr[i][cRight] = spp;
 						}
@@ -211,6 +214,87 @@ public class QGenFactorGraph {
 				int spp = backPtr[i][cRight];
 				int sp = cRight / iterator[i][0];
 				cRight = spp * iterator[i][1] + sp;
+			}
+		}
+		return decoded;
+	}
+	
+	private void kbestUpdate(double newScore, int newPtr, int newPtr2,
+			double[] scores, int[] ptr, int[] ptr2) {
+		int idx = 0;
+		for ( ; idx < scores.length; idx++) {
+			if (newScore > scores[idx]) {
+				for (int j = scores.length - 1; j > idx; j--) {
+					scores[j+1] = scores[j];
+					ptr[j+1] = ptr[j];
+					ptr2[j+1] = ptr2[j];
+				}
+				scores[idx] = newScore;
+				ptr[idx] = newPtr;
+				ptr2[idx] = newPtr2;
+			}
+		}
+	}
+	
+	public int[][] kbestViterbi(int topK) {
+		double[][][] best = new double[sequenceLength + 1][][];
+		int[][][] backPtr = new int[sequenceLength + 1][][],
+				  backPtr2 = new int[sequenceLength + 1][][];
+		int[] csizes = potentialFunction.cliqueSizes;
+		for (int i = 0; i < sequenceLength; i++) {
+			best[i] = new double[csizes[i]][topK];
+			backPtr[i] = new int[csizes[i]][topK];
+			backPtr2[i] = new int[csizes[i]][topK];
+			for (int c = 0; c < csizes[i]; c++) {
+				Arrays.fill(best[i][c], Double.NEGATIVE_INFINITY);
+			}
+		}
+		best[sequenceLength][0] = new double[topK];
+		backPtr[sequenceLength][0] = new int[topK];
+		backPtr2[sequenceLength][0] = new int[topK];
+		Arrays.fill(best[sequenceLength][0], Double.NEGATIVE_INFINITY);
+		
+		int[][] iterator = potentialFunction.iterator;
+		for (int s = 0; s < iterator[0][0]; s++) {
+			int cliqueId = potentialFunction.getCliqueId(0, s, 0, 0);
+			kbestUpdate(cliqueScores[0][cliqueId], cliqueId, 0, best[0][s],
+					backPtr[0][s], backPtr2[0][s]);
+		}
+		for (int i = 1; i < sequenceLength; i++) {
+			for (int s = 0; s < iterator[i][0]; s++) { 
+				for (int sp = 0; sp < iterator[i][1]; sp++) {
+					int cRight = sp * iterator[i][0] + s;
+					for (int spp = 0; spp < iterator[i][2]; spp++) {
+						int cLeft = spp * iterator[i][1] + sp;
+						int c = cLeft * iterator[i][0] + s;
+						for (int k = 0; k < topK; k++) {
+							double score =
+									best[i-1][cLeft][k] + cliqueScores[i][c];
+							kbestUpdate(score, spp, k, best[i][cRight],
+									backPtr[i][cRight], backPtr2[i][cRight]);
+						}
+					}
+				}
+			}
+		}
+		int[][] decoded = new int[topK][sequenceLength];
+		int n = sequenceLength - 1;
+		for (int c = 1; c < backPtr[n].length; c++) {
+			for (int k = 0; k < topK; k++) {
+				kbestUpdate(best[n][c][k], c, k, best[n+1][0], backPtr[n+1][0],
+						backPtr2[n+1][0]);
+			}
+		}
+		for (int k0 = 0; k0 < topK; k0++) {
+			int cRight = backPtr[n+1][0][k0], k = k0;
+			for (int i = n; i >= 0; i--) {
+				decoded[k][i] = cRight % iterator[i][0];
+				if (i > 0) {
+					int spp = backPtr[i][cRight][k];
+					int sp = cRight / iterator[i][0];
+					cRight = spp * iterator[i][1] + sp;
+					k = backPtr2[i][cRight][k];
+				}
 			}
 		}
 		return decoded;

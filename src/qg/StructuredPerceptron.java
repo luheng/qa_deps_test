@@ -2,9 +2,12 @@ package qg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.PriorityQueue;
 
+import learning.BeamSearch;
 import learning.QADataset;
 import learning.QASample;
+import learning.BeamSearch.Beam;
 import util.LatticeUtils;
 import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlots;
@@ -52,7 +55,7 @@ public class StructuredPerceptron {
 				}
 				// Find best sequence under current weights
 				model.computeScores(seq, weights, 0.0);
-				int[] decoded = model.viterbiDecode();
+				int[] decoded = model.viterbi();
 				for (int i = 0; i < seq.cliqueIds.length; i++) {
 					potentialFunction.addToEmpirical(seq.sequenceId,
 							i, seq.cliqueIds[i], weights, lr);
@@ -62,12 +65,6 @@ public class StructuredPerceptron {
 				for (int i = 0; i < numFeatures; i++) {
 					avgWeights[i] += weights[i];
 				}
-				if (t == 99) {
-					for (int i = 0; i < decoded.length; i++) {
-						System.out.print(potentialFunction.lattice[i][decoded[i]] + "\t");
-					}
-					System.out.println();
-				}
 			}
 			System.out.println(
 					String.format("Iteration::%d\tParameter norm::%f",
@@ -76,6 +73,20 @@ public class StructuredPerceptron {
 		for (int i = 0; i < numFeatures; i++) {
 			avgWeights[i] /= (maxNumIterations * numTrains);
 		}
+		for (QGenSequence seq : sequences) {
+			if (!seq.isLabeled) {
+				continue;
+			}
+			// Find best sequence under current weights
+			model.computeScores(seq, avgWeights, 0.0);
+			int[] decoded = model.viterbi();
+			for (int i = 0; i < decoded.length; i++) {
+				System.out.print(potentialFunction.lattice[i][decoded[i]] + "\t");
+			}
+			System.out.println();
+		}
+		
+		System.out.println();
 	}
 	
 	public void evaluate() {
