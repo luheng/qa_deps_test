@@ -279,4 +279,8 @@ public class QGenFeatureExtractor {
 		featureDict = new CountDictionary(featureDict, minFeatureFreq);
 	}
 
+	public int numFeatures() {
+		return featureDict.size();
+	}
+
 }

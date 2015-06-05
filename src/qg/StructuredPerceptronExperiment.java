@@ -10,6 +10,7 @@ import config.DataConfig;
 import config.QuestionIdConfig;
 import learning.KBestParseRetriever;
 import learning.QGenDataset;
+import learning.StructuredPerceptron;
 import data.Corpus;
 
 public class StructuredPerceptronExperiment {
@@ -82,7 +83,9 @@ public class StructuredPerceptronExperiment {
 	}
 	
 	private void run() {
-		
+		StructuredPerceptron sp = new StructuredPerceptron(baseCorpus, trainSet,
+				testSets);
+		sp.run(100, 0.01);
 	}
 	
 	public static void main(String[] args) {

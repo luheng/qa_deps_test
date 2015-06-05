@@ -1,5 +1,7 @@
 package learning;
 
+import java.util.Arrays;
+
 import annotation.QASlots;
 import util.LatticeHelper;
 
@@ -11,6 +13,7 @@ public class QGenFactorGraph {
 	public double[][] cliqueMarginals;
 	public double[][] stateMarginals;
 	public double[][] alpha, beta, best;
+	public int[][] backPtr;
 	public int[][][] prev;
 	public int[] decode;
 	public double logNorm;
@@ -25,6 +28,8 @@ public class QGenFactorGraph {
 		stateMarginals = new double[sequenceLength][];
 		alpha = new double[sequenceLength][];
 		beta = new double[sequenceLength][];
+		best = new double[sequenceLength][];
+		backPtr = new int[sequenceLength][];		
 		int[] csizes = potentialFunction.cliqueSizes;
 		int[] lsizes = potentialFunction.latticeSizes;
 		for (int i = 0; i < sequenceLength; i++) {
@@ -32,6 +37,8 @@ public class QGenFactorGraph {
 			cliqueMarginals[i] = new double[csizes[i]];
 			alpha[i] = new double[csizes[i]];
 			beta[i] = new double[csizes[i]];
+			best[i] = new double[csizes[i]];
+			backPtr[i] = new int[csizes[i]];
 			stateMarginals[i] = new double[lsizes[i]];
 		}
 		dp = new double[maxCliqueSize];
@@ -164,6 +171,49 @@ public class QGenFactorGraph {
 				}
 			}
 		}
+	}
+	
+	public int[] viterbiDecode() {
+		int[][] iterator = potentialFunction.iterator;
+		for (int i = 0; i < sequenceLength; i++) {
+			Arrays.fill(best[i], Double.NEGATIVE_INFINITY);
+		}
+		for (int s = 0; s < iterator[0][0]; s++) {
+			int cliqueId = potentialFunction.getCliqueId(0, s, 0, 0);
+			best[0][s] = cliqueScores[0][cliqueId];
+		}
+		for (int i = 1; i < sequenceLength; i++) {
+			for (int s = 0; s < iterator[i][0]; s++) { 
+				for (int sp = 0; sp < iterator[i][1]; sp++) {
+					int cRight = sp * iterator[i][0] + s;
+					for (int spp = 0; spp < iterator[i][2]; spp++) {
+						int cLeft = spp * iterator[i][1] + sp;
+						int c = cLeft * iterator[i][0] + s;
+						double score = alpha[i-1][cLeft] + cliqueScores[i][c];
+						if (score > best[i][s]) {
+							best[i][cRight] = score;
+							backPtr[i][cRight] = spp;
+						}
+					}
+				}
+			}
+		}
+		int[] decoded = new int[sequenceLength];
+		int n = sequenceLength - 1, cRight = 0;
+		for (int c = 1; c < backPtr[n].length; c++) {
+			if (best[n][c] > best[n][cRight]) {
+				cRight = c;
+			}
+		}
+		for (int i = n; i >= 0; i--) {
+			decoded[i] = cRight % iterator[i][0];
+			if (i > 0) {
+				int spp = backPtr[i][cRight];
+				int sp = cRight / iterator[i][0];
+				cRight = spp * iterator[i][1] + sp;
+			}
+		}
+		return decoded;
 	}
 	
 	public double decodeAndEvaluate(int[] gold) {
