@@ -23,8 +23,8 @@ public class SRLCoverageValidator {
 	public boolean ignoreRAxArcs = true;
 
 	public boolean goldPropositionOnly = true; 
-	public boolean coreArgsOnly = true;
-	public boolean nonCoreArgsOnly = false;
+	public boolean coreArgsOnly = false;
+	public boolean nonCoreArgsOnly = true;
 	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.
@@ -57,6 +57,7 @@ public class SRLCoverageValidator {
 				if (i == 0) {
 					continue;
 				}
+				/*
 				if (nonCoreArgsOnly && !goldArcs[i][j].startsWith("AM") &&
 						!goldArcs[i][j].startsWith("C-AM")) {
 					goldArcs[i][j] = "";
@@ -65,6 +66,7 @@ public class SRLCoverageValidator {
 						 goldArcs[i][j].startsWith("C-AM"))) {
 					goldArcs[i][j] = "";
 				}
+				*/
 				if (ignoreAmModArcs && goldArcs[i][j].contains("AM-MOD")) {
 					goldArcs[i][j] = "";
 				}

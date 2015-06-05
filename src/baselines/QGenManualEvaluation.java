@@ -63,10 +63,10 @@ public class QGenManualEvaluation {
 		
 		for (int j = 0; j < 5; j++) {
 			System.out.print("prec@" + (j+1) + "\t");
-			System.out.print(1.0 * answerable[j] / verbCnt + "\t");
-			System.out.print(1.0 * grammatical[j] / verbCnt + "\t");
-			System.out.print(1.0 * understandable[j] / verbCnt + "\t");
-			System.out.print(1.0 * ndiff[j] / verbCnt + "\t");
+//			System.out.print(100.0 * answerable[j] / verbCnt / (j+1) + "\t");
+			System.out.print(100.0 * grammatical[j] / verbCnt / (j+1) + "\t");
+//			System.out.print(100.0 * understandable[j] / verbCnt / (j+1) + "\t");
+			System.out.print(100.0 * ndiff[j] / verbCnt / (j+1) + "\t");
 			System.out.println();
 		}
 	}
