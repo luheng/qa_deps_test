@@ -222,17 +222,17 @@ public class QGenFactorGraph {
 	
 	private void kbestUpdate(double newScore, int newPtr, int newPtr2,
 			double[] scores, int[] ptr, int[] ptr2) {
-		int idx = 0;
-		for ( ; idx < scores.length; idx++) {
-			if (newScore > scores[idx]) {
-				for (int j = scores.length - 1; j > idx; j--) {
+		for (int i = 0 ; i < scores.length; i++) {
+			if (newScore > scores[i]) {
+				for (int j = scores.length - 1; j > i; j--) {
 					scores[j] = scores[j-1];
 					ptr[j] = ptr[j-1];
 					ptr2[j] = ptr2[j-1];
 				}
-				scores[idx] = newScore;
-				ptr[idx] = newPtr;
-				ptr2[idx] = newPtr2;
+				scores[i] = newScore;
+				ptr[i] = newPtr;
+				ptr2[i] = newPtr2;
+				break;
 			}
 		}
 	}
