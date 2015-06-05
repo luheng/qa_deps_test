@@ -204,6 +204,21 @@ public class QGenPotentialFunction {
 		return score;
 	}
 	
+	public double computeCliqueScore(int seq, int slot, int clique,
+			double[] parameters) {
+		int state = clique % iterator[slot][0];
+		double score = .0;
+		FeatureVector tf = transitionFeatures[slot][clique],
+				      ef = emissionFeatures[seq][slot][state];
+		for (int i = 0; i < tf.length; i++) {
+			score += tf.vals[i] * parameters[tf.ids[i]];
+		}
+		for (int i = 0; i < ef.length; i++) {
+			score += ef.vals[i] * parameters[ef.ids[i]];
+		}
+		return score;
+	}
+	
 	public void addToEmpirical(int seq, int slot, int[] states,
 			double[] empirical, double marginal) {	
 		if (marginal == 0 || Double.isInfinite(marginal) ||

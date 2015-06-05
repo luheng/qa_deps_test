@@ -112,7 +112,7 @@ public class QGenCRF {
 		for (int seq = 0; seq < 1; seq++) {
 			QGenSequence sequence = sequences.get(seq); 
 			QGenFactorGraph graph = new QGenFactorGraph(potentialFunction);
-			graph.computeScores(sequence, parameters, 0);
+			graph.computeScores(sequence.sequenceId, parameters, 0);
 			BeamSearch bs = new BeamSearch(sequence, graph, potentialFunction,
 					beamSize);
 			PriorityQueue<Beam> kBest = bs.getTopK(topK);

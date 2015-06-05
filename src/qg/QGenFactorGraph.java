@@ -14,7 +14,6 @@ public class QGenFactorGraph {
 	public double[][] stateMarginals;
 	public double[][] alpha, beta;
 	public int[][][] prev;
-	public int[] decode;
 	public double logNorm;
 	private double[] dp;
 	private int sequenceLength;
@@ -38,16 +37,16 @@ public class QGenFactorGraph {
 			stateMarginals[i] = new double[lsizes[i]];
 		}
 		dp = new double[maxCliqueSize];
-		decode = new int[sequenceLength];
 	}
 	
-	public void computeScores(QGenSequence sequence, double[] parameters,
+	public void computeScores(int seqId, double[] parameters,
 			double smoothing) {
 		for (int i = 0; i < sequenceLength; i++) {
-			cliqueScores[i][sequence.cliqueIds[i]] =
-					smoothing + potentialFunction.computeCliqueScore(
-							sequence.sequenceId, i, sequence.latticeIds,
-							parameters);
+			for (int c = 0; c < potentialFunction.cliqueSizes[i]; c++) {
+				cliqueScores[i][c] =
+						smoothing + potentialFunction.computeCliqueScore(
+								seqId, i, c, parameters);
+			}
 		}
 	}
 	
@@ -155,7 +154,8 @@ public class QGenFactorGraph {
 		}
 	}
 	
-	private void decodePosterior() {
+	private int[] posterior() {
+		int[] decode = new int[sequenceLength];
 		for (int i = 0; i < sequenceLength; i++) {
 			decode[i] = 0;
 			double maxq = Double.NEGATIVE_INFINITY;
@@ -167,6 +167,7 @@ public class QGenFactorGraph {
 				}
 			}
 		}
+		return decode;
 	}
 	
 	public int[] viterbi() {
@@ -296,7 +297,7 @@ public class QGenFactorGraph {
 	}
 	
 	public double decodeAndEvaluate(int[] gold) {
-		decodePosterior();
+		int[] decode = posterior();
 		double accuracy = 0;
 		for (int i = 0; i < sequenceLength; i++) { 
 			if (gold[i] == decode[i]) ++ accuracy;
