@@ -85,17 +85,18 @@ public class StructuredPerceptron {
 			avgWeights[i] /= (maxNumIterations * numTrains);
 		}
 		for (QGenSequence seq : sequences) {
-			if (!seq.isLabeled) {
+			if (seq.isLabeled) {
 				continue;
 			}
 			System.out.println(seq.sentence.getTokensString());
 			System.out.println(seq.sentence.getTokenString(seq.propHead));
 			// Find best sequence under current weights
 			model.computeScores(seq.sequenceId, avgWeights, 0.0);
-			//int[] decoded = model.viterbi();
-			int[][] decoded = model.kbestViterbi(5);
+			int[] decoded = model.viterbi();
+			System.out.println(getQuestion(seq.sentence, seq.propHead, decoded));
+			int[][] kdecoded = model.kbestViterbi(5);
 			for (int k = 0; k < 5; k++) {
-				System.out.println(getQuestion(seq.sentence, seq.propHead, decoded[k]));
+				System.out.println(getQuestion(seq.sentence, seq.propHead, kdecoded[k]));
 				//for (int i = 0; i < decoded.length; i++) {
 				//	System.out.print(potentialFunction.lattice[i][decoded[k][i]] + "\t");
 				//}
@@ -117,9 +118,9 @@ public class StructuredPerceptron {
 		sequences = new ArrayList<QGenSequence>();
 		for (QASample sample : trainSet.samples) {
 			Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
-			//if (!sample.questionLabel.startsWith("W0")) {
-			//	continue;
-			//}
+			/*if (!sample.questionLabel.startsWith("W0")) {
+				continue;
+			}*/
 			sequences.add(initializeSequence(sentence, sample, true));
 		}
 		numTrains = sequences.size();
