@@ -284,7 +284,7 @@ public class QGenFactorGraph {
 			}
 		}
 		for (int k0 = 0; k0 < topK; k0++) {
-			System.out.println(best[n+1][0][k0]);
+			// System.out.println(best[n+1][0][k0]);
 			int cRight = ptr1[n+1][0][k0], k = ptr2[n+1][0][k0];
 			for (int i = n; i >= 0; i--) {
 				decoded[k0][i] = cRight % iterator[i][0];

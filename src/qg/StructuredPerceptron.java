@@ -29,12 +29,14 @@ public class StructuredPerceptron {
 	
 	private static final int minFeatureFreq = 5;
 	
+	
 	public StructuredPerceptron(Corpus corpus, QGenDataset trainSet,
-			ArrayList<QGenDataset> testSets) {
+			ArrayList<QGenDataset> testSets,
+			String qlabel) {
 		this.trainSet = trainSet;
 		this.testSets = testSets;
 		this.baseCorpus = corpus;
-		initializeSequences();
+		initializeSequences(qlabel);
 	}
 	
 	public void run(int maxNumIterations, double learningRate) {
@@ -92,11 +94,14 @@ public class StructuredPerceptron {
 			System.out.println(seq.sentence.getTokenString(seq.propHead));
 			// Find best sequence under current weights
 			model.computeScores(seq.sequenceId, avgWeights, 0.0);
-			int[] decoded = model.viterbi();
-			System.out.println(getQuestion(seq.sentence, seq.propHead, decoded));
+			//int[] decoded = model.viterbi();
+			//System.out.println(getQuestion(seq.sentence, seq.propHead, decoded));
+			System.out.println("*" + getQuestion(seq.sentence, seq.propHead,
+					seq.latticeIds));
 			int[][] kdecoded = model.kbestViterbi(5);
 			for (int k = 0; k < 5; k++) {
-				System.out.println(getQuestion(seq.sentence, seq.propHead, kdecoded[k]));
+				System.out.println(getQuestion(seq.sentence, seq.propHead,
+						kdecoded[k]));
 				//for (int i = 0; i < decoded.length; i++) {
 				//	System.out.print(potentialFunction.lattice[i][decoded[k][i]] + "\t");
 				//}
@@ -110,22 +115,25 @@ public class StructuredPerceptron {
 		
 	}
 	
-	private void initializeSequences() {
+	private void initializeSequences(String qlabel) {
 		featureExtractor = new QGenFeatureExtractor(baseCorpus, minFeatureFreq);
 		inflDict = ExperimentUtils.loadInflectionDictionary(baseCorpus);
 		potentialFunction = new QGenPotentialFunction();
 		
 		sequences = new ArrayList<QGenSequence>();
 		for (QASample sample : trainSet.samples) {
-			Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
-			/*if (!sample.questionLabel.startsWith("W0")) {
+			if (!qlabel.isEmpty() && !sample.questionLabel.startsWith(qlabel)) {
 				continue;
-			}*/
+			}
+			Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
 			sequences.add(initializeSequence(sentence, sample, true));
 		}
 		numTrains = sequences.size();
 		for (QADataset testSet : testSets) {
 			for (QASample sample : testSet.samples) {
+				//if (!sample.questionLabel.startsWith(qlabel)) {
+				//	continue;
+				//}
 				Sentence sentence = testSet.sentenceMap.get(sample.sentenceId);
 				sequences.add(initializeSequence(sentence, sample, false));
 			}

@@ -18,7 +18,7 @@ public class StructuredPerceptronExperiment {
 	protected QGenDataset trainSet;
 	protected ArrayList<QGenDataset> testSets;
 	
-	private static final int maxNumIterations = 100;
+	private static final int maxNumIterations = 200;
 	private static final double learningRate = 1.0;
 	
 	private String getSampleFileName(QGenDataset ds) {
@@ -85,7 +85,7 @@ public class StructuredPerceptronExperiment {
 	
 	private void run() {
 		StructuredPerceptron sp = new StructuredPerceptron(baseCorpus, trainSet,
-				testSets);
+				testSets, "");
 		sp.run(maxNumIterations, learningRate);
 	}
 	
