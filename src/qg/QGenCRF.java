@@ -1,13 +1,7 @@
 package qg;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.PriorityQueue;
 
-import learning.BeamSearch;
-import learning.QASample;
-import learning.BeamSearch.Beam;
-import annotation.QASlotAuxiliaryVerbs;
 import annotation.QASlots;
 import optimization.gradientBasedMethods.LBFGS;
 import optimization.gradientBasedMethods.Optimizer;
@@ -19,37 +13,14 @@ import optimization.stopCriteria.CompositeStopingCriteria;
 import optimization.stopCriteria.NormalizedValueDifference;
 import util.LatticeUtils;
 import data.Corpus;
-import data.Sentence;
-import data.VerbInflectionDictionary;
-import experiments.ExperimentUtils;
 
-public class QGenCRF {
-	private Corpus baseCorpus; 
-	private VerbInflectionDictionary inflDict;
-	private QGenDataset trainSet;
-	private HashMap<String, QGenDataset> testSets;
-	
-	String[][] latticeTemplate;
-	private static int minFeatureFreq = 5;
-	
-	QGenFeatureExtractor featureExtractor;
-	int[][][] latticeSizes; // instance-id, slot-id, 3
-	
-	ArrayList<QGenSequence> sequences;
-	int numSequences;
-	QGenPotentialFunction potentialFunction;
-	
-	int numFeatures;
+public class QGenCRF extends QGLearner {
 	double[] parameters;
 	double[] empiricalCounts;
 	
 	public QGenCRF(Corpus baseCorpus, QGenDataset trainSet,
-			HashMap<String, QGenDataset> testSets) {
-		this.baseCorpus = baseCorpus;
-		this.trainSet = trainSet;
-		this.testSets = testSets;
-		initializeSequences();
-		potentialFunction.extractFeatures(sequences, featureExtractor);
+			ArrayList<QGenDataset> testSets) {
+		super(baseCorpus, trainSet, testSets);
 	}
 	
 	public void run() {
@@ -107,131 +78,25 @@ public class QGenCRF {
 	}
 	
 	public void predict() {
-		final int beamSize = 1000;
 		final int topK = 10;
-		for (int seq = 0; seq < 1; seq++) {
-			QGenSequence sequence = sequences.get(seq); 
+		for (QGenSequence seq : sequences) {
+			if (seq.isLabeled) {
+				continue;
+			}
 			QGenFactorGraph graph = new QGenFactorGraph(potentialFunction);
-			graph.computeScores(sequence.sequenceId, parameters, 0);
-			BeamSearch bs = new BeamSearch(sequence, graph, potentialFunction,
-					beamSize);
-			PriorityQueue<Beam> kBest = bs.getTopK(topK);
-			for (Beam beam : kBest) {
-				System.out.print(beam.loglik + "\t");
-				for (int i = 0; i < QASlots.numSlots; i++) {
-					//System.out.println(i + ", " + beam.ids[i]);
-					int id = beam.ids[i + 2];
-					System.out.print(potentialFunction.lattice[i][id] + "\t");
-				}
-				System.out.println();
+			graph.computeScores(seq.sequenceId, parameters, 0);
+			System.out.println("*" + getQuestion(seq.sentence,
+					seq.propHead, seq.latticeIds));
+			int[][] kdecoded = graph.kbestViterbi(topK);
+			for (int k = 0; k < topK; k++) {
+				System.out.println(getQuestion(seq.sentence,
+						seq.propHead, kdecoded[k]));
+				//for (int i = 0; i < decoded.length; i++) {
+				//	System.out.print(potentialFunction.lattice[i][decoded[k][i]] + "\t");
+				//}
+				//System.out.println();
 			}
+			System.out.println();
 		}
 	}
-	
-	private void initializeSequences() {
-		featureExtractor = new QGenFeatureExtractor(baseCorpus, minFeatureFreq);
-		inflDict = ExperimentUtils.loadInflectionDictionary(baseCorpus);
-		potentialFunction = new QGenPotentialFunction();
-		
-		sequences = new ArrayList<QGenSequence>();
-		for (QASample sample : trainSet.samples) {
-			Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
-			sequences.add(initializeSequence(sentence, sample, true));
-		}
-		for (QGenDataset testSet : testSets.values()) {
-			for (QASample sample : testSet.samples) {
-				Sentence sentence = testSet.sentenceMap.get(sample.sentenceId);
-				sequences.add(initializeSequence(sentence, sample, false));
-			}
-		}
-		numSequences = sequences.size();
-		System.out.println(String.format("Processing %d instances.",
-				numSequences));
-	}
-	
-	private QGenSequence initializeSequence(Sentence sentence, QASample sample,
-			boolean isLabeled) {
-		String[][] lattice = potentialFunction.lattice;
-		String[] question = sample.question;
-		int[] latticeIds = new int[lattice.length],
-			  cliqueIds = new int[lattice.length];
-		for (int i = 0; i < lattice.length; i++) {
-			String token = question[i];
-			if (i == QASlots.TRGSlotId) {
-				token = getGenericTrg(sentence, sample.propHead,
-						question[QASlots.AUXSlotId], question[i]);
-			}
-			for (int j = 0; j < lattice[i].length; j++) {
-				if (lattice[i][j].equalsIgnoreCase(token)) {
-					latticeIds[i] = j;
-					break;
-				}
-			}
-		}
-		for (int i = 0; i < lattice.length; i++) {
-			cliqueIds[i] = potentialFunction.getCliqueId(i, latticeIds);
-		}
-		return new QGenSequence(sequences.size(), sentence, sample,
-				latticeIds, cliqueIds, isLabeled);
-	}
-	
-	private String getGenericTrg(Sentence sent, int propHead, String aux,
-			String trg) {
-		String[] twords = trg.trim().split(" ");
-		String[] infl = getInflections(sent, propHead);
-		if (twords.length > 1 && trg.endsWith("ing")) {
-			return twords.length == 2 ?
-						twords[0] + " doing" :
-						twords[0] + " " + twords[1] + " doing";
-		}
-		if (twords.length > 1) {
-			return twords.length == 2 ?
-						twords[0] + " done" :
-						twords[0] + " " + twords[1] + " done";
-		}
-		if (twords[0].equals(infl[1])) {
-			return "does";
-		}
-		if (twords[0].equals(infl[2])) {
-			return "doing";
-		}
-		if (twords[0].equals(infl[3]) && aux.isEmpty()) {
-			return "did";
-		}
-		if (twords[0].equals(infl[4]) && 
-				(QASlotAuxiliaryVerbs.beValuesSet.contains(aux) ||
-				 QASlotAuxiliaryVerbs.haveValuesSet.contains(aux))) {
-			return "done";
-		}
-		return "do";
-	}
-	
-	private String[] getInflections(Sentence sent, int propHeadId) {
-		String verb = sent.getTokenString(propHeadId).toLowerCase();
-		String verbPrefix = "";
-		if (verb.contains("-")) {
-			int idx = verb.indexOf('-');
-			verbPrefix = verb.substring(0, idx + 1);
-			verb = verb.substring(idx + 1);
-			// System.out.println(verbPrefix + ", " + verb);
-		}
-		ArrayList<Integer> inflIds = inflDict.inflMap.get(verb);
-		if (inflIds == null) {
-			return null;
-		}
-		int bestId = -1, bestCount = -1;
-		for (int i = 0; i < inflIds.size(); i++) {
-			int count = inflDict.inflCount[inflIds.get(i)];
-			if (count > bestCount) {
-				bestId = inflIds.get(i);
-				bestCount = count;
-			}
-		}
-		String[] inflections = new String[5];
-		for (int i = 0; i < 5; i++) {
-			inflections[i] = verbPrefix + inflDict.inflections.get(bestId)[i];
-		}
-		return inflections;
-	}
-
 }
