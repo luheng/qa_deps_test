@@ -4,20 +4,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+import util.FeatureUtils;
 import learning.QASample;
 import annotation.QASlotPrepositions;
 import annotation.QASlots;
 import data.Corpus;
 import data.CountDictionary;
 import data.Sentence;
+import data.UniversalPostagMap;
+import data.VerbInflectionDictionary;
 import edu.stanford.nlp.trees.TypedDependency;
+import experiments.ExperimentUtils;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
 public class QGenFeatureExtractor {
 	@SuppressWarnings("unused")
 	private Corpus corpus = null;
-	// private VerbInflectionDictionary inflDict = null;
-	// private UniversalPostagMap univDict = null;
+	private VerbInflectionDictionary inflDict = null;
+	private UniversalPostagMap univDict = null;
 	public CountDictionary featureDict = null;
 	//public final int numBestParses
 	public final int minFeatureFreq;
@@ -28,9 +32,9 @@ public class QGenFeatureExtractor {
 	public QGenFeatureExtractor(Corpus corpus, int minFeatureFreq) {
 		this.corpus = corpus;
 		this.minFeatureFreq = minFeatureFreq;
-		// inflDict = ExperimentUtils.loadInflectionDictionary(corpus);
-		// univDict = ExperimentUtils.loadPostagMap();
-		featureDict = new CountDictionary();
+		this.inflDict = ExperimentUtils.loadInflectionDictionary(corpus);
+		this.univDict = ExperimentUtils.loadPostagMap();
+		this.featureDict = new CountDictionary();
 	}
 	
 	/**
@@ -240,17 +244,6 @@ public class QGenFeatureExtractor {
 		return fv;
 	}
 	
-	private HashSet<TypedDependency> lookupChildrenByParent(
-			Collection<TypedDependency> deps, int parentId) {
-		HashSet<TypedDependency> parents = new HashSet<TypedDependency>();
-		for (TypedDependency dep : deps) {
-			if (dep.gov().index() == parentId + 1) {
-				parents.add(dep);
-			}
-		}
-		return parents;
-	}
-	
 	public TIntDoubleHashMap extractEmissionFeatures(
 			QGenSequence sequence,  String[][] lattice, int slotId, int s,
 			boolean acceptNew) {
@@ -260,22 +253,94 @@ public class QGenFeatureExtractor {
 		
 		Sentence sent = sequence.sentence;
 		int propHead = sequence.propHead;
+		String prop = sent.getTokenString(propHead).toLowerCase();
+		String[] infl = inflDict.getBestInflections(prop);
+		String plemma = infl[0];
+		String pvoice = "Aktv";
+		for (TypedDependency dep : FeatureUtils
+				.lookupChildrenByParent(sample.kBestParses.get(0), propHead)) {
+			if (dep.reln().toString().equals("auxpass")) {
+				pvoice = "Psv";
+				break;
+			}
+		}
+		
 		HashSet<String> unaryFeats = getUnaryFeatures(sent, propHead,slotId,
 				lattice[slotId][s]);
-		for (int k = 0; k < parses.size(); k++) {
-			Collection<TypedDependency> deps = parses.get(k);
-			for (TypedDependency dep : lookupChildrenByParent(deps, sample.propHead)) {
+				
+		// ***************** Proposition features ********************	
+		for (String feat : unaryFeats) {
+			fv.adjustOrPutValue(featureDict.addString("PTOK=" + prop + "#" + feat, acceptNew), 1, 1);
+			fv.adjustOrPutValue(featureDict.addString("PLEM=" + plemma + "#" + feat, acceptNew), 1, 1);
+			fv.adjustOrPutValue(featureDict.addString("PV=" + pvoice + "#" + feat, acceptNew), 1, 1);
+		}
+		
+		for (int i = 0; i < parses.size(); i++) {
+			Collection<TypedDependency> deps = sample.kBestParses.get(i);
+			// Predicate parents
+			for (TypedDependency dep : FeatureUtils.lookupParentsByChild(deps, propHead)) {
+				String relStr = dep.reln().toString();
+				String govTok = dep.gov().word();
+				for (String feat : unaryFeats) {
+					fv.adjustOrPutValue(featureDict.addString("PFUNkb=" + relStr + "#" + feat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PGOVkb=" + govTok + "#" + feat, acceptNew), 1, 1);
+				}
+			}
+			// Predicate children
+			for (TypedDependency dep : FeatureUtils.lookupChildrenByParent(deps, propHead)) {
 				String relStr = dep.reln().toString();
 				String modTok = dep.gov().word();
-				String modPos = sample.postags[dep.dep().index() - 1];
+				int modIdx = dep.dep().index() - 1;
+				String modPos = sample.postags[modIdx];
 				for (String feat : unaryFeats) {
-					fv.adjustOrPutValue(featureDict.addString("PCRelkb=" + relStr + "_" + feat, acceptNew), 1, 1);
-					fv.adjustOrPutValue(featureDict.addString("PCPoskb=" + modPos + "_" + feat, acceptNew), 1, 1);
-					fv.adjustOrPutValue(featureDict.addString("PCTokkb=" + modTok + "_" + feat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PCRelkb=" + relStr + "#" + feat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PCPoskb=" + modPos + "#" + feat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PCTokkb=" + modTok + "#" + feat, acceptNew), 1, 1);
+					if (modIdx < propHead) {
+						fv.adjustOrPutValue(featureDict.addString("LfCRelkb=" + relStr + "#PV=" + pvoice + "#" + feat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(featureDict.addString("LfCPoskb=" + modPos + "#PV=" + pvoice + "#" + feat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(featureDict.addString("LfCTokkb=" + modTok + "#PV=" + pvoice + "#" + feat, acceptNew), 1, 1);
+					} else {
+						fv.adjustOrPutValue(featureDict.addString("RtCRelkb=" + relStr + "#PV=" + pvoice + "#" + feat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(featureDict.addString("RtCPoskb=" + modPos + "#PV=" + pvoice + "#" + feat, acceptNew), 1, 1);
+						fv.adjustOrPutValue(featureDict.addString("RtCTokkb=" + modTok + "#PV=" + pvoice + "#" + feat, acceptNew), 1, 1);
+					}
 				}
 			}
 		}
-		fv.adjustOrPutValue(featureDict.addString("E-BIAS", acceptNew), 1, 1);
+		
+		// *************** Words in the sentence ****************
+		if (slotId == QASlots.PPSlotId) {
+			String pp = lattice[slotId][s];
+			for (int i = 0; i < sent.length; i++) {
+				String utag = univDict.getUnivPostag(sequence.sample.postags[i]);
+				boolean isPP = utag.equals("PRT");
+				if (!isPP) {
+					continue;
+				}
+				String ppTok = sent.getTokenString(i);
+				boolean matchPP = isPP && ppTok.equals(pp);
+				String rels = "";
+				ArrayList<TypedDependency> depPath = FeatureUtils.lookupDepPath(
+						sample.kBestParses.get(0), i, propHead);
+				rels = FeatureUtils.getRelPathString(depPath, i);
+				for (String feat : unaryFeats) {
+					fv.adjustOrPutValue(featureDict.addString("PP=" + ppTok + "#" + feat, acceptNew), 1, 1);
+					fv.adjustOrPutValue(featureDict.addString("PPRel=" + rels + "#" + feat, acceptNew), 1, 1);
+					if (matchPP) {
+						fv.adjustOrPutValue(featureDict.addString("matchPP" + "#" + feat, acceptNew), 1, 1);
+					}
+					if (isPP && i == propHead + 1) {
+						fv.adjustOrPutValue(featureDict.addString("VPP=" + ppTok + "#" + feat, acceptNew), 1, 1);
+						if (matchPP) {
+							fv.adjustOrPutValue(featureDict.addString("matchVPP" + "#" + feat, acceptNew), 1, 1);
+						}
+						
+					}
+				}
+			}
+		}
+		
 		fv.remove(-1);
 		for (int fid : fv.keys()) {
 			fv.put(fid, 1);

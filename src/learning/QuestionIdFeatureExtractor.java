@@ -110,7 +110,7 @@ public class QuestionIdFeatureExtractor extends QAFeatureExtractor {
 			String utag = univDict.getUnivPostag(postags[i]);
 			boolean isPP = utag.equals("PRT");
 			boolean matchPP = isPP && tokens[i].equals(qpp);
-			if (! isPP) {
+			if (!isPP) {
 				continue;
 			}
 			String rels = "";
