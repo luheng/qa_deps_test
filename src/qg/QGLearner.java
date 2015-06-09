@@ -2,6 +2,7 @@ package qg;
 
 import java.util.ArrayList;
 
+import config.QuestionIdConfig;
 import learning.QADataset;
 import learning.QASample;
 import util.StrUtils;
@@ -15,6 +16,7 @@ import experiments.ExperimentUtils;
 public class QGLearner {
 	protected Corpus baseCorpus;
 	protected VerbInflectionDictionary inflDict;
+	protected QuestionIdConfig config;
 	
 	public QGenDataset trainSet;
 	public ArrayList<QGenDataset> testSets;
@@ -22,27 +24,30 @@ public class QGLearner {
 	public int numFeatures, numSequences, numTrains;
 	
 	protected QGenPotentialFunction potentialFunction;
-	protected QGenFeatureExtractor featureExtractor;	
-	protected static final int minFeatureFreq = 5;
+	protected QGenFeatureExtractor featureExtractor;
 
 	public QGLearner(Corpus corpus, QGenDataset trainSet,
-			ArrayList<QGenDataset> testSets) {
+			ArrayList<QGenDataset> testSets, QuestionIdConfig config) {
 		this.trainSet = trainSet;
 		this.testSets = testSets;
 		this.baseCorpus = corpus;
+		this.config = config;
 		initializeSequences("");
 	}
 
 	public QGLearner(Corpus corpus, QGenDataset trainSet,
-			ArrayList<QGenDataset> testSets, String qlabel) {
+			ArrayList<QGenDataset> testSets, QuestionIdConfig config,
+			String qlabel) {
 		this.trainSet = trainSet;
 		this.testSets = testSets;
 		this.baseCorpus = corpus;
+		this.config = config;
 		initializeSequences(qlabel);
 	}
 	
 	protected void initializeSequences(String qlabel) {
-		featureExtractor = new QGenFeatureExtractor(baseCorpus, minFeatureFreq);
+		featureExtractor = new QGenFeatureExtractor(baseCorpus,
+				config.minFeatureFreq);
 		inflDict = ExperimentUtils.loadInflectionDictionary(baseCorpus);
 		potentialFunction = new QGenPotentialFunction();
 		
@@ -100,7 +105,6 @@ public class QGLearner {
 				latticeIds, cliqueIds, isLabeled);
 	}
 	
-
 	public String getQuestion(Sentence sent, int propHead, int[] states) {
 		String verb = sent.getTokenString(propHead).toLowerCase();
 		String[] infl = inflDict.getBestInflections(verb);

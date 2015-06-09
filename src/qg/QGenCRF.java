@@ -2,6 +2,7 @@ package qg;
 
 import java.util.ArrayList;
 
+import config.QuestionIdConfig;
 import annotation.QASlots;
 import optimization.gradientBasedMethods.LBFGS;
 import optimization.gradientBasedMethods.Optimizer;
@@ -19,18 +20,17 @@ public class QGenCRF extends QGLearner {
 	double[] empiricalCounts;
 	
 	public QGenCRF(Corpus baseCorpus, QGenDataset trainSet,
-			ArrayList<QGenDataset> testSets) {
-		super(baseCorpus, trainSet, testSets);
+			ArrayList<QGenDataset> testSets, QuestionIdConfig config) {
+		super(baseCorpus, trainSet, testSets, config);
 	}
 	
-	public void run() {
+	public void run(int maxNumIters) {
 		LineSearchMethod lineSearch;
 		CompositeStopingCriteria stopping;
 		Optimizer optimizer;
 		OptimizerStats stats;
 		double prevStepSize = 1e-4;
 		QGenCRFObjective objective;
-		int numIters = 30;
 		double stopThreshold = 1e-3;
 		double gaussianPrior = 10;
 		
@@ -58,7 +58,7 @@ public class QGenCRF extends QGLearner {
 		stopping = new CompositeStopingCriteria();
 		stopping.add(new NormalizedValueDifference(stopThreshold));
 		optimizer = new LBFGS(lineSearch, 10);
-		optimizer.setMaxIterations(numIters);
+		optimizer.setMaxIterations(maxNumIters);
 		stats = new OptimizerStats();
 		objective = new QGenCRFObjective(
 				new QGenFactorGraph(potentialFunction),
@@ -89,8 +89,8 @@ public class QGenCRF extends QGLearner {
 					seq.propHead, seq.latticeIds));
 			int[][] kdecoded = graph.kbestViterbi(topK);
 			for (int k = 0; k < topK; k++) {
-				System.out.println(getQuestion(seq.sentence,
-						seq.propHead, kdecoded[k]));
+				System.out.println(getQuestion(seq.sentence, seq.propHead,
+						kdecoded[k]));
 				//for (int i = 0; i < decoded.length; i++) {
 				//	System.out.print(potentialFunction.lattice[i][decoded[k][i]] + "\t");
 				//}

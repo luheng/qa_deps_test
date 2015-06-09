@@ -22,13 +22,8 @@ public class QGenPotentialFunction {
 	public int[][] iterator;  // slot-id, offset
 
 	private int seqLength;
-	
-	//public int[][][] featureIds;     // slot-id, clique-id 
-	//public double[][][] featureVals;
-	
 	public FeatureVector[][] transitionFeatures; // slot-id, clique-id
 	public FeatureVector[][][] emissionFeatures; // seq-id, slot-id, state-di
-	//public TIntObjectHashMap<FeatureVector>[][] emissionFeatures; // seq-id, slot-id
 	
 	public QGenPotentialFunction() {
 		initializeLattice();
@@ -110,28 +105,35 @@ public class QGenPotentialFunction {
 		return options;
 	}
 	
-	public void extractFeatures(
-			ArrayList<QGenSequence> sequences,
+	public void extractMultiSequenceFeatures(
+			ArrayList<MultiSequence> sequences,
 			QGenFeatureExtractor featureExtractor) {
 		// Extract transition features.
 		int numSequences = sequences.size();
 		transitionFeatures = new FeatureVector[seqLength][];
 		emissionFeatures = new FeatureVector[numSequences][seqLength][];
 		
-		// Extract emission features.
-		for (int seq = 0; seq < numSequences; seq++) {
-			QGenSequence sequence = sequences.get(seq);
-			for (int i = 0; i < seqLength; i++) {
-				emissionFeatures[seq][i] = new FeatureVector[latticeSizes[i]];
-				for (int s = 0; s < iterator[i][0]; s++) {
-					TIntDoubleHashMap fv =
+		// Pre-compute emission features
+		for (MultiSequence sequence : sequences) {
+			if (!sequence.isLabeled) {
+				continue;
+			}
+			for (int k = 0; k < sequence.size(); k++) {
+				for (int i = 0; i < seqLength; i++) {
+					for (int s = 0; s < iterator[i][0]; s++) {
 						featureExtractor.extractEmissionFeatures(
-							sequence, lattice, i, s, true /* accept new */);
-					emissionFeatures[seq][i][s] = new FeatureVector(fv);
+								sequence.sentence, sequence.samples.get(k),
+								lattice, i, s, true /* accept new */);
+					}
 				}
 			}
 		}
-		//featureExtractor.pruneFeatures();
+		System.out.println(String.format("Extracted %d emission features.",
+				featureExtractor.featureDict.size()));
+		featureExtractor.pruneFeatures();
+		System.out.println(String.format("%d features left after pruning.",
+				featureExtractor.featureDict.size()));
+
 		// Extract transition features.
 		for (int i = 0; i < seqLength; i++) {
 			transitionFeatures[i] = new FeatureVector[cliqueSizes[i]];
@@ -144,6 +146,83 @@ public class QGenPotentialFunction {
 								lattice, i, s, sp, spp, true /* accept new */);
 						transitionFeatures[i][cliqueId] = new FeatureVector(fv);
 					}
+				}
+			}
+		}		
+		// Extract emission features.
+		for (int seq = 0; seq < numSequences; seq++) {
+			MultiSequence sequence = sequences.get(seq);
+			for (int k = 0; k < sequence.size(); k++) {
+				for (int i = 0; i < seqLength; i++) {
+					emissionFeatures[seq][i] = new FeatureVector[latticeSizes[i]];
+					for (int s = 0; s < iterator[i][0]; s++) {
+						TIntDoubleHashMap fv =
+							featureExtractor.extractEmissionFeatures(
+								sequence.sentence, sequence.samples.get(k),
+								lattice, i, s, false /* accept new */);
+						emissionFeatures[seq][i][s] = new FeatureVector(fv);
+					}
+				}
+			}
+		}
+		int numFeatures = featureExtractor.featureDict.size();
+		System.out.println(String.format("Extracted %d features.", numFeatures));
+	}
+	
+	public void extractFeatures(
+			ArrayList<QGenSequence> sequences,
+			QGenFeatureExtractor featureExtractor) {
+		// Extract transition features.
+		int numSequences = sequences.size();
+		transitionFeatures = new FeatureVector[seqLength][];
+		emissionFeatures = new FeatureVector[numSequences][seqLength][];
+		
+		// Pre-compute emission features
+		for (int seq = 0; seq < numSequences; seq++) {
+			QGenSequence sequence = sequences.get(seq);
+			if (!sequence.isLabeled) {
+				continue;
+			}
+			for (int i = 0; i < seqLength; i++) {
+				for (int s = 0; s < iterator[i][0]; s++) {
+					featureExtractor.extractEmissionFeatures(
+							sequence.sentence, sequence.sample, lattice, i, s,
+							true /* accept new */);
+				}
+			}
+		}
+		System.out.println(String.format("Extracted %d emission features.",
+				featureExtractor.featureDict.size()));
+		featureExtractor.pruneFeatures();
+		System.out.println(String.format("%d features left after pruning.",
+				featureExtractor.featureDict.size()));
+
+		// Extract transition features.
+		for (int i = 0; i < seqLength; i++) {
+			transitionFeatures[i] = new FeatureVector[cliqueSizes[i]];
+			for (int s = 0; s < iterator[i][0]; s++) {
+				for (int sp = 0; sp < iterator[i][1]; sp++) {
+					for (int spp = 0; spp < iterator[i][2]; spp++) {
+						int cliqueId = getCliqueId(i, s, sp, spp);
+						TIntDoubleHashMap fv =
+							featureExtractor.extractTransitionFeatures(
+								lattice, i, s, sp, spp, true /* accept new */);
+						transitionFeatures[i][cliqueId] = new FeatureVector(fv);
+					}
+				}
+			}
+		}		
+		// Extract emission features.
+		for (int seq = 0; seq < numSequences; seq++) {
+			QGenSequence sequence = sequences.get(seq);
+			for (int i = 0; i < seqLength; i++) {
+				emissionFeatures[seq][i] = new FeatureVector[latticeSizes[i]];
+				for (int s = 0; s < iterator[i][0]; s++) {
+					TIntDoubleHashMap fv =
+						featureExtractor.extractEmissionFeatures(
+							sequence.sentence, sequence.sample, lattice, i, s,
+							false /* accept new */);
+					emissionFeatures[seq][i][s] = new FeatureVector(fv);
 				}
 			}
 		}

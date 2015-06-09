@@ -49,6 +49,14 @@ public class QGenFactorGraph {
 			}
 		}
 	}
+
+	public double computeLogLikelihood(int seqId, int[] cliqueIds) {
+		double logLik = 0.0;
+		for (int i = 0; i < sequenceLength; i++) {
+			logLik += cliqueScores[i][cliqueIds[i]];
+		}
+		return logLik;
+	}
 	
 	public void computeMarginals() {
 		int[][] iterator = potentialFunction.iterator;
@@ -132,15 +140,19 @@ public class QGenFactorGraph {
 		}
 	}
 	
-	public void addToEmpirical(QGenSequence sequence, int[] gold,
-			double[] empirical) {
+	public void addToEmpirical(int sequenceId, int[] gold, double[] empirical) {
+		addToEmpirical(sequenceId, gold, empirical, 1.0);
+	}
+	
+	public void addToEmpirical(int sequenceId, int[] gold, double[] empirical,
+			double weight) {
 		for (int i = 0; i < sequenceLength; i++) {
-			potentialFunction.addToEmpirical(sequence.sequenceId, i, gold,
-					empirical, 1.0);
+			potentialFunction.addToEmpirical(sequenceId, i, gold, empirical,
+					weight);
 		}
 	}
 	
-	public void addToExpectation(QGenSequence sequence, double[] empirical) {
+	public void addToExpectation(int sequenceId, double[] empirical) {
 		int[] csizes = potentialFunction.cliqueSizes;
 		for (int i = 0; i < sequenceLength; i++) {
 			for (int c = 0; c < csizes[i]; c++) {
@@ -148,8 +160,8 @@ public class QGenFactorGraph {
 					continue;
 				}
 				double marginal = Math.exp(cliqueMarginals[i][c]);
-				potentialFunction.addToEmpirical(
-					sequence.sequenceId, i, c, empirical, marginal);
+				potentialFunction.addToEmpirical(sequenceId, i, c, empirical,
+						marginal);
 			}
 		}
 	}
@@ -307,4 +319,5 @@ public class QGenFactorGraph {
 		}
 		return accuracy;
 	}
+
 }

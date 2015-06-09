@@ -3,32 +3,28 @@ package qg;
 import java.util.ArrayList;
 
 import optimization.gradientBasedMethods.Objective;
+import util.LatticeHelper;
 
-public class QGenCRFObjective extends Objective {
+public class MultiSequenceObjective extends Objective {
 	QGenFactorGraph model;
-	ArrayList<QGenSequence> sequences;
+	ArrayList<MultiSequence> sequences;
 	protected double objective, labelLikelihood, parameterRegularizer;
 	int nrFeatures;
 	int numThetaUpdates;
 	double gpSquared;
-	double[] empiricalCounts, gradientInit;
+	double[] gradientInit;
 	
-	public QGenCRFObjective(
+	public MultiSequenceObjective(
 			QGenFactorGraph model,
-			ArrayList<QGenSequence> sequences,
+			ArrayList<MultiSequence> sequences,
 			double[] parameters,
-			double[] empiricalCounts, double gaussianPrior) {
+			double gaussianPrior) {
 		this.model = model;
 		this.sequences = sequences;
 		this.nrFeatures = parameters.length;
 		this.gradient = new double[nrFeatures];		
 		this.parameters = parameters;
-		this.empiricalCounts = empiricalCounts;
 		this.gpSquared = gaussianPrior * gaussianPrior;
-		this.gradientInit = new double[parameters.length];
-		for (int i = 0; i < parameters.length; i++) {
-			gradientInit[i] = - empiricalCounts[i];
-		}
 		this.numThetaUpdates = 0;
 		setParameters(parameters);
 	}
@@ -37,18 +33,30 @@ public class QGenCRFObjective extends Objective {
 		parameterRegularizer = twoNormSquared(parameters) / (2.0 * gpSquared); 
 		labelLikelihood = 0;
 		for (int i = 0; i < gradient.length; i++) {
-			gradient[i] = gradientInit[i] + parameters[i] / gpSquared;
-			labelLikelihood -= parameters[i] * empiricalCounts[i];
+			gradient[i] = parameters[i] / gpSquared;
 		}
 		for (int seq = 0; seq < sequences.size(); seq++) {
-			QGenSequence sequence = sequences.get(seq);
+			MultiSequence sequence = sequences.get(seq);
 			if (!sequence.isLabeled) {
 				continue;
 			}
-			model.computeScores(sequence.sequenceId, parameters, 0);
+			model.computeScores(seq, parameters, 0);
 			model.computeMarginals();
-			model.addToExpectation(sequence.sequenceId, gradient);
-			labelLikelihood += model.logNorm;
+			model.addToExpectation(seq, gradient);
+			// minus labeled sum
+			int numSeqs = sequences.size();
+			double[] seqScores = new double[numSeqs];
+			for (int k = 0; k < numSeqs; k++) {
+				seqScores[k] = model.computeLogLikelihood(seq,
+						sequence.cliqueIds.get(k));
+			}
+			double logSum = LatticeHelper.logsum(seqScores, numSeqs);
+			for (int k = 0; k < numSeqs; k++) {
+				double weight = seqScores[k] - logSum;
+				model.addToEmpirical(seq, sequence.cliqueIds.get(k), gradient,
+						-weight);
+			}
+			labelLikelihood -= logSum;
 		}
 		objective = parameterRegularizer + labelLikelihood;
 		//if (updateCalls % 10 == 0) {

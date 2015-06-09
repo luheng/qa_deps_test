@@ -11,21 +11,21 @@ import config.QuestionIdConfig;
 import learning.KBestParseRetriever;
 import data.Corpus;
 
-public class StructuredPerceptronExperiment {
+public class CRFExperiment {
 	private QuestionIdConfig config;
 	private Corpus baseCorpus; 
 
 	protected QGenDataset trainSet;
 	protected ArrayList<QGenDataset> testSets;
 	
-	private static final int maxNumIterations = 200;
-	private static final double learningRate = 1.0;
+	private static final int maxNumIterations = 100;
+	//private static final double learningRate = 1.0;
 	
 	private String getSampleFileName(QGenDataset ds) {
 		return ds.datasetName + ".qg.k" + config.kBest + ".smp";
 	}
 	
-	public StructuredPerceptronExperiment() throws IOException {
+	public CRFExperiment() throws IOException {
 		config = new QuestionIdConfig();
 		baseCorpus = new Corpus("qa-exp-corpus");
 		testSets = new ArrayList<QGenDataset>();
@@ -83,15 +83,16 @@ public class StructuredPerceptronExperiment {
 	}
 	
 	private void run() {
-		StructuredPerceptron sp = new StructuredPerceptron(baseCorpus, trainSet,
-				testSets, config, "");
-		sp.run(maxNumIterations, learningRate);
+		//QGenCRF crf = new QGenCRF(baseCorpus, trainSet, testSets, config);
+		MultiSequenceCRF crf = new MultiSequenceCRF(baseCorpus, trainSet,
+				testSets, config);
+		crf.run(maxNumIterations);
 	}
 	
 	public static void main(String[] args) {
-		StructuredPerceptronExperiment exp = null;
+		CRFExperiment exp = null;
 		try {
-			exp = new StructuredPerceptronExperiment();
+			exp = new CRFExperiment();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;

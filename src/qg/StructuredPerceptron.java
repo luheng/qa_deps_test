@@ -3,6 +3,7 @@ package qg;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import config.QuestionIdConfig;
 import util.LatticeUtils;
 import data.Corpus;
 
@@ -10,8 +11,9 @@ public class StructuredPerceptron extends QGLearner {
 	public double[] weights, avgWeights;
 	
 	public StructuredPerceptron(Corpus corpus, QGenDataset trainSet,
-			ArrayList<QGenDataset> testSets, String qlabel) {
-		super(corpus, trainSet, testSets, qlabel);
+			ArrayList<QGenDataset> testSets, QuestionIdConfig config,
+			String qlabel) {
+		super(corpus, trainSet, testSets, config, qlabel);
 	}
 	
 	public void run(int maxNumIterations, double learningRate) {

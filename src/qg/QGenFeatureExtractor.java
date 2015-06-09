@@ -245,14 +245,12 @@ public class QGenFeatureExtractor {
 	}
 	
 	public TIntDoubleHashMap extractEmissionFeatures(
-			QGenSequence sequence,  String[][] lattice, int slotId, int s,
-			boolean acceptNew) {
-		QASample sample = sequence.sample;
+			Sentence sent, QASample sample, String[][] lattice, int slotId,
+			int s, boolean acceptNew) {
 		ArrayList<Collection<TypedDependency>> parses = sample.kBestParses;
 		TIntDoubleHashMap fv = new TIntDoubleHashMap();
 		
-		Sentence sent = sequence.sentence;
-		int propHead = sequence.propHead;
+		int propHead = sample.propHead;
 		String prop = sent.getTokenString(propHead).toLowerCase();
 		String[] infl = inflDict.getBestInflections(prop);
 		String plemma = infl[0];
@@ -313,7 +311,7 @@ public class QGenFeatureExtractor {
 		if (slotId == QASlots.PPSlotId) {
 			String pp = lattice[slotId][s];
 			for (int i = 0; i < sent.length; i++) {
-				String utag = univDict.getUnivPostag(sequence.sample.postags[i]);
+				String utag = univDict.getUnivPostag(sample.postags[i]);
 				boolean isPP = utag.equals("PRT");
 				if (!isPP) {
 					continue;
