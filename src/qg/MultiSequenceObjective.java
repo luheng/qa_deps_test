@@ -52,11 +52,11 @@ public class MultiSequenceObjective extends Objective {
 			}
 			double logSum = LatticeHelper.logsum(seqScores, numSeqs);
 			for (int k = 0; k < numSeqs; k++) {
-				double weight = seqScores[k] - logSum;
+				double weight = Math.exp(seqScores[k] - logSum);
 				model.addToEmpirical(seq, sequence.cliqueIds.get(k), gradient,
 						-weight);
 			}
-			labelLikelihood -= logSum;
+			labelLikelihood += model.logNorm - logSum;
 		}
 		objective = parameterRegularizer + labelLikelihood;
 		//if (updateCalls % 10 == 0) {
