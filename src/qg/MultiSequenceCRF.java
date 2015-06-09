@@ -1,5 +1,9 @@
 package qg;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -25,6 +29,8 @@ public class MultiSequenceCRF extends QGLearner {
 	
 	// Maps sentences to sequence Ids
 	private HashMap<String, Integer> sent2seq;
+	
+	private String outputPath = "multiseq_crf.log";
 	
 	public MultiSequenceCRF(Corpus corpus, QGenDataset trainSet,
 			ArrayList<QGenDataset> testSets, QuestionIdConfig config) {
@@ -63,32 +69,42 @@ public class MultiSequenceCRF extends QGLearner {
 		System.out.println("success:\t" + succeed + "\twith latest stepsize:\t"
 				+ prevStepSize);
 	
-		double obj = objective.objective;
 		System.out.println("Negative Labeled Likelihood::\t" +
 				objective.labelLikelihood);
-		System.out.println("*** Combined objective::\t" + obj);
 		
 		predict();
 	}
 	
 	public void predict() {
-		final int topK = 10;
-		for (MultiSequence seq : sequences) {
-			if (seq.isLabeled) {
-				continue;
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(
+					new File(outputPath)));
+			
+			final int topK = 10;
+			for (MultiSequence seq : sequences) {
+				if (seq.isLabeled) {
+					continue;
+				}
+				Sentence sent = seq.sentence;
+				writer.write(sent.getTokensString() + "\n");
+				writer.write(sent.getTokenString(seq.propHead) + "\n");
+				QGenFactorGraph graph = new QGenFactorGraph(potentialFunction);
+				graph.computeScores(seq.sequenceId, parameters, 0);
+				for (int[] lattice : seq.latticeIds) {
+					writer.write("*" + getQuestion(seq.sentence,
+							seq.propHead, lattice) + "\n");
+				}
+				int[][] kdecoded = graph.kbestViterbi(topK);
+				for (int k = 0; k < topK; k++) {
+					writer.write(getQuestion(seq.sentence, seq.propHead,
+							kdecoded[k]) + "\n");
+				}
+				System.out.println();
 			}
-			QGenFactorGraph graph = new QGenFactorGraph(potentialFunction);
-			graph.computeScores(seq.sequenceId, parameters, 0);
-			for (int[] lattice : seq.latticeIds) {
-				System.out.println("*" + getQuestion(seq.sentence,
-						seq.propHead, lattice));
-			}
-			int[][] kdecoded = graph.kbestViterbi(topK);
-			for (int k = 0; k < topK; k++) {
-				System.out.println(getQuestion(seq.sentence, seq.propHead,
-						kdecoded[k]));
-			}
-			System.out.println();
+			
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	

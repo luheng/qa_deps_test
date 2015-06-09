@@ -18,7 +18,7 @@ public class CRFExperiment {
 	protected QGenDataset trainSet;
 	protected ArrayList<QGenDataset> testSets;
 	
-	private static final int maxNumIterations = 100;
+	private static final int maxNumIterations = 200;
 	//private static final double learningRate = 1.0;
 	
 	private String getSampleFileName(QGenDataset ds) {
