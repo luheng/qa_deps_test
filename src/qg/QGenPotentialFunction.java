@@ -118,7 +118,7 @@ public class QGenPotentialFunction {
 			if (!sequence.isLabeled) {
 				continue;
 			}
-			for (int k = 0; k < sequence.size(); k++) {
+			for (int k = 0; k < sequence.numSequences(); k++) {
 				for (int i = 0; i < seqLength; i++) {
 					for (int s = 0; s < iterator[i][0]; s++) {
 						featureExtractor.extractEmissionFeatures(
@@ -152,7 +152,7 @@ public class QGenPotentialFunction {
 		// Extract emission features.
 		for (int seq = 0; seq < numSequences; seq++) {
 			MultiSequence sequence = sequences.get(seq);
-			for (int k = 0; k < sequence.size(); k++) {
+			for (int k = 0; k < sequence.numSequences(); k++) {
 				for (int i = 0; i < seqLength; i++) {
 					emissionFeatures[seq][i] = new FeatureVector[latticeSizes[i]];
 					for (int s = 0; s < iterator[i][0]; s++) {
@@ -268,21 +268,6 @@ public class QGenPotentialFunction {
 		return new int[] {s, sp, spp};
 	}
 	
-	public double computeCliqueScore(int seq, int slot, int[] states,
-			double[] parameters) {
-		int clique = getCliqueId(slot, states);
-		double score = .0;
-		FeatureVector tf = transitionFeatures[slot][clique],
-				      ef = emissionFeatures[seq][slot][states[slot]];
-		for (int i = 0; i < tf.length; i++) {
-			score += tf.vals[i] * parameters[tf.ids[i]];
-		}
-		for (int i = 0; i < ef.length; i++) {
-			score += ef.vals[i] * parameters[ef.ids[i]];
-		}
-		return score;
-	}
-	
 	public double computeCliqueScore(int seq, int slot, int clique,
 			double[] parameters) {
 		int state = clique % iterator[slot][0];
@@ -298,15 +283,16 @@ public class QGenPotentialFunction {
 		return score;
 	}
 	
-	public void addToEmpirical(int seq, int slot, int[] states,
+	/*
+	public void addToEmpirical(int seq, int slot, int[] cliqueIds,
 			double[] empirical, double marginal) {	
 		if (marginal == 0 || Double.isInfinite(marginal) ||
 				Double.isNaN(marginal)) {
 			return;
 		}
-		int clique = getCliqueId(slot, states);
-		FeatureVector tf = transitionFeatures[slot][clique],
-			      	  ef = emissionFeatures[seq][slot][states[slot]];
+		int stateId = cliqueIds[slot] % iterator[slot][0];
+		FeatureVector tf = transitionFeatures[slot][cliqueIds[slot]],
+			      	  ef = emissionFeatures[seq][slot][stateId];
 		for (int i = 0; i < tf.length; i++) {
 			empirical[tf.ids[i]] += marginal * tf.vals[i];
 		}
@@ -314,15 +300,16 @@ public class QGenPotentialFunction {
 			empirical[ef.ids[i]] += marginal * ef.vals[i];
 		}	
 	}
+	*/
 
-	public void addToEmpirical(int seq, int slot, int clique,
+	public void addToEmpirical(int seq, int slot, int cliqueId,
 			double[] empirical, double marginal) {
 		if (marginal == 0 || Double.isInfinite(marginal) ||
 				Double.isNaN(marginal)) {
 			return;
 		}
-		int state = clique % iterator[slot][0];
-		FeatureVector tf = transitionFeatures[slot][clique],
+		int state = cliqueId % iterator[slot][0];
+		FeatureVector tf = transitionFeatures[slot][cliqueId],
 			      	  ef = emissionFeatures[seq][slot][state];
 		for (int i = 0; i < tf.length; i++) {
 			empirical[tf.ids[i]] += marginal * tf.vals[i];

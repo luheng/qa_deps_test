@@ -24,7 +24,7 @@ public class MultiSequenceCRF extends QGLearner {
 	public ArrayList<MultiSequence> sequences;
 	
 	// Maps sentences to sequence Ids
-	private HashMap<Integer, Integer> sent2seq;
+	private HashMap<String, Integer> sent2seq;
 	
 	public MultiSequenceCRF(Corpus corpus, QGenDataset trainSet,
 			ArrayList<QGenDataset> testSets, QuestionIdConfig config) {
@@ -98,31 +98,36 @@ public class MultiSequenceCRF extends QGLearner {
 		inflDict = ExperimentUtils.loadInflectionDictionary(baseCorpus);
 		potentialFunction = new QGenPotentialFunction();
 		
-		sent2seq = new HashMap<Integer, Integer>();
+		sent2seq = new HashMap<String, Integer>();
 		sequences = new ArrayList<MultiSequence>();
 		for (QASample sample : trainSet.samples) {	
 			Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
 			int sentId = sentence.sentenceID;
-			if (!sent2seq.containsKey(sentence.sentenceID)) {
-				sent2seq.put(sentId, sequences.size());
-				sequences.add(new MultiSequence(sequences.size(), sentence,
-						sample.propHead, true /* is labeled */));
+			int propHead = sample.propHead;
+			String skey = String.format("%d_%d", sentId, propHead);
+			if (!sent2seq.containsKey(skey)) {
+				int newSeqId = sequences.size();
+				sent2seq.put(skey, newSeqId);
+				sequences.add(new MultiSequence(newSeqId, sentence, propHead,
+						true /* is labeled */));
 			}
-			addSequence(sequences.get(sent2seq.get(sentId)), sentence, sample);
+			addSequence(sequences.get(sent2seq.get(skey)), sentence, sample);
 		}
 		numTrains = sequences.size();
 		
 		for (QADataset testSet : testSets) {
 			for (QASample sample : testSet.samples) {
-				Sentence sentence = trainSet.sentenceMap.get(sample.sentenceId);
+				Sentence sentence = testSet.sentenceMap.get(sample.sentenceId);
 				int sentId = sentence.sentenceID;
-				if (!sent2seq.containsKey(sentence.sentenceID)) {
-					sent2seq.put(sentId, sequences.size());
-					sequences.add(new MultiSequence(sequences.size(), sentence,
-							sample.propHead, false /* is labeled */));
+				int propHead = sample.propHead;
+				String skey = String.format("%d_%d", sentId, propHead);
+				if (!sent2seq.containsKey(skey)) {
+					int newSeqId = sequences.size();
+					sent2seq.put(skey, newSeqId);
+					sequences.add(new MultiSequence(newSeqId, sentence,
+							propHead, false /* is labeled */));
 				}
-				addSequence(sequences.get(sent2seq.get(sentId)), sentence,
-						sample);
+				addSequence(sequences.get(sent2seq.get(skey)), sentence, sample);
 			}
 		}
 		numSequences = sequences.size();

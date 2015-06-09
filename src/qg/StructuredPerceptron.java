@@ -48,8 +48,10 @@ public class StructuredPerceptron extends QGLearner {
 				for (int i = 0; i < seq.cliqueIds.length; i++) {
 					potentialFunction.addToEmpirical(seq.sequenceId,
 							i, seq.cliqueIds[i], weights, lr);
+					// TODO: confirm here
 					potentialFunction.addToEmpirical(seq.sequenceId,
-							i, decoded, weights, -lr);
+							i, potentialFunction.getCliqueId(i, decoded),
+							weights, -lr);
 				}
 				for (int i = 0; i < numFeatures; i++) {
 					avgWeights[i] += weights[i];

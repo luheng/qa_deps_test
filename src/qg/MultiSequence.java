@@ -19,6 +19,7 @@ public class MultiSequence {
 		this.sentence = sentence;
 		this.propHead = propHead;
 		this.isLabeled  =isLabeled;
+		samples = new ArrayList<QASample>();
 		latticeIds = new ArrayList<int[]>();
 		cliqueIds = new ArrayList<int[]>();
 	}
@@ -29,7 +30,7 @@ public class MultiSequence {
 		cliqueIds.add(clique);
 	}
 
-	public int size() {
+	public int numSequences() {
 		return samples.size();
 	}
 }

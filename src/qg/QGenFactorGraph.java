@@ -139,16 +139,17 @@ public class QGenFactorGraph {
 			System.out.println("sanity check failed!");
 		}
 	}
-	
-	public void addToEmpirical(int sequenceId, int[] gold, double[] empirical) {
-		addToEmpirical(sequenceId, gold, empirical, 1.0);
+
+	public void addToEmpirical(int sequenceId, int[] cliqueIds,
+			double[] empirical) {
+		addToEmpirical(sequenceId, cliqueIds, empirical, 1.0);
 	}
 	
-	public void addToEmpirical(int sequenceId, int[] gold, double[] empirical,
-			double weight) {
+	public void addToEmpirical(int sequenceId, int[] cliqueIds,
+			double[] empirical, double weight) {
 		for (int i = 0; i < sequenceLength; i++) {
-			potentialFunction.addToEmpirical(sequenceId, i, gold, empirical,
-					weight);
+			potentialFunction.addToEmpirical(sequenceId, i, cliqueIds[i],
+					empirical, weight);
 		}
 	}
 	

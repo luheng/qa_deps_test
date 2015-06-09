@@ -46,7 +46,7 @@ public class QGenCRF extends QGLearner {
 			}
 			for (int i = 0; i < QASlots.numSlots; i++) {
 				potentialFunction.addToEmpirical(sequence.sequenceId, i,
-						sequence.latticeIds, empiricalCounts, 1.0);
+						sequence.cliqueIds[i], empiricalCounts, 1.0);
 			}
 		}
 		System.out.println("Empirical count l2norm:\t" +

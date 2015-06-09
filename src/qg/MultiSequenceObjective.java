@@ -44,7 +44,7 @@ public class MultiSequenceObjective extends Objective {
 			model.computeMarginals();
 			model.addToExpectation(seq, gradient);
 			// minus labeled sum
-			int numSeqs = sequences.size();
+			int numSeqs = sequence.numSequences();
 			double[] seqScores = new double[numSeqs];
 			for (int k = 0; k < numSeqs; k++) {
 				seqScores[k] = model.computeLogLikelihood(seq,
