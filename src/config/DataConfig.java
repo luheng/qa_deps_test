@@ -36,7 +36,6 @@ public class DataConfig {
 	}
 	
 	/**
-	 * 
 	 * @param key, i.e. "prop-train"
 	 * @return dataPath
 	 */

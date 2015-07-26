@@ -99,9 +99,7 @@ public class MultiSequenceCRF extends QGLearner {
 					writer.write(getQuestion(seq.sentence, seq.propHead,
 							kdecoded[k]) + "\n");
 				}
-				System.out.println();
 			}
-			
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
