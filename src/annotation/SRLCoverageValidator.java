@@ -23,8 +23,8 @@ public class SRLCoverageValidator {
 	public boolean ignoreRAxArcs = true;
 
 	public boolean goldPropositionOnly = true; 
-	public boolean coreArgsOnly = false;
-	public boolean nonCoreArgsOnly = true;
+	public boolean coreArgsOnly = true;
+	public boolean nonCoreArgsOnly = false;
 	
 	// So if the gold argument head has a child that is contained in the answer
 	// span, we say there is a match.

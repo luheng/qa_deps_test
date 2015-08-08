@@ -34,6 +34,14 @@ public class PropBankCoverageExperiment {
 				"odesk/raw_annotation/odesk_r15_p1_s50_sarah_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r15_p2_s50_john_fixed.xlsx",
 		};
+
+	private static String[] kAgreementInputFiles = {
+			"odesk_agreement/camera_ready/annotated/odesk_r3_s70_breanna.xlsx",
+			"odesk_agreement/camera_ready/annotated/odesk_r3_s70_donna.xlsx",
+			"odesk_agreement/camera_ready/annotated/odesk_r3_s70_john.xlsx",
+			"odesk_agreement/camera_ready/annotated/odesk_r3_s70_katie.xlsx",
+			"odesk_agreement/camera_ready/annotated/odesk_r3_s70_tracy.xlsx",
+	};
 	
 	private static void processData(String[] inputFiles, Corpus baseCorpus) {
 		HashMap<Integer, AnnotatedSentence> annotations =
@@ -58,6 +66,7 @@ public class PropBankCoverageExperiment {
 	
 	public static void main(String[] args) {
 		SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus("PROPBANK");		
-		processData(kXssfInputFiles, srlCorpus);
+		//processData(kXssfInputFiles, srlCorpus);
+		processData(kAgreementInputFiles, srlCorpus);
 	}
 }

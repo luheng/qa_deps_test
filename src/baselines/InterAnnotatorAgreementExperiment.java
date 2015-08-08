@@ -18,22 +18,31 @@ import util.StrUtils;
 public class InterAnnotatorAgreementExperiment {
 
 	private static String dataPath =
-		"/Users/luheng/versioned/qa_deps_test/odesk_agreement/annotated";
-	
+			//"/Users/luheng/versioned/qa_deps_test/odesk_agreement/annotated";
+			"/Users/luheng/versioned/qa_deps_test/odesk_agreement/camera_ready/annotated";
+
 	private static String[] inputFiles1 = {
-		"odesk_pb_r3_s30_breanna.xlsx",
-		"odesk_pb_r3_s30_ellen.xlsx",
-		"odesk_pb_r3_s30_john.xlsx",
-		"odesk_pb_r3_s30_katie.xlsx",
-		"odesk_pb_r3_s30_tracy.xlsx"
+			"odesk_pb_r3_s30_breanna.xlsx",
+			"odesk_pb_r3_s30_ellen.xlsx",
+			"odesk_pb_r3_s30_john.xlsx",
+			"odesk_pb_r3_s30_katie.xlsx",
+			"odesk_pb_r3_s30_tracy.xlsx"
 	};
-	
+
 	private static String[] inputFiles2 = {
-		"odesk_wiki1_r014_s30_breanna.xlsx",
-		"odesk_wiki1_r014_s30_ellen.xlsx",
-		"odesk_wiki1_r014_s30_john.xlsx",
-		"odesk_wiki1_r014_s30_katie.xlsx",
-		"odesk_wiki1_r014_s30_tracy.xlsx"
+			"odesk_wiki1_r014_s30_breanna.xlsx",
+			"odesk_wiki1_r014_s30_ellen.xlsx",
+			"odesk_wiki1_r014_s30_john.xlsx",
+			"odesk_wiki1_r014_s30_katie.xlsx",
+			"odesk_wiki1_r014_s30_tracy.xlsx"
+	};
+
+	private static String[] inputFiles3 = {
+			"odesk_r3_s70_breanna.xlsx",
+			"odesk_r3_s70_donna.xlsx",
+			"odesk_r3_s70_john.xlsx",
+			"odesk_r3_s70_katie.xlsx",
+			"odesk_r3_s70_tracy.xlsx"
 	};
 	
 	private static int numAnnotators = 5;
@@ -207,7 +216,7 @@ public class InterAnnotatorAgreementExperiment {
 				new HashMap<Integer, AnnotatedSentence>();
 		String[] files = new String[numAnnotators];
 		for (int i = 0; i < numAnnotators; i++) {
-			files[i] = dataPath + "/" + inputFiles2[i];
+			files[i] = dataPath + "/" + inputFiles3[i];
 		}
 		
 		WikipediaCorpus corpus = new WikipediaCorpus("corpus");

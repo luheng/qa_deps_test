@@ -37,6 +37,14 @@ public class QADataProcessor {
 				"odesk/raw_annotation/odesk_r15_p1_s50_sarah_fixed.xlsx",
 				"odesk/raw_annotation/odesk_r15_p2_s50_john_fixed.xlsx",
 		};
+
+	private static String[] kAgreementInputFiles = {
+		//	"odesk_agreement/camera_ready/annotated/odesk_r3_s70_breanna.xlsx",
+		//	"odesk_agreement/camera_ready/annotated/odesk_r3_s70_donna.xlsx",
+		//	"odesk_agreement/camera_ready/annotated/odesk_r3_s70_john.xlsx",
+		//	"odesk_agreement/camera_ready/annotated/odesk_r3_s70_katie.xlsx",
+		//	"odesk_agreement/camera_ready/annotated/odesk_r3_s70_tracy.xlsx",
+	};
 	
 	private static String[] kWikifInputFiles = {
 		"odesk_wiki/raw_annotation/odesk_wiki1_r000_katie_new.xlsx",
@@ -142,21 +150,21 @@ public class QADataProcessor {
 		System.out.println(String.format("Read %d sentences.",
 				annotations.size()));
 		if (SRLCorpus.class.isInstance(baseCorpus)) {
-			System.out.println(String.format("Validating %d sentences.",
-					annotations.size()));
+			System.out.println(String.format("Validating %d sentences.", annotations.size()));
 			SRLAnnotationValidator tester = new SRLAnnotationValidator();
-			tester.computeSRLAccuracy(annotations.values(),
-					(SRLCorpus) baseCorpus);
+			tester.computeSRLAccuracy(annotations.values(), (SRLCorpus) baseCorpus);
 			tester.ignoreLabels = true;
-			tester.computeSRLAccuracy(annotations.values(),
-					(SRLCorpus) baseCorpus);
+			tester.computeSRLAccuracy(annotations.values(), (SRLCorpus) baseCorpus);
 		}
 	}
 	
 	
 	public static void main(String[] args) {
 		SRLCorpus srlCorpus = ExperimentUtils.loadSRLCorpus("PROPBANK");		
-		processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.6, 0.2);
+		//processData(kXssfInputFiles, kOutputPathPrefix, srlCorpus, 0.6, 0.2);
+		//processData(kXssfInputFiles, "", srlCorpus, 0.6, 0.2);
+
+		processData(kAgreementInputFiles, "", srlCorpus, 0.6, 0.2);
 		
 		//WikipediaCorpus wikiCorpus = new WikipediaCorpus("WIKI1");
 		//processData(kWikifInputFiles, kWikiOutputPathPrefix, wikiCorpus, 0.6, 0.2);
