@@ -282,7 +282,7 @@ public class InterAnnotatorAgreementExperiment2 {
 			files[i] = dataPath1 + "/" + inputFiles1[i];
 		}
 		readData(files, corpus, annotations1);
-        
+
         /********* Read new data ... ************/
 		for (int i = 0; i < numAnnotators; i++) {
 			files[i] = dataPath2 + "/" + inputFiles2[i];

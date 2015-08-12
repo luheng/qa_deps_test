@@ -41,8 +41,39 @@ public class SideBySidePrinter {
 				"odesk/raw_annotation/odesk_r15_p2_s50_john_fixed.xlsx",
 		};
 	
-	private static String outputFilePath = "newswire_annotation_output.tsv";
-	
+	private static String outputFilePath = "newswire_annotation_output_2.tsv";
+
+	private static boolean worthOutput(AnnotatedSentence sent) {
+		final int minArgPropDist = 5;
+		boolean hasNonPBArgs = false, hasLongDistArg = false;
+		for (int propId : sent.qaLists.keySet()) {
+			ArrayList<QAPair> qaList = sent.qaLists.get(propId);
+			SRLSentence sentence = (SRLSentence) sent.sentence;
+			String[][] arcs = sentence.getSemanticArcs();
+			int numPBArgs = 0;
+			for (String a : arcs[propId + 1]) {
+				if (!a.isEmpty()) {
+					++ numPBArgs;
+				}
+			}
+			if (numPBArgs < qaList.size()) {
+				hasNonPBArgs = true;
+			}
+			for (QAPair qa : qaList) {
+				int minDist = sentence.length;
+				for (int i = 0; i < qa.answerFlags.length; i++) {
+					if (qa.answerFlags[i] > 0 && Math.abs(i - propId) < minDist) {
+						minDist = Math.abs(i - propId);
+					}
+				}
+				if (minDist > minArgPropDist) {
+					hasLongDistArg = true;
+				}
+			}
+		}
+		return hasNonPBArgs && hasLongDistArg;
+	}
+
 	private static void processData(String[] inputFiles, Corpus baseCorpus) 
 			throws IOException {
 		HashMap<Integer, AnnotatedSentence> annotations =
@@ -60,10 +91,15 @@ public class SideBySidePrinter {
 				new File(outputFilePath)));
 		for (AnnotatedSentence sent : annotations.values()) {
 			SRLSentence sentence = (SRLSentence) sent.sentence;
+
+			if (!worthOutput(sent)) {
+				continue;
+			}
+
 			writer.write(sentence.toString());
 			writer.write("--------\n");
-			// Ouput annotations
-			ArrayList<Integer> propIds = new ArrayList<Integer>();
+			// Output annotations
+			ArrayList<Integer> propIds = new ArrayList<>();
 			for (int propId : sent.qaLists.keySet()) {
 				propIds.add(propId);
 			}
